@@ -1,8 +1,8 @@
 #pragma once
 
-#include <VRPG/Win/Common.h>
+#include <VRPG/Base/Common.h>
 
-VRPG_WIN_BEGIN
+VRPG_BASE_BEGIN
 
 using KeyCode = int32_t;
 
@@ -122,4 +122,4 @@ constexpr KeyCode KEY_MAX = 346;
 
 KeyCode VK2KeyCode(int VK) noexcept;
 
-VRPG_WIN_END
+VRPG_BASE_END

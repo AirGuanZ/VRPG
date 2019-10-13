@@ -1,9 +1,9 @@
 #include <agz/utility/misc.h>
 #include <agz/utility/system.h>
 
-#include <VRPG/Win/D3DInit.h>
+#include <VRPG/Base/D3D/D3DInit.h>
 
-VRPG_WIN_BEGIN
+VRPG_BASE_D3D_BEGIN
 
 std::pair<ID3D11Device*, ID3D11DeviceContext*> CreateD3D11Device()
 {
@@ -134,4 +134,4 @@ std::pair<ID3D11Texture2D*, ID3D11DepthStencilView*> CreateD3D11DepthStencilBuff
     return { buffer, view };
 }
 
-VRPG_WIN_END
+VRPG_BASE_D3D_END

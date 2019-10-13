@@ -1,8 +1,8 @@
 #pragma once
 
-#include <VRPG/Win/Event.h>
+#include <VRPG/Base/Event.h>
 
-VRPG_WIN_BEGIN
+VRPG_BASE_BEGIN
 
 enum class MouseButton
 {
@@ -104,4 +104,4 @@ public:
     }
 };
 
-VRPG_WIN_END
+VRPG_BASE_END

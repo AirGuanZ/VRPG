@@ -5,12 +5,15 @@
 #include <wrl/client.h>
 #include <d3d11.h>
 
-#define VRPG_WIN_BEGIN namespace vrpg::win {
-#define VRPG_WIN_END   }
+#define VRPG_BASE_BEGIN namespace VRPG::Base {
+#define VRPG_BASE_END   }
 
-VRPG_WIN_BEGIN
+#define VRPG_BASE_D3D_BEGIN namespace VRPG::Base::D3D {
+#define VRPG_BASE_D3D_END   }
 
-class VRPGWinException : public std::runtime_error
+VRPG_BASE_BEGIN
+
+class VRPGBaseException : public std::runtime_error
 {
 public:
 
@@ -39,4 +42,4 @@ void ReleaseCOMObjects(T0 &&ptr0, T1 &&ptr1, Ts&&...ptrs)
 inline ID3D11Device        *gDevice        = nullptr;
 inline ID3D11DeviceContext *gDeviceContext = nullptr;
 
-VRPG_WIN_END
+VRPG_BASE_END

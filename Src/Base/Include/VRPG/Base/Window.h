@@ -4,11 +4,11 @@
 
 #include <d3d11.h>
 
-#include <VRPG/Win/Event.h>
-#include <VRPG/Win/Keyboard.h>
-#include <VRPG/Win/Mouse.h>
+#include <VRPG/Base/Event.h>
+#include <VRPG/Base/Keyboard.h>
+#include <VRPG/Base/Mouse.h>
 
-VRPG_WIN_BEGIN
+VRPG_BASE_BEGIN
 
 struct WindowImplData;
 
@@ -127,4 +127,4 @@ public:
     void _char_input(uint32_t ch);
 };
 
-VRPG_WIN_END
+VRPG_BASE_END

@@ -1,11 +1,11 @@
 #include <iostream>
 
-#include <VRPG/Win/D3DInit.h>
-#include <VRPG/Win/Window.h>
+#include <VRPG/Base/D3D/D3DInit.h>
+#include <VRPG/Base/Window.h>
 
-VRPG_WIN_BEGIN
+VRPG_BASE_BEGIN
 
-namespace impl
+namespace Impl
 {
     LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -14,7 +14,7 @@ namespace impl
         static std::unordered_map<HWND, Window*> ret;
         return ret;
     }
-}
+} // namespace Impl
 
 struct WindowImplData
 {
@@ -76,7 +76,7 @@ void Window::Initialize(const WindowDesc &windowDesc)
     WNDCLASSEXW wc;
     wc.cbSize        = sizeof(WNDCLASSEXA);
     wc.style         = CS_HREDRAW | CS_VREDRAW;
-    wc.lpfnWndProc   = impl::WindowProc;
+    wc.lpfnWndProc   = Impl::WindowProc;
     wc.cbClsExtra    = 0;
     wc.cbWndExtra    = 0;
     wc.hInstance     = data_->hInstance;
@@ -87,7 +87,7 @@ void Window::Initialize(const WindowDesc &windowDesc)
     wc.lpszClassName = data_->windowClassName.c_str();
     wc.hIconSm       = nullptr;
     if(!RegisterClassExW(&wc))
-        throw VRPGWinException("failed to register window class");
+        throw VRPGBaseException("failed to register window class");
 
     // style, rect size and title
 
@@ -96,7 +96,7 @@ void Window::Initialize(const WindowDesc &windowDesc)
 
     RECT winRect = { 0, 0, windowDesc.clientWidth, windowDesc.clientHeight };
     if(!AdjustWindowRect(&winRect, dwStyle, FALSE))
-        throw VRPGWinException("failed to adjust window size");
+        throw VRPGBaseException("failed to adjust window size");
 
     int screenWidth   = GetSystemMetrics(SM_CXSCREEN);
     int screenHeight  = GetSystemMetrics(SM_CYSCREEN);
@@ -114,7 +114,7 @@ void Window::Initialize(const WindowDesc &windowDesc)
         dwStyle, realWinLeft, realWinTop, realWinWidth, realWinHeight,
         nullptr, nullptr, data_->hInstance, nullptr);
     if(!data_->hWindow)
-        throw VRPGWinException("failed to create win32 window");
+        throw VRPGBaseException("failed to create win32 window");
 
     ShowWindow(data_->hWindow, SW_SHOW);
     UpdateWindow(data_->hWindow);
@@ -136,33 +136,33 @@ void Window::Initialize(const WindowDesc &windowDesc)
 
     // d3d11 device && device context
 
-    auto [device, device_context] = CreateD3D11Device();
+    auto [device, device_context] = D3D::CreateD3D11Device();
     if(!device)
-        throw VRPGWinException("failed to create d3d11 device");
+        throw VRPGBaseException("failed to create d3d11 device");
     data_->device = device;
     data_->deviceContext = device_context;
 
     // dxgi swap chain
 
-    data_->swapChain = CreateD3D11SwapChain(
+    data_->swapChain = D3D::CreateD3D11SwapChain(
         data_->hWindow, data_->clientWidth, data_->clientHeight,
         windowDesc.colorFormat, windowDesc.sampleCount, windowDesc.sampleQuality, device);
     if(!data_->swapChain)
-        throw VRPGWinException("failed to create dxgi swap chain");
+        throw VRPGBaseException("failed to create dxgi swap chain");
 
     // render target view
 
-    data_->renderTargetView = CreateD3D11RenderTargetView(data_->swapChain, data_->device);
+    data_->renderTargetView = D3D::CreateD3D11RenderTargetView(data_->swapChain, data_->device);
     if(!data_->renderTargetView)
-        throw VRPGWinException("failed to create d3d11 render target view");
+        throw VRPGBaseException("failed to create d3d11 render target view");
 
     // depth stencil buffer/view
 
-    auto [depthStencilBuffer, depthStencilView] = CreateD3D11DepthStencilBuffer(
+    auto [depthStencilBuffer, depthStencilView] = D3D::CreateD3D11DepthStencilBuffer(
         data_->device, data_->clientWidth, data_->clientHeight,
         windowDesc.depthStencilFormat, windowDesc.sampleCount, windowDesc.sampleQuality);
     if(!depthStencilBuffer)
-        throw VRPGWinException("failed to create d3d11 depth stencil buffer/view");
+        throw VRPGBaseException("failed to create d3d11 depth stencil buffer/view");
     data_->depthStencilBuffer = depthStencilBuffer;
     data_->depthStencilView   = depthStencilView;
     data_->deviceContext->OMSetRenderTargets(1, &data_->renderTargetView, data_->depthStencilView);
@@ -182,7 +182,7 @@ void Window::Initialize(const WindowDesc &windowDesc)
     UseDefaultViewport();
     data_->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    impl::HandleToWindow().insert(std::make_pair(data_->hWindow, this));
+    Impl::HandleToWindow().insert(std::make_pair(data_->hWindow, this));
 
     data_guard.dismiss();
 }
@@ -213,7 +213,7 @@ void Window::Destroy()
         ID3D11Debug *debug = nullptr;
         HRESULT hr = data_->device->QueryInterface<ID3D11Debug>(&debug);
         if(SUCCEEDED(hr))
-            debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+            debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL | D3D11_RLDO_IGNORE_INTERNAL);
         ReleaseCOMObjects(debug);
     }
 #endif
@@ -221,7 +221,7 @@ void Window::Destroy()
 
     if(data_->hWindow)
     {
-        impl::HandleToWindow().erase(data_->hWindow);
+        Impl::HandleToWindow().erase(data_->hWindow);
         DestroyWindow(data_->hWindow);
     }
     if(!data_->windowClassName.empty())
@@ -378,14 +378,14 @@ void Window::_resize()
         std::exit(1);
     }
 
-    data_->renderTargetView = CreateD3D11RenderTargetView(data_->swapChain, data_->device);
+    data_->renderTargetView = D3D::CreateD3D11RenderTargetView(data_->swapChain, data_->device);
     if(!data_->renderTargetView)
     {
         std::cerr << "failed to create new render target view after resizing swap chain buffers" << std::endl;
         std::exit(1);
     }
 
-    auto [depthStencilBuffer, depthStencilView] = CreateD3D11DepthStencilBuffer(
+    auto [depthStencilBuffer, depthStencilView] = D3D::CreateD3D11DepthStencilBuffer(
         data_->device, data_->clientWidth, data_->clientHeight,
         data_->depthStencilFormat, data_->screenbufferSampleCount, data_->screenbufferSampleQuality);
     if(!depthStencilBuffer)
@@ -471,7 +471,7 @@ void Window::_char_input(uint32_t ch)
         data_->keyboard->InvokeAllHandlers(CharInputEvent{ ch });
 }
 
-namespace impl
+namespace Impl
 {
     LRESULT CALLBACK WindowProc(HWND hWindow, UINT msg, WPARAM wParam, LPARAM lParam)
     {
@@ -535,6 +535,6 @@ namespace impl
         }
         return DefWindowProc(hWindow, msg, wParam, lParam);
     }
-}
+} // namespace Impl
 
-VRPG_WIN_END
+VRPG_BASE_END

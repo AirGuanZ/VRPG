@@ -4,9 +4,9 @@
 
 #include <d3d11.h>
 
-#include <VRPG/Win/Common.h>
+#include <VRPG/Base/Common.h>
 
-VRPG_WIN_BEGIN
+VRPG_BASE_D3D_BEGIN
 
 std::pair<ID3D11Device*, ID3D11DeviceContext*> CreateD3D11Device();
 
@@ -21,4 +21,4 @@ std::pair<ID3D11Texture2D*, ID3D11DepthStencilView*> CreateD3D11DepthStencilBuff
     ID3D11Device *device, int clientWidth, int clientHeight,
     DXGI_FORMAT bufferFormat, int sampleCount, int sampleQuality);
 
-VRPG_WIN_END
+VRPG_BASE_D3D_END

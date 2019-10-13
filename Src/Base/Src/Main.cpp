@@ -1,13 +1,16 @@
 #include <iostream>
 
-#include <VRPG/Win/Window.h>
+#include <VRPG/Base/Window.h>
+
+#include <VRPG/Base/D3D/Shader/Shader.h>
 
 void run()
 {
-    using namespace vrpg::win;
+    using namespace VRPG::Base;
 
     Window window;
-    window.Initialize(WindowDesc{});
+    WindowDesc desc;
+    window.Initialize(desc);
 
     MouseEventManager mouse;
     window.SetMouse(&mouse);
@@ -41,13 +44,13 @@ void run()
 
     while(!window.GetCloseFlag())
     {
-        window.ClearRenderTarget();
-        window.SwapBuffers();
-
         window.DoEvents();
 
         if(keyboard.IsKeyPressed(KEY_ESCAPE))
             window.SetCloseFlag(true);
+
+        window.ClearRenderTarget();
+        window.SwapBuffers();
     }
 }
 

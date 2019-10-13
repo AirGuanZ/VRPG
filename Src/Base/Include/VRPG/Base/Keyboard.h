@@ -1,9 +1,9 @@
 #pragma once
 
-#include <VRPG/Win/Event.h>
-#include <VRPG/Win/KeyCode.h>
+#include <VRPG/Base/Event.h>
+#include <VRPG/Base/KeyCode.h>
 
-VRPG_WIN_BEGIN
+VRPG_BASE_BEGIN
 
 struct KeyDownEvent
 {
@@ -75,4 +75,4 @@ public:
     }
 };
 
-VRPG_WIN_END
+VRPG_BASE_END

@@ -3,13 +3,14 @@
 #include <cassert>
 #include <functional>
 #include <set>
+#include <tuple>
 #include <unordered_set>
 
 #include <agz/utility/misc.h>
 
-#include <VRPG/Win/Common.h>
+#include <VRPG/Base/Common.h>
 
-VRPG_WIN_BEGIN
+VRPG_BASE_BEGIN
 
 template<typename Event>
 class EventHandlerSet;
@@ -144,4 +145,45 @@ private:
     Function func_;
 };
 
-VRPG_WIN_END
+template<typename Event, typename Class, typename = std::enable_if_t<std::is_class_v<Class>>>
+class ClassEventHandler : public EventHandler<Event>
+{
+public:
+
+    using MemberFunctionPtr = void (Class::*)(const Event &);
+
+    ClassEventHandler() noexcept
+        : ClassEventHandler(nullptr, nullptr)
+    {
+        
+    }
+
+    ClassEventHandler(Class *c, MemberFunctionPtr m) noexcept
+        : classInstance_(c), memberFunc_(m)
+    {
+
+    }
+
+    void SetClassInstance(Class *instance) noexcept
+    {
+        classInstance_ = instance;
+    }
+
+    void SetMemberFunction(MemberFunctionPtr func) noexcept
+    {
+        memberFunc_ = func;
+    }
+
+    void Handle(const Event &e) override
+    {
+        if(classInstance_ && memberFunc_)
+            classInstance_->memberFunc(e);
+    }
+
+private:
+
+    Class *classInstance_;
+    MemberFunctionPtr memberFunc_;
+};
+
+VRPG_BASE_END

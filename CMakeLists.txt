@@ -17,4 +17,4 @@ ADD_DEFINITIONS(-D_UNICODE)
 ############## submodules
 
 ADD_SUBDIRECTORY(Lib/agz-utils)
-ADD_SUBDIRECTORY(Src/Win)
+ADD_SUBDIRECTORY(Src/Base)
