@@ -74,10 +74,10 @@ public:
 
     UniformManager<STAGES...> CreateUniformManager() const
     {
-        return agz::misc::construct_from_tuple<UniformManager<STAGES>...>(stages_);
+        return agz::misc::construct_from_tuple<UniformManager<STAGES...>>(stages_);
     }
 
-    const ID3D10Blob *GetVertexShaderByteCode() const noexcept
+    ID3D10Blob *GetVertexShaderByteCode() const noexcept
     {
         return GetStage<ShaderStage::VS>()->GetShaderByteCode();
     }

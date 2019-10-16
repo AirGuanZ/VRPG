@@ -20,8 +20,24 @@ struct CharInputEvent
     uint32_t ch;
 };
 
+struct RawKeyDownEvent
+{
+    uint32_t vk;
+};
+
+struct RawKeyUpEvent
+{
+    uint32_t vk;
+};
+
+using KeyDownHandler    = FunctionalEventHandler<KeyDownEvent>;
+using KeyUpHandler      = FunctionalEventHandler<KeyUpEvent>;
+using CharInputHandler  = FunctionalEventHandler<CharInputEvent>;
+using RawKeyDownHandler = FunctionalEventHandler<RawKeyDownEvent>;
+using RawKeyUpHandler   = FunctionalEventHandler<RawKeyUpEvent>;
+
 class KeyboardEventManager
-    : public EventManager<KeyDownEvent, KeyUpEvent, CharInputEvent>
+    : public EventManager<KeyDownEvent, KeyUpEvent, CharInputEvent, RawKeyDownEvent, RawKeyUpEvent>
 {
     bool isKeyPressed_[KEY_MAX + 1] = { false };
 
@@ -37,17 +53,33 @@ public:
 
     void InvokeAllHandlers(const KeyDownEvent &e)
     {
-        isKeyPressed_[e.key] = true;
-        EventManager::InvokeAllHandlers(e);
+        if(!IsKeyPressed(e.key))
+        {
+            isKeyPressed_[e.key] = true;
+            EventManager::InvokeAllHandlers(e);
+        }
     }
 
     void InvokeAllHandlers(const KeyUpEvent &e)
     {
-        isKeyPressed_[e.key] = false;
-        EventManager::InvokeAllHandlers(e);
+        if(IsKeyPressed(e.key))
+        {
+            isKeyPressed_[e.key] = false;
+            EventManager::InvokeAllHandlers(e);
+        }
     }
 
     void InvokeAllHandlers(const CharInputEvent &e)
+    {
+        EventManager::InvokeAllHandlers(e);
+    }
+
+    void InvokeAllHandlers(const RawKeyDownEvent &e)
+    {
+        EventManager::InvokeAllHandlers(e);
+    }
+
+    void InvokeAllHandlers(const RawKeyUpEvent &e)
     {
         EventManager::InvokeAllHandlers(e);
     }
@@ -59,19 +91,21 @@ public:
 
     void Update()
     {
-        bool leftShiftPressed  = (GetKeyState(VK_LSHIFT)   & 0x8000) != 0;
-        bool rightShiftPressed = (GetKeyState(VK_RSHIFT)   & 0x8000) != 0;
-        bool leftCtrlPressed   = (GetKeyState(VK_LCONTROL) & 0x8000) != 0;
-        bool rightCtrlPressed  = (GetKeyState(VK_RCONTROL) & 0x8000) != 0;
-        bool leftAltPressed    = (GetKeyState(VK_LMENU)    & 0x8000) != 0;
-        bool rightAltPressed   = (GetKeyState(VK_RMENU)    & 0x8000) != 0;
+        bool leftShiftPressed  = (GetAsyncKeyState(VK_LSHIFT)   & 0x8000) != 0;
+        bool rightShiftPressed = (GetAsyncKeyState(VK_RSHIFT)   & 0x8000) != 0;
+        bool leftCtrlPressed   = (GetAsyncKeyState(VK_LCONTROL) & 0x8000) != 0;
+        bool rightCtrlPressed  = (GetAsyncKeyState(VK_RCONTROL) & 0x8000) != 0;
 
         UpdateSingleKey(leftShiftPressed,  KEY_LSHIFT);
-        UpdateSingleKey(rightShiftPressed, KEY_LSHIFT);
+        UpdateSingleKey(rightShiftPressed, KEY_RSHIFT);
         UpdateSingleKey(leftCtrlPressed,   KEY_LCTRL);
         UpdateSingleKey(rightCtrlPressed,  KEY_RCTRL);
-        UpdateSingleKey(leftAltPressed,    KEY_LALT);
-        UpdateSingleKey(rightAltPressed,   KEY_RALT);
+    }
+
+    void ClearState()
+    {
+        for(auto &k : isKeyPressed_)
+            k = false;
     }
 };
 

@@ -15,7 +15,7 @@ class SamplerSlot
 
 public:
 
-    explicit SamplerSlot(UINT slot) noexcept : slot_(slot) { }
+    explicit SamplerSlot(UINT slot = 0) noexcept : slot_(slot) { }
 
     SamplerSlot(const SamplerSlot &)            = default;
     SamplerSlot &operator=(const SamplerSlot &) = default;
@@ -58,7 +58,6 @@ public:
 
     struct Record
     {
-        UINT byteSize = 0;
         SamplerSlot<STAGE> samplerSlot;
 
         Record() = default;
@@ -88,13 +87,12 @@ public:
 
     }
 
-    bool Add(std::string name, UINT slot, UINT byteSize)
+    bool Add(std::string name, UINT slot)
     {
-        assert(byteSize > 0);
         if(table_.find(name) != table_.end())
             return false;
         table_.insert(std::make_pair(
-            std::move(name), Record{ byteSize, SamplerSlot<STAGE>(slot) }));
+            std::move(name), Record{ SamplerSlot<STAGE>(slot) }));
         return true;
     }
 
@@ -110,13 +108,13 @@ public:
         return it != table_.end() ? &it->second.samplerSlot : nullptr;
     }
 
-    void Bind()
+    void Bind() const
     {
         for(auto &it : table_)
             it.second.samplerSlot.Bind();
     }
 
-    void Unbind()
+    void Unbind() const
     {
         for(auto &it : table_)
             it.second.samplerSlot.Unbind();

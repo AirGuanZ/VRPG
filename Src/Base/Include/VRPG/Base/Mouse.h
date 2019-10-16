@@ -102,6 +102,14 @@ public:
         lastCursorX_ = cursorX_;
         lastCursorY_ = cursorY_;
     }
+
+    void ClearState()
+    {
+        isButtonPressed_[0] = isButtonPressed_[1] = isButtonPressed_[2] = false;
+        cursorX_         = cursorY_         = 0;
+        lastCursorX_     = lastCursorY_     = 0;
+        relativeCursorX_ = relativeCursorY_ = 0;
+    }
 };
 
 VRPG_BASE_END

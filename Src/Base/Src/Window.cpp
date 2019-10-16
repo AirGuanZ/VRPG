@@ -137,8 +137,6 @@ void Window::Initialize(const WindowDesc &windowDesc)
     // d3d11 device && device context
 
     auto [device, device_context] = D3D::CreateD3D11Device();
-    if(!device)
-        throw VRPGBaseException("failed to create d3d11 device");
     data_->device = device;
     data_->deviceContext = device_context;
 
@@ -147,22 +145,17 @@ void Window::Initialize(const WindowDesc &windowDesc)
     data_->swapChain = D3D::CreateD3D11SwapChain(
         data_->hWindow, data_->clientWidth, data_->clientHeight,
         windowDesc.colorFormat, windowDesc.sampleCount, windowDesc.sampleQuality, device);
-    if(!data_->swapChain)
-        throw VRPGBaseException("failed to create dxgi swap chain");
 
     // render target view
 
     data_->renderTargetView = D3D::CreateD3D11RenderTargetView(data_->swapChain, data_->device);
-    if(!data_->renderTargetView)
-        throw VRPGBaseException("failed to create d3d11 render target view");
 
     // depth stencil buffer/view
 
     auto [depthStencilBuffer, depthStencilView] = D3D::CreateD3D11DepthStencilBuffer(
         data_->device, data_->clientWidth, data_->clientHeight,
         windowDesc.depthStencilFormat, windowDesc.sampleCount, windowDesc.sampleQuality);
-    if(!depthStencilBuffer)
-        throw VRPGBaseException("failed to create d3d11 depth stencil buffer/view");
+
     data_->depthStencilBuffer = depthStencilBuffer;
     data_->depthStencilView   = depthStencilView;
     data_->deviceContext->OMSetRenderTargets(1, &data_->renderTargetView, data_->depthStencilView);
@@ -245,6 +238,12 @@ int Window::GetClientSizeY() const noexcept
     return data_->clientHeight;
 }
 
+float Window::GetClientAspectRatio() const noexcept
+{
+    assert(IsAvailable());
+    return float(data_->clientWidth) / data_->clientHeight;
+}
+
 void Window::SetVSync(bool vsync) noexcept
 {
     assert(IsAvailable());
@@ -270,14 +269,20 @@ void Window::UseDefaultViewport()
     data_->deviceContext->RSSetViewports(1, &vp);
 }
 
-void Window::ClearRenderTarget()
+void Window::ClearDefaultRenderTarget()
 {
     assert(IsAvailable());
-    static float CLEAR_COLOR[] = { 0, 1, 1, 0 };
+    static float CLEAR_COLOR[] = { 0, 0, 0, 0 };
     data_->deviceContext->ClearRenderTargetView(data_->renderTargetView, CLEAR_COLOR);
 }
 
-void Window::ClearDepthStencil()
+void Window::ClearDefaultRenderTarget(const float backgroundColor[4])
+{
+    assert(IsAvailable());
+    data_->deviceContext->ClearRenderTargetView(data_->renderTargetView, backgroundColor);
+}
+
+void Window::ClearDefaultDepthStencil()
 {
     assert(IsAvailable());
     data_->deviceContext->ClearDepthStencilView(
@@ -329,13 +334,13 @@ ID3D11DeviceContext *Window::DeviceContext() const noexcept
     return data_->deviceContext;
 }
 
-HWND Window::NativeWindowHandle() const noexcept
+HWND Window::GetNativeWindowHandle() const noexcept
 {
     assert(IsAvailable());
     return data_->hWindow;
 }
 
-HINSTANCE Window::NativeProgramHandle() const noexcept
+HINSTANCE Window::GetNativeProgramHandle() const noexcept
 {
     assert(IsAvailable());
     return data_->hInstance;
@@ -453,14 +458,14 @@ void Window::_wheel_scroll(int offset)
 void Window::_key_down(KeyCode key)
 {
     assert(IsAvailable());
-    if(data_->keyboard)
+    if(key != KEY_UNKNOWN && data_->keyboard)
         data_->keyboard->InvokeAllHandlers(KeyDownEvent{ key });
 }
 
 void Window::_key_up(KeyCode key)
 {
     assert(IsAvailable());
-    if(data_->keyboard)
+    if(key != KEY_UNKNOWN && data_->keyboard)
         data_->keyboard->InvokeAllHandlers(KeyUpEvent{ key });
 }
 
@@ -469,6 +474,20 @@ void Window::_char_input(uint32_t ch)
     assert(IsAvailable());
     if(data_->keyboard)
         data_->keyboard->InvokeAllHandlers(CharInputEvent{ ch });
+}
+
+void Window::_raw_key_down(uint32_t vk)
+{
+    assert(IsAvailable());
+    if(data_->keyboard)
+        data_->keyboard->InvokeAllHandlers(RawKeyDownEvent{ vk });
+}
+
+void Window::_raw_key_up(uint32_t vk)
+{
+    assert(IsAvailable());
+    if(data_->keyboard)
+        data_->keyboard->InvokeAllHandlers(RawKeyUpEvent{ vk });
 }
 
 namespace Impl
@@ -521,14 +540,19 @@ namespace Impl
             break;
         case WM_KEYDOWN:
             win->_key_down(VK2KeyCode(int(wParam)));
+            [[fallthrough]];
+        case WM_SYSKEYDOWN:
+            win->_raw_key_down(uint32_t(wParam));
             break;
         case WM_KEYUP:
             win->_key_up(VK2KeyCode(int(wParam)));
+            [[fallthrough]];
+        case WM_SYSKEYUP:
+            win->_raw_key_up(uint32_t(wParam));
             break;
-        case WM_UNICHAR:
-            win->_char_input(uint32_t(wParam));
-            if(wParam == UNICODE_NOCHAR)
-                return TRUE;
+        case WM_CHAR:
+            if(wParam > 0 && wParam < 0x10000)
+                win->_char_input(uint32_t(wParam));
             break;
         default:
             break;

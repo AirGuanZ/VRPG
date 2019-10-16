@@ -315,7 +315,7 @@ public:
         return samplerTable_;
     }
 
-    const ID3D10Blob *GetShaderByteCode() const noexcept
+    ID3D10Blob *GetShaderByteCode() const noexcept
     {
         return byteCode_.Get();
     }

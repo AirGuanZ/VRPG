@@ -15,7 +15,7 @@ class ConstantBufferSlot
 
 public:
 
-    explicit ConstantBufferSlot(UINT slot) noexcept : slot_(slot) { }
+    explicit ConstantBufferSlot(UINT slot = 0) noexcept : slot_(slot) { }
 
     ConstantBufferSlot(const ConstantBufferSlot &copyFrom) = default;
 

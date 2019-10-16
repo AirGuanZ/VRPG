@@ -13,7 +13,7 @@ template<ShaderStage STAGE>
 class ShaderResourceSlot
 {
     UINT slot_;
-    std::vector<ID3D11ShaderResourceView*> srvs_;
+    mutable std::vector<ID3D11ShaderResourceView*> srvs_;
 
     void AddRef() noexcept
     {
@@ -35,7 +35,7 @@ class ShaderResourceSlot
 
 public:
 
-    ShaderResourceSlot(UINT slot, UINT srvCount)
+    explicit ShaderResourceSlot(UINT slot = 0, UINT srvCount = 1)
         : slot_(slot), srvs_(srvCount, nullptr)
     {
         
@@ -107,17 +107,17 @@ public:
             SetShaderResourceView(j, srvs[i]);
     }
 
-    void Bind()
+    void Bind() const
     {
         ObjectBinding::BindShaderResourceViewArray<STAGE>(slot_, UINT(srvs_.size()), srvs_.data());
     }
 
-    void Unbind()
+    void Unbind() const
     {
         if(srvs_.size() < 20)
         {
-            static const ID3D11ShaderResourceView *EMPTY_SRVS[20] = { nullptr };
-            ObjectBinding::BindShaderResourceViewArray<STAGE>(slot_, UINT(srvs_.size()), *EMPTY_SRVS);
+            static ID3D11ShaderResourceView *EMPTY_SRVS[20] = { nullptr };
+            ObjectBinding::BindShaderResourceViewArray<STAGE>(slot_, UINT(srvs_.size()), EMPTY_SRVS);
         }
         else
         {
@@ -134,7 +134,6 @@ public:
 
     struct Record
     {
-        UINT slot = 0;
         ShaderResourceSlot<STAGE> shaderResourceViewSlot;
         
         Record()  = default;
@@ -169,7 +168,7 @@ public:
         if(table_.find(name) != table_.end())
             return false;
         table_.insert(std::make_pair(
-            std::move(name), Record{ slot, ShaderResourceSlot<STAGE>(slot, count) }));
+            std::move(name), Record{ ShaderResourceSlot<STAGE>(slot, count) }));
         return true;
     }
 
@@ -185,13 +184,13 @@ public:
         return it != table_.end() ? &it->second.shaderResourceViewSlot : nullptr;
     }
 
-    void Bind()
+    void Bind() const
     {
         for(auto &it : table_)
             it.second.shaderResourceViewSlot.Bind();
     }
 
-    void Unbind()
+    void Unbind() const
     {
         for(auto &it : table_)
             it.second.shaderResourceViewSlot.Unbind();

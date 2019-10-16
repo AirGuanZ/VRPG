@@ -4,7 +4,7 @@
 
 #include <d3d11.h>
 
-#include <VRPG/Base/D3D/Shader/Shader.h>
+#include <VRPG/Base/D3D/Shader.h>
 
 VRPG_BASE_D3D_BEGIN
 
@@ -120,9 +120,7 @@ public:
             shaderByteCode->GetBufferPointer(),
             shaderByteCode->GetBufferSize(),
             inputLayout.GetAddressOf());
-        if(FAILED(hr))
-            throw VRPGBaseException("failed to create input layout");
-        return inputLayout;
+        return SUCCEEDED(hr) ? inputLayout : nullptr;
     }
 };
 

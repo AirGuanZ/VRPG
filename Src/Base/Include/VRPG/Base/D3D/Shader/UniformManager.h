@@ -21,15 +21,17 @@ namespace Impl
 
     public:
 
+        StageUniformManager() = default;
+
         explicit StageUniformManager(const Stage<STAGE> &stage)
             : constantBufferSlotMgr_(stage.GetConstantBufferTable()),
-            shaderResourceSlotMgr_(stage.GetShaderResourceTable()),
-            samplerSlotMgr_(stage.GetSamplerTable())
+              shaderResourceSlotMgr_(stage.GetShaderResourceTable()),
+              samplerSlotMgr_(stage.GetSamplerTable())
         {
 
         }
 
-        StageUniformManager(const StageUniformManager &) = default;
+        StageUniformManager(const StageUniformManager &)            = default;
         StageUniformManager &operator=(const StageUniformManager &) = default;
 
         StageUniformManager(StageUniformManager &&)            noexcept = default;
@@ -132,6 +134,8 @@ class UniformManager
     }
 
 public:
+
+    UniformManager() = default;
 
     explicit UniformManager(const Stage<STAGES>&...stages)
         : stageUniformMgrs_(stages...)

@@ -68,15 +68,19 @@ public:
 
     int GetClientSizeY() const noexcept;
 
+    float GetClientAspectRatio() const noexcept;
+
     void SetVSync(bool vsync) noexcept;
 
     bool GetVSync() const noexcept;
 
     void UseDefaultViewport();
 
-    void ClearRenderTarget();
+    void ClearDefaultRenderTarget();
 
-    void ClearDepthStencil();
+    void ClearDefaultRenderTarget(const float backgroundColor[4]);
+
+    void ClearDefaultDepthStencil();
 
     void SwapBuffers();
 
@@ -96,9 +100,9 @@ public:
 
     ID3D11DeviceContext *DeviceContext() const noexcept;
 
-    HWND NativeWindowHandle() const noexcept;
+    HWND GetNativeWindowHandle() const noexcept;
 
-    HINSTANCE NativeProgramHandle() const noexcept;
+    HINSTANCE GetNativeProgramHandle() const noexcept;
 
     void SetCloseFlag(bool shouldClose) noexcept;
 
@@ -125,6 +129,10 @@ public:
     void _key_up(KeyCode key);
 
     void _char_input(uint32_t ch);
+
+    void _raw_key_down(uint32_t vk);
+
+    void _raw_key_up(uint32_t vk);
 };
 
 VRPG_BASE_END

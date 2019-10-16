@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 
+#include <agz/utility/math.h>
 #include <wrl/client.h>
 #include <d3d11.h>
 
@@ -12,6 +13,19 @@
 #define VRPG_BASE_D3D_END   }
 
 VRPG_BASE_BEGIN
+
+using Vec2 = agz::math::vec2f;
+using Vec3 = agz::math::vec3f;
+using Vec4 = agz::math::vec4f;
+
+using Vec2i = agz::math::vec2i;
+using Vec3i = agz::math::vec3i;
+using Vec4i = agz::math::vec4i;
+
+using Mat3 = agz::math::mat3f_c;
+using Mat4 = agz::math::mat4f_c;
+
+using Trans4 = Mat4::right_transform;
 
 class VRPGBaseException : public std::runtime_error
 {
