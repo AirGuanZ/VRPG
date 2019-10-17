@@ -1,11 +1,14 @@
 #pragma once
 
+#include <VRPG/Base/D3D/BlendState.h>
 #include <VRPG/Base/D3D/ConstantBuffer.h>
-#include <VRPG/Base/D3D/D3DCreate.h>
-#include <VRPG/Base/D3D/D3DInit.h>
 #include <VRPG/Base/D3D/InputLayout.h>
-#include <VRPG/Base/D3D/PipelineState.h>
+#include <VRPG/Base/D3D/RasterizerState.h>
+#include <VRPG/Base/D3D/RenderState.h>
+#include <VRPG/Base/D3D/Sampler.h>
 #include <VRPG/Base/D3D/Shader.h>
+#include <VRPG/Base/D3D/ShaderResourceView.h>
+#include <VRPG/Base/D3D/Texture2DLoader.h>
 #include <VRPG/Base/D3D/VertexBuffer.h>
 
 #include <VRPG/Base/Keyboard.h>

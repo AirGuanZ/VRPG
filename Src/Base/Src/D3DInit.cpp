@@ -1,7 +1,7 @@
 #include <agz/utility/misc.h>
 #include <agz/utility/system.h>
 
-#include <VRPG/Base/D3D/D3DInit.h>
+#include "D3DInit.h"
 
 VRPG_BASE_D3D_BEGIN
 

@@ -8,6 +8,73 @@
 
 VRPG_BASE_D3D_BEGIN
 
+class InputLayout
+{
+    ComPtr<ID3D11InputLayout> inputLayout_;
+
+public:
+
+    InputLayout() = default;
+
+    explicit InputLayout(ID3D11InputLayout *initializedInputLayout)
+        : inputLayout_(initializedInputLayout)
+    {
+        
+    }
+
+    InputLayout &operator=(ID3D11InputLayout *initializedInputLayout)
+    {
+        inputLayout_ = initializedInputLayout;
+        return *this;
+    }
+
+    InputLayout &operator=(ComPtr<ID3D11InputLayout> initializedInputLayout)
+    {
+        inputLayout_ = std::move(initializedInputLayout);
+        return *this;
+    }
+
+    void Initialize(
+        const D3D11_INPUT_ELEMENT_DESC desc[], size_t descCount,
+        ID3D10Blob *shaderByteCode)
+    {
+        inputLayout_.Reset();
+        HRESULT hr = gDevice->CreateInputLayout(desc, UINT(descCount), shaderByteCode->GetBufferPointer(), shaderByteCode->GetBufferSize(), inputLayout_.GetAddressOf());
+        if(FAILED(hr))
+            throw VRPGBaseException("failed to create input layout");
+    }
+
+    bool IsAvailable() const noexcept
+    {
+        return inputLayout_ != nullptr;
+    }
+
+    void Destroy()
+    {
+        inputLayout_.Reset();
+    }
+
+    ID3D11InputLayout *Get() const noexcept
+    {
+        return inputLayout_.Get();
+    }
+
+    operator ID3D11InputLayout*() const noexcept
+    {
+        return inputLayout_.Get();
+    }
+
+    void Bind() const
+    {
+        gDeviceContext->IASetInputLayout(inputLayout_.Get());
+    }
+
+    void Unbind() const
+    {
+        gDeviceContext->IASetInputLayout(nullptr);
+    }
+};
+
 class InputLayoutBuilder
 {
     std::vector<D3D11_INPUT_ELEMENT_DESC> descs_;

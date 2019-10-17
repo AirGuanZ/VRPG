@@ -21,12 +21,15 @@ class Sample02_Triangle : public SampleApp
     };
 
     VertexBuffer<Vertex> vertexBuffer_;
-    ComPtr<ID3D11InputLayout> inputLayout_;
+    InputLayout inputLayout_;
 
     Shader<SS_VS, SS_PS> shader_;
     UniformManager<SS_VS, SS_PS> uniforms_;
 
+    float rotateRadian_ = 0.0f;
     ConstantBuffer<TransformConstantBuffer> transformBuffer_;
+
+    RasterizerState rasterizerState_;
 
     KeyDownHandler keyDownHandler_;
 
@@ -69,6 +72,11 @@ class Sample02_Triangle : public SampleApp
         vertexBuffer_.Initialize(3, false, vertexData);
     }
 
+    void InitializeRasterizerState()
+    {
+        rasterizerState_.Initialize(D3D11_FILL_SOLID, D3D11_CULL_NONE, false);
+    }
+
 protected:
 
     WindowDesc GetWindowDesc() override
@@ -91,6 +99,9 @@ protected:
         InitializeConstantBuffer();
         InitializeInputLayout();
         InitializeVertexBuffer();
+        InitializeRasterizerState();
+
+        rotateRadian_ = 0.0f;
     }
 
     void Frame() override
@@ -101,19 +112,23 @@ protected:
         window_.ClearDefaultRenderTarget();
 
         Mat4 WVP =
-            Trans4::look_at({ 0, 0, -3 }, { 0, 0, 0 }, { 0, 1, 0 })
-            * Trans4::perspective(agz::math::deg2rad(60.0f), window_.GetClientAspectRatio(), 0.1f, 100.0f);
+            Trans4::rotate_y(rotateRadian_)
+          * Trans4::look_at({ 0, 0, -3 }, { 0, 0, 0 }, { 0, 1, 0 })
+          * Trans4::perspective(agz::math::deg2rad(60.0f), window_.GetClientAspectRatio(), 0.1f, 100.0f);
         transformBuffer_.SetValue({ WVP });
+        rotateRadian_ += 0.01f;
 
         shader_.Bind();
         uniforms_.Bind();
+        rasterizerState_.Bind();
+        inputLayout_.Bind();
+        vertexBuffer_.Bind(0);
 
-        UINT stride = sizeof(Vertex), offset = 0;
-        gDeviceContext->IASetVertexBuffers(0, 1, vertexBuffer_.GetAddressOf(), &stride, &offset);
-        gDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        gDeviceContext->IASetInputLayout(inputLayout_.Get());
-        gDeviceContext->Draw(3, 0);
+        RenderState::Draw(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, vertexBuffer_.GetVertexCount());
 
+        vertexBuffer_.Unbind(0);
+        inputLayout_.Unbind();
+        rasterizerState_.Unbind();
         uniforms_.Unbind();
         shader_.Unbind();
 

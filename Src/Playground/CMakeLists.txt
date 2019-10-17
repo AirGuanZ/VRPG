@@ -5,5 +5,11 @@ SET(SampleCommon_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/Sample00_Common)
 ADD_SUBDIRECTORY(Sample01_Window)
 ADD_SUBDIRECTORY(Sample02_Triangle)
 ADD_SUBDIRECTORY(Sample03_ImGui)
+ADD_SUBDIRECTORY(Sample04_Texture)
 
-SET_TARGET_PROPERTIES(Sample01_Window Sample02_Triangle Sample03_ImGui PROPERTIES FOLDER "Playground")
+SET_TARGET_PROPERTIES(
+	Sample01_Window
+	Sample02_Triangle
+	Sample03_ImGui
+	Sample04_Texture
+	PROPERTIES FOLDER "Playground")

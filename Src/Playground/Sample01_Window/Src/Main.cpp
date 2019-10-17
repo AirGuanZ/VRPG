@@ -52,9 +52,11 @@ protected:
     void Frame() override
     {
         window_.DoEvents();
+
         if(keyboard_.IsKeyPressed(KEY_ESCAPE))
             window_.SetCloseFlag(true);
         window_.ClearDefaultRenderTarget();
+
         window_.SwapBuffers();
     }
 };

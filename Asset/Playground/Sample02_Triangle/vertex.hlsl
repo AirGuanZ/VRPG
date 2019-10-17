@@ -18,7 +18,7 @@ struct VSOutput
 VSOutput main(VSInput input)
 {
     VSOutput output = (VSOutput)0;
-    output.position = mul(float4(input.position, 0.5, 1), transform);
+    output.position = mul(float4(input.position, 0, 1), transform);
     output.color = input.color;
     return output;
 }

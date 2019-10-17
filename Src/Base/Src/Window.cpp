@@ -1,7 +1,8 @@
 #include <iostream>
 
-#include <VRPG/Base/D3D/D3DInit.h>
 #include <VRPG/Base/Window.h>
+
+#include "D3DInit.h"
 
 VRPG_BASE_BEGIN
 

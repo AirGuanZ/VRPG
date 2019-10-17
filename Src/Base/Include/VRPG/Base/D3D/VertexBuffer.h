@@ -8,11 +8,14 @@ template<typename Vertex>
 class VertexBuffer
 {
     ComPtr<ID3D11Buffer> buffer_;
+    UINT vertexCount_ = 0;
 
 public:
 
-    void Initialize(size_t vertexCount, bool dynamic, const Vertex *initData)
+    void Initialize(UINT vertexCount, bool dynamic, const Vertex *initData)
     {
+        assert(vertexCount);
+
         D3D11_USAGE usage;
         UINT cpuAccessFlag;
         if(dynamic)
@@ -44,6 +47,7 @@ public:
         buffer_ = CreateD3D11Buffer(bufferDesc, initData ? &subrscData : nullptr);
         if(!buffer_)
             throw VRPGBaseException("failed to create vertex buffer");
+        vertexCount_ = vertexCount;
     }
 
     bool IsAvailable() const noexcept
@@ -54,6 +58,7 @@ public:
     void Destroy()
     {
         buffer_.Reset();
+        vertexCount_ = 0;
     }
 
     ID3D11Buffer *Get() const noexcept
@@ -81,6 +86,23 @@ public:
         box.front  = 0;
         box.back   = 1;
         gDeviceContext->UpdateSubresource(buffer_.Get(), 0, &box, data, 0, 0);
+    }
+
+    UINT GetVertexCount() const noexcept
+    {
+        return vertexCount_;
+    }
+
+    void Bind(UINT slot) const
+    {
+        UINT stride = sizeof(Vertex), offset = 0;
+        gDeviceContext->IASetVertexBuffers(slot, 1, buffer_.GetAddressOf(), &stride, &offset);
+    }
+
+    void Unbind(UINT slot) const
+    {
+        ID3D11Buffer *empty = nullptr; UINT stride = 0, offset = 0;
+        gDeviceContext->IASetVertexBuffers(slot, 1, &empty, &stride, &offset);
     }
 };
 
