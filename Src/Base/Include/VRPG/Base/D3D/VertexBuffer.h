@@ -1,13 +1,13 @@
 #pragma once
 
+#include <VRPG/Base/D3D/ComObjectHolder.h>
 #include <VRPG/Base/D3D/D3DCreate.h>
 
 VRPG_BASE_D3D_BEGIN
 
 template<typename Vertex>
-class VertexBuffer
+class VertexBuffer : public ComObjectHolder<ID3D11Buffer>
 {
-    ComPtr<ID3D11Buffer> buffer_;
     UINT vertexCount_ = 0;
 
 public:
@@ -44,36 +44,16 @@ public:
         subrscData.SysMemPitch      = 0;
         subrscData.SysMemSlicePitch = 0;
 
-        buffer_ = CreateD3D11Buffer(bufferDesc, initData ? &subrscData : nullptr);
-        if(!buffer_)
+        obj_ = CreateD3D11Buffer(bufferDesc, initData ? &subrscData : nullptr);
+        if(!obj_)
             throw VRPGBaseException("failed to create vertex buffer");
         vertexCount_ = vertexCount;
     }
 
-    bool IsAvailable() const noexcept
-    {
-        return buffer_ != nullptr;
-    }
-
     void Destroy()
     {
-        buffer_.Reset();
+        obj_.Reset();
         vertexCount_ = 0;
-    }
-
-    ID3D11Buffer *Get() const noexcept
-    {
-        return buffer_.Get();
-    }
-
-    ID3D11Buffer *const *GetAddressOf() const noexcept
-    {
-        return buffer_.GetAddressOf();
-    }
-
-    operator ID3D11Buffer*() const noexcept
-    {
-        return buffer_.Get();
     }
 
     void SetValue(size_t start, size_t count, const Vertex *data)
@@ -85,7 +65,7 @@ public:
         box.bottom = 1;
         box.front  = 0;
         box.back   = 1;
-        gDeviceContext->UpdateSubresource(buffer_.Get(), 0, &box, data, 0, 0);
+        gDeviceContext->UpdateSubresource(obj_.Get(), 0, &box, data, 0, 0);
     }
 
     UINT GetVertexCount() const noexcept
@@ -96,7 +76,7 @@ public:
     void Bind(UINT slot) const
     {
         UINT stride = sizeof(Vertex), offset = 0;
-        gDeviceContext->IASetVertexBuffers(slot, 1, buffer_.GetAddressOf(), &stride, &offset);
+        gDeviceContext->IASetVertexBuffers(slot, 1, obj_.GetAddressOf(), &stride, &offset);
     }
 
     void Unbind(UINT slot) const

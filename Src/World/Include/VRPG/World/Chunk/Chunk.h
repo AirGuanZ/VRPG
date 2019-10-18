@@ -69,7 +69,7 @@ public:
         Brightness(blockX, blockY, blockZ) = brightness;
     }
 
-    std::vector<std::unique_ptr<ChunkModel>> GenerateModels(const Chunk neighboringChunks[6]) const;
+    std::vector<std::shared_ptr<const ChunkModel>> GenerateModels(const Chunk neighboringChunks[6]) const;
 };
 
 VRPG_WORLD_END

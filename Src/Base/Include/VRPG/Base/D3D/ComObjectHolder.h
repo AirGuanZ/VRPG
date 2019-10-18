@@ -33,11 +33,25 @@ public:
         return *this;
     }
 
-
     ComObjectHolder &operator=(ComPtr<T> obj) noexcept
     {
         obj_ = std::move(obj);
         return *this;
+    }
+
+    bool IsAvailable() const noexcept
+    {
+        return obj_ != nullptr;
+    }
+
+    void Destroy()
+    {
+        obj_.Reset();
+    }
+
+    T *const *GetAddressOf() const noexcept
+    {
+        return obj_.GetAddressOf();
     }
 
     T *Get() const noexcept

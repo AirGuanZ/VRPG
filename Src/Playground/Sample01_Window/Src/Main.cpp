@@ -34,26 +34,26 @@ protected:
         {
             std::cout << "key down: " << e.key << std::endl;
         });
-        keyboard_.Attach(&keyDownHandler_);
+        keyboard_->Attach(&keyDownHandler_);
 
         mouseButtonDownHandler_.SetFunction([&](const MouseButtonDownEvent &e)
         {
             std::cout << "mouse button " << int(e.button) << " clicked" << std::endl;
         });
-        mouse_.Attach(&mouseButtonDownHandler_);
+        mouse_->Attach(&mouseButtonDownHandler_);
 
         wheelScrollHandler_.SetFunction([&](const WheelScrollEvent &e)
         {
             std::cout << "wheel scroll offset: " << e.offset << std::endl;
         });
-        mouse_.Attach(&wheelScrollHandler_);
+        mouse_->Attach(&wheelScrollHandler_);
     }
 
     void Frame() override
     {
         window_.DoEvents();
 
-        if(keyboard_.IsKeyPressed(KEY_ESCAPE))
+        if(keyboard_->IsKeyPressed(KEY_ESCAPE))
             window_.SetCloseFlag(true);
         window_.ClearDefaultRenderTarget();
 

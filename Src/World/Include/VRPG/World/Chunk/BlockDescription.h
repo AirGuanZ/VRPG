@@ -11,14 +11,14 @@ VRPG_WORLD_BEGIN
 
 class ChunkModelBuilder;
 
-enum class Direction : uint8_t
+enum Direction
 {
-    PositiveX = (1 << 1),
-    PositiveY = (1 << 2),
-    PositiveZ = (1 << 3),
-    NegativeX = (1 << 4),
-    NegativeY = (1 << 5),
-    NegativeZ = (1 << 6)
+    PositiveX = 0,
+    PositiveY = 1,
+    PositiveZ = 2,
+    NegativeX = 3,
+    NegativeY = 4,
+    NegativeZ = 5
 };
 
 using BlockID = uint16_t;
@@ -52,9 +52,11 @@ public:
 
     virtual bool IsFullOpaque(Direction direction) const noexcept = 0;
 
+    virtual bool IsVisible() const noexcept = 0;
+
     virtual void AddBlockModel(
         agz::misc::span<std::unique_ptr<ChunkModelBuilder>> modelBuilders,
-        const Vec3i &blockPosition, const BlockDescription *neighboringBlocks[6]) const;
+        const Vec3i &blockPosition, const BlockDescription *neighboringBlocks[6]) const = 0;
 };
 
 class BlockDescriptionManager : public Base::Singleton<BlockDescriptionManager>

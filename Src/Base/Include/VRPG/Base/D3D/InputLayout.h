@@ -187,7 +187,9 @@ public:
             shaderByteCode->GetBufferPointer(),
             shaderByteCode->GetBufferSize(),
             inputLayout.GetAddressOf());
-        return SUCCEEDED(hr) ? inputLayout : nullptr;
+        if(FAILED(hr))
+            throw VRPGBaseException("failed to create input layout");
+        return inputLayout;
     }
 };
 

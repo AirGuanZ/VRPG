@@ -48,8 +48,10 @@ struct WindowImplData
     DXGI_FORMAT colorFormat = DXGI_FORMAT_UNKNOWN;
     DXGI_FORMAT depthStencilFormat = DXGI_FORMAT_UNKNOWN;
 
-    MouseEventManager    *mouse    = nullptr;
-    KeyboardEventManager *keyboard = nullptr;
+    int mouseUpdateInterval = 1;
+    int mouseUpdateCounter = 0;
+    std::unique_ptr<MouseEventManager> mouse;
+    std::unique_ptr<KeyboardEventManager> keyboard;
 };
 
 Window::~Window()
@@ -178,6 +180,9 @@ void Window::Initialize(const WindowDesc &windowDesc)
 
     Impl::HandleToWindow().insert(std::make_pair(data_->hWindow, this));
 
+    data_->mouse = std::make_unique<MouseEventManager>(data_->hWindow);
+    data_->keyboard = std::make_unique<KeyboardEventManager>();
+
     data_guard.dismiss();
 }
 
@@ -305,22 +310,30 @@ void Window::DoEvents()
         DispatchMessage(&msg);
     }
 
-    if(data_->mouse)
-        data_->mouse->Update();
-    if(data_->keyboard)
-        data_->keyboard->Update();
+    if(++data_->mouseUpdateCounter >= data_->mouseUpdateInterval)
+    {
+        data_->mouseUpdateCounter = 0;
+        data_->mouse->UpdatePosition();
+    }
+    data_->keyboard->Update();
 }
 
-void Window::SetMouse(MouseEventManager *mouse) noexcept
+void Window::SetMouseUpdateInterval(int interval) noexcept
 {
     assert(IsAvailable());
-    data_->mouse = mouse;
+    data_->mouseUpdateInterval = (std::max)(1, interval);
 }
 
-void Window::SetKeyboard(KeyboardEventManager *keyboard) noexcept
+MouseEventManager *Window::GetMouse() noexcept
 {
     assert(IsAvailable());
-    data_->keyboard = keyboard;
+    return data_->mouse.get();
+}
+
+KeyboardEventManager *Window::GetKeyboard() noexcept
+{
+    assert(IsAvailable());
+    return data_->keyboard.get();
 }
 
 ID3D11Device *Window::Device() const noexcept
@@ -431,64 +444,51 @@ void Window::_lostFocus()
 void Window::_mouse_button_down(MouseButton button)
 {
     assert(IsAvailable());
-    if(data_->mouse)
-        data_->mouse->InvokeAllHandlers(MouseButtonDownEvent{ button });
+    data_->mouse->InvokeAllHandlers(MouseButtonDownEvent{ button });
 }
 
 void Window::_mouse_button_up(MouseButton button)
 {
     assert(IsAvailable());
-    if(data_->mouse)
-        data_->mouse->InvokeAllHandlers(MouseButtonUpEvent{ button });
-}
-
-void Window::_cursor_move(int x, int y)
-{
-    assert(IsAvailable());
-    if(data_->mouse)
-        data_->mouse->InvokeAllHandlers(CursorMoveEvent{ x, y });
+    data_->mouse->InvokeAllHandlers(MouseButtonUpEvent{ button });
 }
 
 void Window::_wheel_scroll(int offset)
 {
     assert(IsAvailable());
-    if(data_->mouse)
-        data_->mouse->InvokeAllHandlers(WheelScrollEvent{ offset });
+    data_->mouse->InvokeAllHandlers(WheelScrollEvent{ offset });
 }
 
 void Window::_key_down(KeyCode key)
 {
     assert(IsAvailable());
-    if(key != KEY_UNKNOWN && data_->keyboard)
+    if(key != KEY_UNKNOWN)
         data_->keyboard->InvokeAllHandlers(KeyDownEvent{ key });
 }
 
 void Window::_key_up(KeyCode key)
 {
     assert(IsAvailable());
-    if(key != KEY_UNKNOWN && data_->keyboard)
+    if(key != KEY_UNKNOWN)
         data_->keyboard->InvokeAllHandlers(KeyUpEvent{ key });
 }
 
 void Window::_char_input(uint32_t ch)
 {
     assert(IsAvailable());
-    if(data_->keyboard)
-        data_->keyboard->InvokeAllHandlers(CharInputEvent{ ch });
+    data_->keyboard->InvokeAllHandlers(CharInputEvent{ ch });
 }
 
 void Window::_raw_key_down(uint32_t vk)
 {
     assert(IsAvailable());
-    if(data_->keyboard)
-        data_->keyboard->InvokeAllHandlers(RawKeyDownEvent{ vk });
+    data_->keyboard->InvokeAllHandlers(RawKeyDownEvent{ vk });
 }
 
 void Window::_raw_key_up(uint32_t vk)
 {
     assert(IsAvailable());
-    if(data_->keyboard)
-        data_->keyboard->InvokeAllHandlers(RawKeyUpEvent{ vk });
+    data_->keyboard->InvokeAllHandlers(RawKeyUpEvent{ vk });
 }
 
 namespace Impl
@@ -535,9 +535,6 @@ namespace Impl
             break;
         case WM_MOUSEWHEEL:
             win->_wheel_scroll(GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA);
-            break;
-        case WM_MOUSEMOVE:
-            win->_cursor_move(LOWORD(lParam), HIWORD(lParam));
             break;
         case WM_KEYDOWN:
             win->_key_down(VK2KeyCode(int(wParam)));

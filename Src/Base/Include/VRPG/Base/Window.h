@@ -92,9 +92,11 @@ public:
     template<typename Event>
     void Detach(EventHandler<Event> *handler) { eventMgr_.Detach(handler); }
 
-    void SetMouse(MouseEventManager *mouse) noexcept;
+    void SetMouseUpdateInterval(int interval) noexcept;
 
-    void SetKeyboard(KeyboardEventManager *keyboard) noexcept;
+    MouseEventManager *GetMouse() noexcept;
+
+    KeyboardEventManager *GetKeyboard() noexcept;
 
     ID3D11Device *Device() const noexcept;
 
@@ -119,8 +121,6 @@ public:
     void _mouse_button_down(MouseButton button);
 
     void _mouse_button_up(MouseButton button);
-
-    void _cursor_move(int x, int y);
 
     void _wheel_scroll(int offset);
 

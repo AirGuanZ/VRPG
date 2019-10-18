@@ -4,6 +4,8 @@
 
 VRPG_BASE_BEGIN
 
+class Window;
+
 enum class MouseButton
 {
     Left   = 0,
@@ -24,6 +26,7 @@ struct MouseButtonUpEvent
 struct CursorMoveEvent
 {
     int x, y;
+    int relX, relY;
 };
 
 struct WheelScrollEvent
@@ -39,12 +42,32 @@ using WheelScrollHandler     = FunctionalEventHandler<WheelScrollEvent>;
 class MouseEventManager :
     public EventManager<MouseButtonDownEvent, MouseButtonUpEvent, CursorMoveEvent, WheelScrollEvent>
 {
+    HWND hWindow_;
+
     bool isButtonPressed_[3] = { false, false, false };
+
     int cursorX_         = 0, cursorY_         = 0;
     int lastCursorX_     = 0, lastCursorY_     = 0;
     int relativeCursorX_ = 0, relativeCursorY_ = 0;
 
+    bool isCursorLocked_ = false;
+    int lockPositionX_ = 0, lockPositionY_ = 0;
+
+    bool showCursor_ = true;
+
 public:
+
+    explicit MouseEventManager(HWND hWindow) noexcept
+        : hWindow_(hWindow)
+    {
+        
+    }
+
+    ~MouseEventManager()
+    {
+        if(!showCursor_)
+            ShowCursor(true);
+    }
 
     void InvokeAllHandlers(const MouseButtonDownEvent &e)
     {
@@ -60,8 +83,6 @@ public:
 
     void InvokeAllHandlers(const CursorMoveEvent &e)
     {
-        cursorX_ = e.x;
-        cursorY_ = e.y;
         EventManager::InvokeAllHandlers(e);
     }
 
@@ -95,13 +116,21 @@ public:
         return relativeCursorY_;
     }
 
-    void Update()
+    void SetCursorLock(bool locked, int lockPositionX, int lockPositionY);
+
+    void ShowCursor(bool show);
+
+    bool IsCursorLocked() const noexcept
     {
-        relativeCursorX_ = cursorX_ - lastCursorX_;
-        relativeCursorY_ = cursorY_ - lastCursorY_;
-        lastCursorX_ = cursorX_;
-        lastCursorY_ = cursorY_;
+        return isCursorLocked_;
     }
+
+    bool IsCursorVisible() const noexcept
+    {
+        return showCursor_;
+    }
+
+    void UpdatePosition();
 
     void ClearState()
     {
@@ -109,6 +138,10 @@ public:
         cursorX_         = cursorY_         = 0;
         lastCursorX_     = lastCursorY_     = 0;
         relativeCursorX_ = relativeCursorY_ = 0;
+
+        isCursorLocked_ = false;
+        if(!showCursor_)
+            ShowCursor(true);
     }
 };
 

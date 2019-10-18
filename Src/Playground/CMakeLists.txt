@@ -6,10 +6,12 @@ ADD_SUBDIRECTORY(Sample01_Window)
 ADD_SUBDIRECTORY(Sample02_Triangle)
 ADD_SUBDIRECTORY(Sample03_ImGui)
 ADD_SUBDIRECTORY(Sample04_Texture)
+ADD_SUBDIRECTORY(Sample05_Camera)
 
 SET_TARGET_PROPERTIES(
 	Sample01_Window
 	Sample02_Triangle
 	Sample03_ImGui
 	Sample04_Texture
+	Sample05_Camera
 	PROPERTIES FOLDER "Playground")

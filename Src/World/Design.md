@@ -32,31 +32,3 @@ do
     send streaming result to logical thread (streaming result queue)
 ```
 
-## BlockInfoManagement
-
-```
-
-```
-
-## Chunk Management
-
-```
-class BlockEffect;
-
-class ChunkRenderingData
-{
-	virtual BlockEffect *GetBlockEffect();
-	virtual void Render();
-};
-
-class Chunk
-{
-	vector<unique_ptr<ChunkRenderingData>> GenerateRenderingData();
-	bool NeedToRegenerateRenderingData();
-};
-
-class ChunkManager
-{
-	void SetChunkCentre(int ckX, int ckY, int ckZ);
-};
-```

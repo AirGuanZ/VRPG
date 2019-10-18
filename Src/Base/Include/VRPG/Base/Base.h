@@ -2,6 +2,7 @@
 
 #include <VRPG/Base/D3D/BlendState.h>
 #include <VRPG/Base/D3D/ConstantBuffer.h>
+#include <VRPG/Base/D3D/IndexBuffer.h>
 #include <VRPG/Base/D3D/InputLayout.h>
 #include <VRPG/Base/D3D/RasterizerState.h>
 #include <VRPG/Base/D3D/RenderState.h>

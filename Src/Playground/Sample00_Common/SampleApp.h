@@ -75,8 +75,8 @@ class SampleApp
 protected:
 
     VRPG::Base::Window window_;
-    VRPG::Base::KeyboardEventManager keyboard_;
-    VRPG::Base::MouseEventManager mouse_;
+    VRPG::Base::KeyboardEventManager *keyboard_ = nullptr;
+    VRPG::Base::MouseEventManager *mouse_ = nullptr;
 
     virtual VRPG::Base::WindowDesc GetWindowDesc()
     {
@@ -108,13 +108,13 @@ public:
     {
         VRPG::Base::WindowDesc windowDesc = GetWindowDesc();
         window_.Initialize(windowDesc);
-        window_.SetMouse(&mouse_);
-        window_.SetKeyboard(&keyboard_);
+        mouse_ = window_.GetMouse();
+        keyboard_ = window_.GetKeyboard();
 
         ImGui::CreateContext();
         ImGui_ImplWin32_Init(window_.GetNativeWindowHandle());
         ImGui_ImplDX11_Init(VRPG::Base::gDevice, VRPG::Base::gDeviceContext);
-        imguiInputDispatcher_.AttachTo(keyboard_, mouse_);
+        imguiInputDispatcher_.AttachTo(*keyboard_, *mouse_);
 
         Initialize();
         while(!window_.GetCloseFlag())

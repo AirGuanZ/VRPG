@@ -5,7 +5,7 @@
 
 #include <VRPG/Base/D3D/Texture2DLoader.h>
 
-#include "./WICTextureLoader.h"
+#include <DirectXTK/WICTextureLoader.h>
 
 VRPG_BASE_D3D_BEGIN
 
@@ -18,6 +18,11 @@ namespace
             HRESULT hr = CoInitializeEx(nullptr, COINITBASE_MULTITHREADED);
             if(FAILED(hr))
                 throw VRPGBaseException("failed to initialize WIC texture loader");
+        }
+
+        ~WICInitializer()
+        {
+            CoUninitialize();
         }
     };
 }

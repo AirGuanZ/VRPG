@@ -56,8 +56,6 @@ class Sample02_Triangle : public SampleApp
             ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0)
             ("COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, UINT(agz::byte_offset(&Vertex::color)))
             .Build(shader_.GetVertexShaderByteCode());
-        if(!inputLayout_)
-            throw std::runtime_error("failed to create input layout");
     }
 
     void InitializeVertexBuffer()
@@ -93,7 +91,7 @@ protected:
             if(e.key == KEY_ESCAPE)
                 window_.SetCloseFlag(true);
         });
-        keyboard_.Attach(&keyDownHandler_);
+        keyboard_->Attach(&keyDownHandler_);
 
         InitializeShader();
         InitializeConstantBuffer();

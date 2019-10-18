@@ -11,7 +11,8 @@ public:
 
     static const float *DefaultBorderColor() noexcept
     {
-        
+        static const float ret[] = { 0, 0, 0, 0 };
+        return ret;
     }
 
     void Initialize(

@@ -25,7 +25,7 @@ protected:
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        if(keyboard_.IsKeyPressed(KEY_ESCAPE))
+        if(keyboard_->IsKeyPressed(KEY_ESCAPE))
             window_.SetCloseFlag(true);
 
         static float backgroundColor[] = { 0.2f, 0.2f, 0.2f, 0 };

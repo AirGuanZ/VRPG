@@ -10,17 +10,13 @@ void Run()
     WindowDesc desc;
     window.Initialize(desc);
 
-    MouseEventManager mouse;
-    window.SetMouse(&mouse);
-
-    KeyboardEventManager keyboard;
-    window.SetKeyboard(&keyboard);
+    KeyboardEventManager *keyboard = window.GetKeyboard();
 
     while(!window.GetCloseFlag())
     {
         window.DoEvents();
 
-        if(keyboard.IsKeyPressed(KEY_ESCAPE))
+        if(keyboard->IsKeyPressed(KEY_ESCAPE))
             window.SetCloseFlag(true);
 
         window.ClearDefaultRenderTarget();

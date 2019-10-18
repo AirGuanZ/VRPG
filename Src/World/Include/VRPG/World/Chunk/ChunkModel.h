@@ -22,7 +22,7 @@ public:
 
     virtual void Render() const = 0;
 
-    virtual BlockEffect *GetBlockEffect() const noexcept = 0;
+    virtual const BlockEffect *GetBlockEffect() const noexcept = 0;
 };
 
 class ChunkModelBuilder
@@ -31,7 +31,7 @@ public:
 
     virtual ~ChunkModelBuilder() = default;
 
-    virtual std::unique_ptr<ChunkModel> Build() const = 0;
+    virtual std::shared_ptr<const ChunkModel> Build() const = 0;
 };
 
 VRPG_WORLD_END
