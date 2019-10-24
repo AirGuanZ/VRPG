@@ -1,62 +1,89 @@
-#include <VRPG/World/Chunk/BlockEffect.h>
+#include <VRPG/World/Block/BlockEffect.h>
 #include <VRPG/World/Chunk/Chunk.h>
 
 VRPG_WORLD_BEGIN
 
-std::vector<std::shared_ptr<const ChunkModel>> Chunk::GenerateModels(const Chunk neighboringChunks[6]) const
+namespace
 {
+    const BlockDescription *ID2Desc(BlockID blockID) noexcept
+    {
+        return BlockDescriptionManager::GetInstance().GetBlockDescription(blockID);
+    }
+}
+
+void Chunk::RegenerateSectionModel(const Vec3i &sectionIndex, const Chunk *neighboringChunks[4])
+{
+    assert(0 <= sectionIndex.x && sectionIndex.x < CHUNK_SECTION_COUNT_X);
+    assert(0 <= sectionIndex.y && sectionIndex.y < CHUNK_SECTION_COUNT_Y);
+    assert(0 <= sectionIndex.z && sectionIndex.z < CHUNK_SECTION_COUNT_Z);
+
     auto &blockEffectMgr = BlockEffectManager::GetInstance();
     auto &blockDescMgr = BlockDescriptionManager::GetInstance();
 
+    // 准备modelBuilders
+
+    std::vector<std::unique_ptr<PartialSectionModelBuilder>> modelBuilders;
     BlockEffectID blockEffectCount = BlockEffectID(blockEffectMgr.GetBlockEffectCount());
-    std::vector<std::unique_ptr<ChunkModelBuilder>> modelBuilders;
     modelBuilders.reserve(blockEffectCount);
     for(BlockEffectID i = 0; i < blockEffectCount; ++i)
         modelBuilders.push_back(blockEffectMgr.GetBlockEffect(i)->CreateModelBuilder());
+    auto modelBuilderView = agz::misc::span(modelBuilders.data(), modelBuilders.size());
 
-    auto idToDesc = [&](BlockID id)
-    {
-        return blockDescMgr.GetBlockDescription(id);
-    };
+    // 遍历每个block，将其model数据追加到各自的model builder中
 
-    for(int x = 0; x < CHUNK_SIZE_X; ++x)
+    Vec3i low = sectionIndex * Vec3i(CHUNK_SECTION_SIZE_X, CHUNK_SECTION_SIZE_Y, CHUNK_SECTION_SIZE_Z);
+    Vec3i high = low + Vec3i(CHUNK_SECTION_SIZE_X, CHUNK_SECTION_SIZE_Y, CHUNK_SECTION_SIZE_Z);
+
+    for(int x = low.x; x < high.x; ++x)
     {
-        for(int z = 0; z < CHUNK_SIZE_Z; ++z)
+        for(int z = low.z; z < high.z; ++z)
         {
-            for(int y = 0; y < CHUNK_SIZE_Y; ++y)
+            for(int y = low.y; y < high.y; ++y)
             {
-                const BlockDescription *currBlockDesc = blockDescMgr.GetBlockDescription(GetID(x, y, z));
-                if(!currBlockDesc->IsVisible())
+                const BlockDescription *blockDesc = blockDescMgr.GetBlockDescription(GetID(x, y, z));
+                if(!blockDesc->IsVisible())
                     continue;
 
-                const BlockDescription *neighboringBlocks[6];
-                neighboringBlocks[PositiveX] = idToDesc(
-                    x == CHUNK_SIZE_X - 1 ? neighboringChunks[PositiveX].GetID(0, y, z) : GetID(x + 1, y, z));
-                neighboringBlocks[PositiveY] = idToDesc(
-                    y == CHUNK_SIZE_Y - 1 ? neighboringChunks[PositiveY].GetID(x, 0, z) : GetID(x, y + 1, z));
-                neighboringBlocks[PositiveZ] = idToDesc(
-                    z == CHUNK_SIZE_Z - 1 ? neighboringChunks[PositiveZ].GetID(x, y, 0) : GetID(x, y, z + 1));
-                neighboringBlocks[NegativeX] = idToDesc(
-                    x == 0 ? neighboringChunks[NegativeX].GetID(CHUNK_SIZE_X - 1, y, z) : GetID(x - 1, y, z));
-                neighboringBlocks[NegativeY] = idToDesc(
-                    y == 0 ? neighboringChunks[NegativeY].GetID(x, CHUNK_SIZE_Y - 1, z) : GetID(x, y - 1, z));
-                neighboringBlocks[NegativeZ] = idToDesc(
-                    z == 0 ? neighboringChunks[NegativeZ].GetID(x, y, CHUNK_SIZE_Z - 1) : GetID(x, y, z - 1));
+                const BlockDescription *neighboringBlockDesc[6];
+                neighboringBlockDesc[PositiveX] = ID2Desc(
+                    x == CHUNK_SIZE_X - 1 ?
+                        neighboringChunks[PositiveX]->GetID(0, y, z) :
+                        GetID(x + 1, y, z));
+                neighboringBlockDesc[NegativeX] = ID2Desc(
+                    x == 0 ?
+                        neighboringChunks[NegativeX]->GetID(CHUNK_SIZE_X - 1, y, z) :
+                        GetID(x - 1, y, z));
+                neighboringBlockDesc[PositiveZ] = ID2Desc(
+                    z == CHUNK_SIZE_Z - 1 ?
+                        neighboringChunks[PositiveZ]->GetID(x, y, 0) :
+                        GetID(x, y, z + 1));
+                neighboringBlockDesc[NegativeZ] = ID2Desc(
+                    z == 0 ?
+                        neighboringChunks[NegativeZ]->GetID(x, y, CHUNK_SIZE_Z - 1) :
+                        GetID(x, y, z - 1));
+                neighboringBlockDesc[PositiveY] = ID2Desc(
+                    y == CHUNK_SIZE_Y - 1 ?
+                        BLOCK_ID_VOID :
+                        GetID(x, y + 1, z));
+                neighboringBlockDesc[NegativeY] = ID2Desc(
+                    y == 0 ?
+                        BLOCK_ID_VOID :
+                        GetID(x, y - 1, z));
 
-                currBlockDesc->AddBlockModel(
-                    agz::misc::span(modelBuilders.data(), modelBuilders.size()), Vec3i(x, y, z), neighboringBlocks);
+                blockDesc->AddBlockModel(modelBuilderView, { x, y, z }, neighboringBlockDesc);
             }
         }
     }
 
-    std::vector<std::shared_ptr<const ChunkModel>> models;
+    // 用modelBuilders创建新的sectionModel，取代原来的
+
+    auto newSectionModel = std::unique_ptr<SectionModel>();
     for(auto &builder : modelBuilders)
     {
-        auto model = builder->Build();
-        if(model)
-            models.push_back(std::move(model));
+        if(auto model = builder->Build())
+            newSectionModel->partialModels.push_back(std::move(model));
     }
-    return models;
+    model_.sectionModel(sectionIndex) = std::move(newSectionModel);
 }
 
 VRPG_WORLD_END

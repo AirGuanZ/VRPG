@@ -1,75 +1,167 @@
 #pragma once
 
-#include <VRPG/World/Chunk/BlockBrightness.h>
-#include <VRPG/World/Chunk/BlockDescription.h>
+#include <VRPG/World/Block/BlockBrightness.h>
+#include <VRPG/World/Block/BlockDescription.h>
 #include <VRPG/World/Chunk/ChunkModel.h>
 
 VRPG_WORLD_BEGIN
 
-constexpr int CHUNK_SIZE_X = 16;
-constexpr int CHUNK_SIZE_Y = 16;
-constexpr int CHUNK_SIZE_Z = 16;
-
-class Chunk
+class ChunkBlockData
 {
-    BlockID implBlockID_[CHUNK_SIZE_X][CHUNK_SIZE_Z][CHUNK_SIZE_Y];
-    BlockBrightness implBlockBrightness_[CHUNK_SIZE_X][CHUNK_SIZE_Z][CHUNK_SIZE_Y];
-
-    BlockID &ID(int x, int y, int z) noexcept
-    {
-        assert(0 <= x && x < CHUNK_SIZE_X);
-        assert(0 <= y && y < CHUNK_SIZE_Y);
-        assert(0 <= z && z < CHUNK_SIZE_Z);
-        return implBlockID_[x][z][y];
-    }
-
-    BlockID ID(int x, int y, int z) const noexcept
-    {
-        assert(0 <= x && x < CHUNK_SIZE_X);
-        assert(0 <= y && y < CHUNK_SIZE_Y);
-        assert(0 <= z && z < CHUNK_SIZE_Z);
-        return implBlockID_[x][z][y];
-    }
-
-    BlockBrightness &Brightness(int x, int y, int z) noexcept
-    {
-        assert(0 <= x && x < CHUNK_SIZE_X);
-        assert(0 <= y && y < CHUNK_SIZE_Y);
-        assert(0 <= z && z < CHUNK_SIZE_Z);
-        return implBlockBrightness_[x][z][y];
-    }
-
-    BlockBrightness Brightness(int x, int y, int z) const noexcept
-    {
-        assert(0 <= x && x < CHUNK_SIZE_X);
-        assert(0 <= y && y < CHUNK_SIZE_Y);
-        assert(0 <= z && z < CHUNK_SIZE_Z);
-        return implBlockBrightness_[x][z][y];
-    }
+    BlockID blockID_[CHUNK_SIZE_X][CHUNK_SIZE_Z][CHUNK_SIZE_Y] = { { { 0 } } };
+    int heightMap_[CHUNK_SIZE_X][CHUNK_SIZE_Z] = { { 0 } };
 
 public:
 
+    BlockID GetID(int x, int y, int z) const noexcept
+    {
+        assert(0 <= x && x < CHUNK_SIZE_X);
+        assert(0 <= y && y < CHUNK_SIZE_Y);
+        assert(0 <= z && z < CHUNK_SIZE_Z);
+        return blockID_[x][z][y];
+    }
+
+    void SetID(int x, int y, int z, BlockID id) noexcept
+    {
+        assert(0 <= x && x < CHUNK_SIZE_X);
+        assert(0 <= y && y < CHUNK_SIZE_Y);
+        assert(0 <= z && z < CHUNK_SIZE_Z);
+        blockID_[x][z][y] = id;
+    }
+
+    int GetHeight(int blockX, int blockZ) const noexcept
+    {
+        return heightMap_[blockX][blockZ];
+    }
+
+    void SetHeight(int blockX, int blockZ, int height) noexcept
+    {
+        heightMap_[blockX][blockZ] = height;
+    }
+};
+
+class ChunkBrightnessData
+{
+    BlockBrightness implBlockBrightness_[CHUNK_SIZE_X][CHUNK_SIZE_Z][CHUNK_SIZE_Y];
+
+public:
+
+    BlockBrightness &operator()(int x, int y, int z) noexcept
+    {
+        assert(0 <= x && x < CHUNK_SIZE_X);
+        assert(0 <= y && y < CHUNK_SIZE_Y);
+        assert(0 <= z && z < CHUNK_SIZE_Z);
+        return implBlockBrightness_[x][z][y];
+    }
+
+    BlockBrightness operator()(int x, int y, int z) const noexcept
+    {
+        assert(0 <= x && x < CHUNK_SIZE_X);
+        assert(0 <= y && y < CHUNK_SIZE_Y);
+        assert(0 <= z && z < CHUNK_SIZE_Z);
+        return implBlockBrightness_[x][z][y];
+    }
+};
+
+class Chunk
+{
+    ChunkPosition chunkPosition_;
+
+    ChunkBlockData block_;
+    ChunkBrightnessData brightness_;
+    ChunkModel model_;
+
+    bool isDirtySinceLoaded_;
+
+public:
+
+    static ChunkPosition BlockToChunk(int blockX, int blockZ) noexcept
+    {
+        return { blockX / CHUNK_SIZE_X, blockZ / CHUNK_SIZE_Z };
+    }
+
+    static Vec3i GlobalToLocal(const Vec3i &globalBlockPosition) noexcept
+    {
+        return Vec3i(
+            globalBlockPosition.x % CHUNK_SIZE_X,
+            globalBlockPosition.y,
+            globalBlockPosition.z % CHUNK_SIZE_Z);
+    }
+
+    Chunk() noexcept
+        : isDirtySinceLoaded_(false)
+    {
+        
+    }
+
+    explicit Chunk(const ChunkPosition &chunkPosition) noexcept
+        : chunkPosition_(chunkPosition), isDirtySinceLoaded_(false)
+    {
+        
+    }
+
+    void SetPosition(const ChunkPosition &position) noexcept
+    {
+        chunkPosition_ = position;
+    }
+
+    const ChunkPosition &GetPosition() const noexcept
+    {
+        return chunkPosition_;
+    }
+
     BlockID GetID(int blockX, int blockY, int blockZ) const noexcept
     {
-        return ID(blockX, blockY, blockZ);
+        return block_.GetID(blockX, blockY, blockZ);
     }
 
     void SetID(int blockX, int blockY, int blockZ, BlockID id) noexcept
     {
-        ID(blockX, blockY, blockZ) = id;
+        block_.SetID(blockX, blockY, blockZ, id);
     }
 
     BlockBrightness GetBrightness(int blockX, int blockY, int blockZ) const noexcept
     {
-        return Brightness(blockX, blockY, blockZ);
+        return brightness_(blockX, blockY, blockZ);
     }
 
     void SetBrightness(int blockX, int blockY, int blockZ, BlockBrightness brightness) noexcept
     {
-        Brightness(blockX, blockY, blockZ) = brightness;
+        brightness_(blockX, blockY, blockZ) = brightness;
     }
 
-    std::vector<std::shared_ptr<const ChunkModel>> GenerateModels(const Chunk neighboringChunks[6]) const;
+    int GetHeight(int blockX, int blockZ) const noexcept
+    {
+        return block_.GetHeight(blockX, blockZ);
+    }
+
+    void SetHeight(int blockX, int blockZ, int height) noexcept
+    {
+        block_.SetHeight(blockX, blockZ, height);
+    }
+
+    const ChunkModel &GetChunkModel() const noexcept
+    {
+        return model_;
+    }
+
+    // neighboringChunks[0]: x + 1, x - 1, z + 1, z - 1
+    void RegenerateSectionModel(const Vec3i &sectionIndex, const Chunk *neighboringChunks[4]);
+
+    bool IsDirtySinceLoaded() const noexcept
+    {
+        return isDirtySinceLoaded_;
+    }
+
+    void SetDirtySinceLoaded() noexcept
+    {
+        isDirtySinceLoaded_ = true;
+    }
+
+    ChunkBlockData &GetBlockData() noexcept
+    {
+        return block_;
+    }
 };
 
 VRPG_WORLD_END

@@ -40,7 +40,7 @@ public:
 
     virtual void Unbind() const = 0;
 
-    virtual std::unique_ptr<ChunkModelBuilder> CreateModelBuilder() const = 0;
+    virtual std::unique_ptr<PartialSectionModelBuilder> CreateModelBuilder() const = 0;
 };
 
 class BlockEffectManager : public Base::Singleton<BlockEffectManager>

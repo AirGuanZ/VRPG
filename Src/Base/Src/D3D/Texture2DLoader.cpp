@@ -1,7 +1,4 @@
-#include <codecvt>
-#include <locale>
-
-#include <wincodec.h>
+#include <agz/utility/string.h>
 
 #include <VRPG/Base/D3D/Texture2DLoader.h>
 
@@ -31,8 +28,7 @@ ComPtr<ID3D11ShaderResourceView> Texture2DLoader::LoadShaderResourceViewFromImag
 {
     [[maybe_unused]] static WICInitializer initializer;
 
-    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-    std::wstring wideFilename = converter.from_bytes(filename);
+    std::wstring wideFilename = agz::stdstr::u8_to_wstr(filename);
 
     ComPtr<ID3D11ShaderResourceView> srv;
     HRESULT hr = DirectX::CreateWICTextureFromFile(gDevice, wideFilename.c_str(), nullptr, srv.GetAddressOf());

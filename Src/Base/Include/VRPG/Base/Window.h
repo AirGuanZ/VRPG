@@ -70,6 +70,10 @@ public:
 
     float GetClientAspectRatio() const noexcept;
 
+    void SetWindowTitle(std::wstring title);
+
+    const std::wstring &GetWindowTitle() const noexcept;
+
     void SetVSync(bool vsync) noexcept;
 
     bool GetVSync() const noexcept;

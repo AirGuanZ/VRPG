@@ -2,6 +2,7 @@
 
 #include <agz/utility/file.h>
 #include <agz/utility/misc.h>
+#include <agz/utility/time.h>
 
 #include <SampleApp.h>
 
@@ -10,7 +11,7 @@ using namespace D3D;
 
 class Camera
 {
-    Vec3 position_ = { 0, 0, -5 };
+    Vec3 position_;
 
     float vertRadian_ = 0;
     float horiRadian_ = 0;
@@ -38,6 +39,11 @@ public:
         float relativeCursorX_ = 0;
         float relativeCursorY_ = 0;
     };
+
+    void SetPosition(const Vec3 &position) noexcept
+    {
+        position_ = position;
+    }
 
     void SetFOVy(float degree) noexcept
     {
@@ -103,7 +109,7 @@ public:
         position_ += moveSpeed_ * moveDirection;
     }
 
-    Mat4 GetViewProjectMatrix(float wOverH) const noexcept
+    Mat4 ConstructViewProjectMatrix(float wOverH) const noexcept
     {
         Vec3 direction = {
             std::cos(vertRadian_) * std::cos(horiRadian_),
@@ -144,6 +150,8 @@ class Sample05_Camera : public SampleApp
 
     KeyDownHandler keyDownHandler_;
     Camera camera_;
+
+    agz::time::fps_counter_t fps_;
 
     void InitializeShader()
     {
@@ -275,11 +283,18 @@ protected:
         
         mouse_->ShowCursor(false);
         mouse_->SetCursorLock(true, window_.GetClientSizeX() / 2, window_.GetClientSizeY() / 2);
+        mouse_->UpdatePosition();
+
+        camera_.SetPosition({ -5, 0, 0 });
+        fps_.restart();
     }
 
     void Frame() override
     {
         window_.DoEvents();
+        ImGui_ImplDX11_NewFrame();
+        ImGui_ImplWin32_NewFrame();
+        ImGui::NewFrame();
 
         static float backgroundColor[] = { 0.2f, 0.2f, 0.2f, 0 };
         window_.ClearDefaultDepthStencil();
@@ -296,12 +311,32 @@ protected:
         cameraInput.downKey          = keyboard_->IsKeyPressed(KEY_LSHIFT);
         camera_.Update(cameraInput);
 
-        Mat4 WVP = camera_.GetViewProjectMatrix(window_.GetClientAspectRatio());
+        Mat4 WVP = camera_.ConstructViewProjectMatrix(window_.GetClientAspectRatio());
         transformConstantBuffer_.SetValue({ WVP });
 
         RenderState::DrawIndexed(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, indexBuffer_.GetIndexCount());
 
+        constexpr auto WIN_FLAG =
+            ImGuiWindowFlags_NoMove |
+            ImGuiWindowFlags_NoTitleBar |
+            ImGuiWindowFlags_NoResize |
+            ImGuiWindowFlags_AlwaysAutoResize |
+            ImGuiWindowFlags_NoSavedSettings |
+            ImGuiWindowFlags_NoFocusOnAppearing |
+            ImGuiWindowFlags_NoNav;
+        ImGui::SetNextWindowBgAlpha(0.2f);
+        ImGui::SetNextWindowPos({ 20, 20 });
+        if(ImGui::Begin("debug overlay", nullptr, WIN_FLAG))
+        {
+            ImGui::Text("FPS: %i\n", fps_.fps());
+        }
+        ImGui::End();
+
+        ImGui::Render();
+        ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
         window_.SwapBuffers();
+        fps_.update();
     }
 };
 

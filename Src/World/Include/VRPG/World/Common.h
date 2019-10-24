@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-#include <agz/utility/math.h>
+#include <VRPG/Base/Base.h>
 
 #define VRPG_WORLD_BEGIN namespace VRPG::World {
 #define VRPG_WORLD_END   }

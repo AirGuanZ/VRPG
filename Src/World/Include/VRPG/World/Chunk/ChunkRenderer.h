@@ -2,14 +2,14 @@
 
 #include <agz/utility/misc.h>
 
-#include <VRPG/World/Chunk/BlockEffect.h>
+#include <VRPG/World/Block/BlockEffect.h>
 #include <VRPG/World/Chunk/Chunk.h>
 
 VRPG_WORLD_BEGIN
 
 class ChunkRenderer : public agz::misc::uncopyable_t
 {
-    using ChunkModelSet = std::vector<std::shared_ptr<const ChunkModel>>;
+    using ChunkModelSet = std::vector<std::shared_ptr<const PartialSectionModel>>;
 
     std::vector<ChunkModelSet> chunkModelSets_;
 
@@ -21,7 +21,7 @@ public:
         chunkModelSets_.resize(blockEffectCount);
     }
 
-    void AddModel(std::shared_ptr<const ChunkModel> model)
+    void AddPartialSectionModel(std::shared_ptr<const PartialSectionModel> model)
     {
         const BlockEffect *effect = model->GetBlockEffect();
         BlockEffectID effectID = effect->GetBlockEffectID();
