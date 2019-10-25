@@ -2,6 +2,10 @@
 
 #include <stdexcept>
 
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/rotating_file_sink.h>
+
 #include <VRPG/Base/Base.h>
 
 #define VRPG_WORLD_BEGIN namespace VRPG::World {
@@ -23,5 +27,7 @@ public:
 
     using runtime_error::runtime_error;
 };
+
+constexpr int DEFAULT_LOG_FILE_SIZE = 1048576 * 5;
 
 VRPG_WORLD_END

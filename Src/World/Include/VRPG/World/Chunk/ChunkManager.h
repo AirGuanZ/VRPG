@@ -32,6 +32,7 @@ struct ChunkManagerParams
     // <= renderDistance -> render
     // <= loadDistance   -> load
     // >  unloadDistance -> destroy
+
     int renderDistance;
     int loadDistance;
     int unloadDistance;
@@ -52,6 +53,8 @@ class ChunkManager : public agz::misc::uncopyable_t
 public:
 
     ChunkManager(const ChunkManagerParams &params, std::unique_ptr<LandGenerator> landGenerator);
+
+    ~ChunkManager();
 
     /**
      * @brief 设置中心区块的位置，这可能会产生一系列的区块加载和卸载
@@ -144,6 +147,9 @@ private:
 
     // 目前的中心区块位置
     ChunkPosition centreChunkPosition_;
+
+    // 日志
+    std::shared_ptr<spdlog::logger> log_;
 };
 
 VRPG_WORLD_END

@@ -37,7 +37,13 @@ class ChunkLoader
     std::mutex loadingResultsMutex_;
     std::unique_ptr<std::queue<std::unique_ptr<Chunk>>> loadingResults_;
 
+    std::atomic<bool> skipLoading_;
+
+    std::shared_ptr<spdlog::logger> log_;
+
 public:
+
+    ChunkLoader();
 
     ~ChunkLoader();
 

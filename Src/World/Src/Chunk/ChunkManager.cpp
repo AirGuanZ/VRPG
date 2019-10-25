@@ -6,9 +6,16 @@ VRPG_WORLD_BEGIN
 ChunkManager::ChunkManager(const ChunkManagerParams &params, std::unique_ptr<LandGenerator> landGenerator)
     : params_(params)
 {
+    log_ = spdlog::stdout_color_mt("ChunkManager");
+
     loader_ = std::make_unique<ChunkLoader>();
     loader_->Initialize(
         params_.backgroundThreadCount, params_.backgroundPoolSize, std::move(landGenerator));
+}
+
+ChunkManager::~ChunkManager()
+{
+    loader_->Destroy();
 }
 
 void ChunkManager::SetCentreChunk(int chunkX, int chunkZ)
@@ -45,7 +52,10 @@ void ChunkManager::SetCentreChunk(int chunkX, int chunkZ)
         return CL.length_square() < CR.length_square();
     });
     for(auto &position : chunksShouldBeLoad)
+    {
         loader_->AddLoadingTask(position);
+        log_->trace("add loading task({}, {})", position.x, position.z);
+    }
 
     // 发布区块卸载任务
 
@@ -175,6 +185,8 @@ void ChunkManager::UpdateChunkData()
             chunks_[position] = std::move(chunk);
         else
             loader_->AddUnloadingTask(std::move(chunk));
+
+        log_->trace("receive chunk({}, {}) from loader", position.x, position.z);
     }
 }
 

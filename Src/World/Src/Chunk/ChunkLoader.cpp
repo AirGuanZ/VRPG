@@ -14,6 +14,12 @@ namespace
     }
 }
 
+ChunkLoader::ChunkLoader()
+{
+    skipLoading_ = false;
+    log_ = spdlog::stdout_color_mt("ChunkLoader");
+}
+
 ChunkLoader::~ChunkLoader()
 {
     assert(!IsAvailable());
@@ -45,6 +51,7 @@ void ChunkLoader::Destroy()
     if(!IsAvailable())
         return;
 
+    skipLoading_ = true;
     for(size_t i = 0; i < threads_.size(); ++i)
         perThreadData_[i].taskQueue.Stop();
 
@@ -201,9 +208,14 @@ void ChunkLoader::ExecuteTask(ChunkLoaderTask &&task)
 {
     if(auto load = task.as_if<ChunkLoaderTask_Load>())
     {
+        if(skipLoading_)
+            return;
+
         if(!load->chunk)
             load->chunk = LoadChunk(load->position);
         AddLoadingResult(std::move(load->chunk));
+
+        log_->trace("load chunk({}, {})", load->position.x, load->position.z);
         return;
     }
 

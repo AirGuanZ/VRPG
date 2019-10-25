@@ -39,10 +39,10 @@ using ChunkLoaderTask = agz::misc::variant_t<ChunkLoaderTask_Load, ChunkLoaderTa
  * - 弹出首个任务
  *
  * 同位置相邻任务简化：
- *   加载 加载 => 取消其中一个加载
- *   卸载 加载 => 把卸载的东西bypass给加载
- *   加载 卸载 => 把卸载的东西bypass给加载
- *   卸载 卸载 => 取消前一个卸载
+ * - 加载 加载 => 取消其中一个加载
+ * - 卸载 加载 => 把卸载的东西bypass给加载
+ * - 加载 卸载 => 把卸载的东西bypass给加载
+ * - 卸载 卸载 => 取消前一个卸载
  *
  * 所有操作均是线程安全的
  */
@@ -65,11 +65,11 @@ class ChunkLoaderTaskQueue
         {
             if(rhs.is<ChunkLoaderTask_Load>())
             {
-                // 加载，加载，此时取消前一个加载
+                // 加载-加载，此时取消前一个加载
                 return std::move(lhs);
             }
 
-            // 加载，卸载，此时把卸载内容bypass给加载
+            // 加载-卸载，此时把卸载内容bypass给加载
             auto rhs_unload = &rhs.as<ChunkLoaderTask_Unload>();
             return ChunkLoaderTask(ChunkLoaderTask_Load{ lhs_load->position, std::move(rhs_unload->chunk) });
         }
@@ -77,11 +77,11 @@ class ChunkLoaderTaskQueue
         auto lhs_unload = &lhs.as<ChunkLoaderTask_Unload>();
         if(auto rhs_load = rhs.as_if<ChunkLoaderTask_Load>())
         {
-            // 卸载，加载，此时把卸载内容bypass给加载
+            // 卸载-加载，此时把卸载内容bypass给加载
             return ChunkLoaderTask(ChunkLoaderTask_Load{ rhs_load->position, std::move(lhs_unload->chunk) });
         }
 
-        // 卸载，卸载，此时取消前一个卸载
+        // 卸载-卸载，此时取消前一个卸载
         return std::move(rhs);
     }
 

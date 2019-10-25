@@ -18,6 +18,7 @@ ADD_DEFINITIONS(-D_UNICODE)
 ############## submodules
 
 SET(directxtk_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/Lib/DirectXTK/Inc)
+SET(spdlog_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/Lib/spdlog/include)
 
 ADD_SUBDIRECTORY(Lib/agz-utils)
 ADD_SUBDIRECTORY(Lib/DirectXTK)
