@@ -145,8 +145,7 @@ public:
         return model_;
     }
 
-    // neighboringChunks[0]: x + 1, x - 1, z + 1, z - 1
-    void RegenerateSectionModel(const Vec3i &sectionIndex, const Chunk *neighboringChunks[4]);
+    void RegenerateSectionModel(const Vec3i &sectionIndex, const Chunk *neighboringChunks[3][3]);
 
     bool IsDirtySinceLoaded() const noexcept
     {

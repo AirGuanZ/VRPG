@@ -209,11 +209,16 @@ bool ChunkManager::UpdateChunkModels()
         // EnsureChunkExists可能让it失效，因此在这里暂时记下chunk的地址
         auto chunk = it->second.get();
 
-        const Chunk *neighboringChunks[4];
-        neighboringChunks[PositiveX] = EnsureChunkExists(ckX + 1, ckZ);
-        neighboringChunks[NegativeX] = EnsureChunkExists(ckX - 1, ckZ);
-        neighboringChunks[PositiveZ] = EnsureChunkExists(ckX, ckZ + 1);
-        neighboringChunks[NegativeZ] = EnsureChunkExists(ckX, ckZ - 1);
+        const Chunk *neighboringChunks[3][3];
+        neighboringChunks[0][0] = EnsureChunkExists(ckX - 1, ckZ - 1);
+        neighboringChunks[0][1] = EnsureChunkExists(ckX - 1, ckZ);
+        neighboringChunks[0][2] = EnsureChunkExists(ckX - 1, ckZ + 1);
+        neighboringChunks[1][0] = EnsureChunkExists(ckX, ckZ - 1);
+        neighboringChunks[1][1] = chunk;
+        neighboringChunks[1][2] = EnsureChunkExists(ckX, ckZ + 1);
+        neighboringChunks[2][0] = EnsureChunkExists(ckX + 1, ckZ - 1);
+        neighboringChunks[2][1] = EnsureChunkExists(ckX + 1, ckZ);
+        neighboringChunks[2][2] = EnsureChunkExists(ckX + 1, ckZ + 1);
 
         chunk->RegenerateSectionModel({ localSecX, secPos.y, localSecZ }, neighboringChunks);
     }

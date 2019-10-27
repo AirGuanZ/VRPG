@@ -56,7 +56,7 @@ void ReleaseCOMObjects(T0 &&ptr0, T1 &&ptr1, Ts&&...ptrs)
 template<typename C, typename M>
 UINT ByteOffset(M C::* memPtr) noexcept
 {
-    return agz::byte_offset(memPtr);
+    return UINT(agz::byte_offset(memPtr));
 }
 
 inline ID3D11Device        *gDevice        = nullptr;

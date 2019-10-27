@@ -33,14 +33,14 @@ struct ChunkManagerParams
     // <= loadDistance   -> load
     // >  unloadDistance -> destroy
 
-    int renderDistance;
-    int loadDistance;
-    int unloadDistance;
+    int renderDistance = 2;
+    int loadDistance   = 3;
+    int unloadDistance = 4;
 
     // 后台负责区块加载/卸载线程的数量
-    int backgroundThreadCount;
+    int backgroundThreadCount = 1;
     // 后台区块数据池的大小
-    int backgroundPoolSize;
+    int backgroundPoolSize = 30;
 };
 
 /**

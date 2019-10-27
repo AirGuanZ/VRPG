@@ -60,7 +60,27 @@ inline BlockBrightness operator-(const BlockBrightness &lhs, const BlockBrightne
     return BlockBrightness{ new_r, new_g, new_b, new_s };
 }
 
+constexpr BlockBrightness BLOCK_BRIGHTNESS_MIN = { 0, 0, 0, 0 };
 constexpr BlockBrightness BLOCK_BRIGHTNESS_MAX = { 255, 255, 255, 255 };
 constexpr BlockBrightness BLOCK_BRIGHTNESS_SKY = { 0, 0, 0, 15 };
+
+inline float BlockBrightnessToFloat(uint8_t brightness) noexcept
+{
+    return (std::min)(brightness, uint8_t(15)) / 15.0f;
+}
+
+inline Vec4 BlockBrightnessToFloat(BlockBrightness brightness) noexcept
+{
+    return Vec4(
+        BlockBrightnessToFloat(brightness.r),
+        BlockBrightnessToFloat(brightness.g),
+        BlockBrightnessToFloat(brightness.b),
+        BlockBrightnessToFloat(brightness.s));
+}
+
+inline Vec4 BlockAO(const Vec4 &a, const Vec4 &b, const Vec4 &c, const Vec4 &d) noexcept
+{
+    return 0.25f * (a + b + c + d);
+}
 
 VRPG_WORLD_END

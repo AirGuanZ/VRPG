@@ -134,35 +134,30 @@ std::unique_ptr<Chunk> ChunkLoader::LoadChunk(const ChunkPosition &position)
 
     // 计算光照
 
+    Chunk *neighboringChunks[3][3] =
     {
-        Chunk *neighboringChunks[3][3] =
-        {
-            { &neighboringChunksStorage[0], &neighboringChunksStorage[1], &neighboringChunksStorage[2] },
-            { &neighboringChunksStorage[3], chunk.get(), &neighboringChunksStorage[4] },
-            { &neighboringChunksStorage[5], &neighboringChunksStorage[6], &neighboringChunksStorage[7] }
-        };
-        PropagateLightForCentreChunk(neighboringChunks);
-    }
+        { &neighboringChunksStorage[0], &neighboringChunksStorage[1], &neighboringChunksStorage[2] },
+        { &neighboringChunksStorage[3], chunk.get(), &neighboringChunksStorage[4] },
+        { &neighboringChunksStorage[5], &neighboringChunksStorage[6], &neighboringChunksStorage[7] }
+    };
+    PropagateLightForCentreChunk(neighboringChunks);
 
     // 生成渲染模型
 
+    const Chunk *constNeighboringChunks[3][3] =
     {
-        const Chunk *neighboringChunks[4] =
-        {
-            &neighboringChunksStorage[6],
-            &neighboringChunksStorage[1],
-            &neighboringChunksStorage[4],
-            &neighboringChunksStorage[3]
-        };
+        { &neighboringChunksStorage[0], &neighboringChunksStorage[1], &neighboringChunksStorage[2] },
+        { &neighboringChunksStorage[3], chunk.get(), &neighboringChunksStorage[4] },
+        { &neighboringChunksStorage[5], &neighboringChunksStorage[6], &neighboringChunksStorage[7] }
+    };
 
-        for(int sx = 0; sx < CHUNK_SECTION_COUNT_X; ++sx)
+    for(int sx = 0; sx < CHUNK_SECTION_COUNT_X; ++sx)
+    {
+        for(int sz = 0; sz < CHUNK_SECTION_COUNT_Z; ++sz)
         {
-            for(int sz = 0; sz < CHUNK_SECTION_COUNT_Z; ++sz)
+            for(int sy = 0; sy < CHUNK_SECTION_COUNT_Y; ++sy)
             {
-                for(int sy = 0; sy < CHUNK_SECTION_COUNT_Y; ++sy)
-                {
-                    chunk->RegenerateSectionModel({ sx, sy, sz }, neighboringChunks);
-                }
+                chunk->RegenerateSectionModel({ sx, sy, sz }, constNeighboringChunks);
             }
         }
     }

@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include <VRPG/World/Camera/Camera.h>
 #include <VRPG/World/Chunk/Common.h>
 
 VRPG_WORLD_BEGIN
@@ -27,7 +28,7 @@ public:
 
     virtual ~PartialSectionModel() = default;
 
-    virtual void Render() const = 0;
+    virtual void Render(const Camera &camera) const = 0;
 
     virtual const BlockEffect *GetBlockEffect() const noexcept = 0;
 };
@@ -38,7 +39,7 @@ public:
 
     virtual ~PartialSectionModelBuilder() = default;
 
-    virtual std::shared_ptr<const PartialSectionModel> Build() const = 0;
+    virtual std::shared_ptr<const PartialSectionModel> Build(const Vec3 &worldOffset) const = 0;
 };
 
 class SectionModel

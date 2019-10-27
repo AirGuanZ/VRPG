@@ -3,19 +3,12 @@
 
 VRPG_WORLD_BEGIN
 
-namespace
-{
-    const BlockDescription *ID2Desc(BlockID blockID) noexcept
-    {
-        return BlockDescriptionManager::GetInstance().GetBlockDescription(blockID);
-    }
-}
-
-void Chunk::RegenerateSectionModel(const Vec3i &sectionIndex, const Chunk *neighboringChunks[4])
+void Chunk::RegenerateSectionModel(const Vec3i &sectionIndex, const Chunk *neighboringChunks[3][3])
 {
     assert(0 <= sectionIndex.x && sectionIndex.x < CHUNK_SECTION_COUNT_X);
     assert(0 <= sectionIndex.y && sectionIndex.y < CHUNK_SECTION_COUNT_Y);
     assert(0 <= sectionIndex.z && sectionIndex.z < CHUNK_SECTION_COUNT_Z);
+    assert(neighboringChunks[1][1] == this);
 
     auto &blockEffectMgr = BlockEffectManager::GetInstance();
     auto &blockDescMgr = BlockDescriptionManager::GetInstance();
@@ -34,53 +27,68 @@ void Chunk::RegenerateSectionModel(const Vec3i &sectionIndex, const Chunk *neigh
     Vec3i low = sectionIndex * Vec3i(CHUNK_SECTION_SIZE_X, CHUNK_SECTION_SIZE_Y, CHUNK_SECTION_SIZE_Z);
     Vec3i high = low + Vec3i(CHUNK_SECTION_SIZE_X, CHUNK_SECTION_SIZE_Y, CHUNK_SECTION_SIZE_Z);
 
+    auto voidDesc = blockDescMgr.GetBlockDescription(BLOCK_ID_VOID);
+    auto getDescAndBrightness = [&](int x, int y, int z)
+    {
+        if(y < 0 || y >= CHUNK_SIZE_Y)
+            return std::make_pair(voidDesc, BLOCK_BRIGHTNESS_MIN);
+
+        int ckX = x / CHUNK_SIZE_X;
+        int ckZ = z / CHUNK_SIZE_Z;
+        int blkX = x % CHUNK_SIZE_X;
+        int blkY = y;
+        int blkZ = z % CHUNK_SIZE_Z;
+
+        BlockID id = neighboringChunks[ckX][ckZ]->GetID(blkX, blkY, blkZ);
+        BlockBrightness brightness = neighboringChunks[ckX][ckZ]->GetBrightness(blkX, blkY, blkZ);
+        return std::make_pair(blockDescMgr.GetBlockDescription(id), brightness);
+    };
+
+    auto fillNeighbors = [&](
+        int x, int y, int z,
+        const BlockDescription *neighbors[3][3][3],
+        BlockBrightness brightness[3][3][3])
+    {
+        --x, --y, --z;
+        for(int lx = 0; lx <= 2; ++lx)
+        {
+            for(int ly = 0; ly <= 2; ++ly)
+            {
+                for(int lz = 0; lz <= 2; ++lz)
+                {
+                    auto [desc, light] = getDescAndBrightness(x + lx, y + ly, z + lz);
+                    neighbors[lx][ly][lz] = desc;
+                    brightness[lx][ly][lz] = light;
+                }
+            }
+        }
+    };
+
     for(int x = low.x; x < high.x; ++x)
     {
         for(int z = low.z; z < high.z; ++z)
         {
             for(int y = low.y; y < high.y; ++y)
             {
-                const BlockDescription *blockDesc = blockDescMgr.GetBlockDescription(GetID(x, y, z));
-                if(!blockDesc->IsVisible())
-                    continue;
-
-                const BlockDescription *neighboringBlockDesc[6];
-                neighboringBlockDesc[PositiveX] = ID2Desc(
-                    x == CHUNK_SIZE_X - 1 ?
-                        neighboringChunks[PositiveX]->GetID(0, y, z) :
-                        GetID(x + 1, y, z));
-                neighboringBlockDesc[NegativeX] = ID2Desc(
-                    x == 0 ?
-                        neighboringChunks[NegativeX]->GetID(CHUNK_SIZE_X - 1, y, z) :
-                        GetID(x - 1, y, z));
-                neighboringBlockDesc[PositiveZ] = ID2Desc(
-                    z == CHUNK_SIZE_Z - 1 ?
-                        neighboringChunks[PositiveZ]->GetID(x, y, 0) :
-                        GetID(x, y, z + 1));
-                neighboringBlockDesc[NegativeZ] = ID2Desc(
-                    z == 0 ?
-                        neighboringChunks[NegativeZ]->GetID(x, y, CHUNK_SIZE_Z - 1) :
-                        GetID(x, y, z - 1));
-                neighboringBlockDesc[PositiveY] = ID2Desc(
-                    y == CHUNK_SIZE_Y - 1 ?
-                        BLOCK_ID_VOID :
-                        GetID(x, y + 1, z));
-                neighboringBlockDesc[NegativeY] = ID2Desc(
-                    y == 0 ?
-                        BLOCK_ID_VOID :
-                        GetID(x, y - 1, z));
-
-                blockDesc->AddBlockModel(modelBuilderView, { x, y, z }, neighboringBlockDesc);
+                const BlockDescription *neighborDescs[3][3][3];
+                BlockBrightness neighborBrightness[3][3][3];
+                fillNeighbors(x + CHUNK_SIZE_X, y, z + CHUNK_SIZE_Z, neighborDescs, neighborBrightness);
+                neighborDescs[1][1][1]->AddBlockModel(modelBuilderView, { x, y, z }, neighborDescs, neighborBrightness);
             }
         }
     }
 
     // 用modelBuilders创建新的sectionModel，取代原来的
 
-    auto newSectionModel = std::unique_ptr<SectionModel>();
+    Vec3 worldOffset(
+        float(chunkPosition_.x + CHUNK_SECTION_SIZE_X * sectionIndex.x),
+        float(CHUNK_SECTION_SIZE_X * sectionIndex.y),
+        float(chunkPosition_.z + CHUNK_SECTION_SIZE_Z * sectionIndex.z));
+
+    auto newSectionModel = std::make_unique<SectionModel>();
     for(auto &builder : modelBuilders)
     {
-        if(auto model = builder->Build())
+        if(auto model = builder->Build(worldOffset))
             newSectionModel->partialModels.push_back(std::move(model));
     }
     model_.sectionModel(sectionIndex) = std::move(newSectionModel);

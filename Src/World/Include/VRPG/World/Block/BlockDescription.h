@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <VRPG/Base/Singleton.h>
-#include <VRPG/World/Common.h>
+#include <VRPG/World/Block/BlockBrightness.h>
 
 VRPG_WORLD_BEGIN
 
@@ -41,15 +41,24 @@ public:
         return blockID_;
     }
 
-    virtual const std::string &GetName() const = 0;
+    virtual const char *GetName() const = 0;
 
     virtual bool IsFullOpaque(Direction direction) const noexcept = 0;
 
     virtual bool IsVisible() const noexcept = 0;
 
+    /**
+     * @brief 追加方块模型数据
+     *
+     * neighboringBlocks[x][y][z]
+     * x, y, z in { 0, 1, 2 }
+     * 其中[i][j][k]是与被生成的方块相对位置为[i-1][j-1][k-1]的方块
+     */
     virtual void AddBlockModel(
         agz::misc::span<std::unique_ptr<PartialSectionModelBuilder>> modelBuilders,
-        const Vec3i &blockPosition, const BlockDescription *neighboringBlocks[6]) const = 0;
+        const Vec3i &blockPosition,
+        const BlockDescription *neighboringBlocks[3][3][3],
+        BlockBrightness neighboringBrightness[3][3][3]) const = 0;
 
     /**
      * @brief 本方块是否是一个光源
@@ -71,10 +80,9 @@ class VoidBlockDescription : public BlockDescription
 {
 public:
 
-    const std::string &GetName() const override
+    const char *GetName() const override
     {
-        static const std::string ret = "void";
-        return ret;
+        return "void";
     }
 
     bool IsFullOpaque(Direction) const noexcept override
@@ -89,7 +97,7 @@ public:
 
     void AddBlockModel(
         agz::misc::span<std::unique_ptr<PartialSectionModelBuilder>>,
-        const Vec3i&, const BlockDescription**) const override
+        const Vec3i&, const BlockDescription*[3][3][3], BlockBrightness[3][3][3]) const override
     {
         // do nothing
     }
@@ -115,6 +123,7 @@ constexpr BlockID BLOCK_ID_VOID = 0;
 class BlockDescriptionManager : public Base::Singleton<BlockDescriptionManager>
 {
     std::vector<std::shared_ptr<BlockDescription>> blockDescriptions_;
+    std::map<std::string, std::shared_ptr<BlockDescription>, std::less<>> name2Desc_;
     std::vector<BlockDescription*> rawBlockDescriptions_;
 
 public:
@@ -128,9 +137,13 @@ public:
     BlockID RegisterBlockDescription(std::shared_ptr<BlockDescription> desc)
     {
         assert(blockDescriptions_.size() < (std::numeric_limits<BlockID>::max)());
+
         BlockID id = BlockID(blockDescriptions_.size());
         desc->SetBlockID(id);
+        spdlog::info("register block description (name = {}, id = {})", desc->GetName(), id);
+
         rawBlockDescriptions_.push_back(desc.get());
+        name2Desc_[std::string(desc->GetName())] = desc;
         blockDescriptions_.push_back(std::move(desc));
         return id;
     }
@@ -141,10 +154,24 @@ public:
         return rawBlockDescriptions_[id];
     }
 
+    const BlockDescription *GetBlockDescriptionByName(std::string_view name) const
+    {
+        auto it = name2Desc_.find(name);
+        return it != name2Desc_.end() ? it->second.get() : nullptr;
+    }
+
     void Clear()
     {
-        blockDescriptions_.resize(1);
-        rawBlockDescriptions_.resize(1);
+        blockDescriptions_.clear();
+        name2Desc_.clear();
+        rawBlockDescriptions_.clear();
+
+        auto voidDesc = std::make_shared<VoidBlockDescription>();
+        voidDesc->SetBlockID(BLOCK_ID_VOID);
+
+        rawBlockDescriptions_.push_back(voidDesc.get());
+        name2Desc_[std::string(voidDesc->GetName())] = voidDesc;
+        blockDescriptions_.push_back(std::move(voidDesc));
     }
 };
 

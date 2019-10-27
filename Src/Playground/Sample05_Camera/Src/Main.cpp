@@ -155,8 +155,8 @@ class Sample05_Camera : public SampleApp
 
     void InitializeShader()
     {
-        std::string vertexSource = agz::file::read_txt_file("Asset/Playground/Sample04_Texture/vertex.hlsl");
-        std::string pixelSource  = agz::file::read_txt_file("Asset/Playground/Sample04_Texture/pixel.hlsl");
+        std::string vertexSource = agz::file::read_txt_file("Asset/Playground/Sample05_Camera/vertex.hlsl");
+        std::string pixelSource  = agz::file::read_txt_file("Asset/Playground/Sample05_Camera/pixel.hlsl");
         shader_.InitializeStage<SS_VS>(vertexSource);
         shader_.InitializeStage<SS_PS>(pixelSource);
         if(!shader_.IsAllStagesAvailable())
@@ -235,7 +235,7 @@ class Sample05_Camera : public SampleApp
 
     void InitializeTexture()
     {
-        textureSRV_ = Texture2DLoader::LoadShaderResourceViewFromImage("Asset/Playground/Sample04_Texture/texture.png");
+        textureSRV_ = Texture2DLoader::LoadShaderResourceViewFromImage("Asset/Playground/Sample05_Camera/texture.png");
         uniforms_.GetShaderResourceSlot<SS_PS>("color")->SetShaderResourceView(textureSRV_);
     }
 
