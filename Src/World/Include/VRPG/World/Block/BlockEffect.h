@@ -89,6 +89,7 @@ public:
     void Clear()
     {
         blockEffects_.clear();
+        name2Effect_.clear();
         rawBlockEffects_.clear();
     }
 };

@@ -19,16 +19,27 @@ void Run()
 
     KeyboardEventManager *keyboard = window.GetKeyboard();
 
+    spdlog::info("initialize block effect manager");
     auto defaultBlockEffect = std::make_shared<DefaultBlockEffect>();
     BlockEffectManager::GetInstance().RegisterBlockEffect(defaultBlockEffect);
+    AGZ_SCOPE_GUARD({
+        spdlog::info("destroy block effect manager");
+        BlockEffectManager::GetInstance().Clear();
+    });
+
+    spdlog::info("initialize block description manager");
     BlockDescriptionManager::GetInstance().RegisterBlockDescription(std::make_shared<DefaultBlockDescription>(defaultBlockEffect.get()));
+    AGZ_SCOPE_GUARD({
+        spdlog::info("destroy block description manager");
+        BlockDescriptionManager::GetInstance().Clear();
+    });
 
     ChunkManagerParams params = {};
-    params.loadDistance          = 10;
-    params.backgroundPoolSize    = 100;
+    params.loadDistance = 10;
+    params.backgroundPoolSize = 100;
     params.backgroundThreadCount = 1;
-    params.renderDistance        = 9;
-    params.unloadDistance        = 12;
+    params.renderDistance = 9;
+    params.unloadDistance = 12;
     ChunkManager chunkMgr(params, std::make_unique<FlatLandGenerator>(20));
     chunkMgr.SetCentreChunk(1, 0);
 
@@ -48,9 +59,6 @@ void Run()
     }
 
     spdlog::info("stop mainloop");
-
-    BlockEffectManager::GetInstance().Clear();
-    BlockDescriptionManager::GetInstance().Clear();
 }
 
 int main()

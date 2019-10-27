@@ -4,11 +4,12 @@
 
 VRPG_WORLD_BEGIN
 
+template<int HistorySize = 12>
 class CursorMoveHistory
 {
 public:
 
-    static constexpr int HISTORY_SIZE = 12;
+    static constexpr int HISTORY_SIZE = HistorySize;
 
     void Update(float value) noexcept
     {
