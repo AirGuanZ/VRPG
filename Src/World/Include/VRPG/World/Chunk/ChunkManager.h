@@ -84,8 +84,10 @@ public:
 
     /**
      * @brief 和加载线程交互，获取加载完成的区块
+     *
+     * 获得了新的区块时返回true
      */
-    void UpdateChunkData();
+    bool UpdateChunkData();
 
     /**
      * @brief 对有变化的区块，重新生成其渲染数据

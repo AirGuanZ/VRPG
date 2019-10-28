@@ -9,9 +9,9 @@ namespace
 {
     bool OutOfBound(int x, int y, int z) noexcept
     {
-        return x <= 0 || x >= 3 * CHUNK_SIZE_X - 1 ||
-               y <= 0 || y >= CHUNK_SIZE_Y - 1 ||
-               z <= 0 || z >= 3 * CHUNK_SIZE_Z - 1;
+        return x < 0 || x > 3 * CHUNK_SIZE_X - 1 ||
+               y < 0 || y > CHUNK_SIZE_Y - 1 ||
+               z < 0 || z > 3 * CHUNK_SIZE_Z - 1;
     }
 
     BlockBrightness GetLight(Chunk *(&chunks)[3][3], int x, int y, int z) noexcept
@@ -79,7 +79,8 @@ void PropagateLightForCentreChunk(Chunk *(&chunks)[3][3])
     auto updateBlockBrightness = [&](const Vec3i &pos)
     {
         assert(!OutOfBound(pos.x, pos.y, pos.z));
-        auto desc = blockDescMgr.GetBlockDescription(GetID(chunks, pos.x, pos.y, pos.z));
+        BlockID id = GetID(chunks, pos.x, pos.y, pos.z);
+        auto desc = blockDescMgr.GetBlockDescription(id);
         BlockBrightness original = GetLight(chunks, pos.x, pos.y, pos.z);
 
         BlockBrightness posX = GetLight(chunks, pos.x + 1, pos.y, pos.z);
@@ -93,7 +94,8 @@ void PropagateLightForCentreChunk(Chunk *(&chunks)[3][3])
             Max(negX, Max(negY, negZ)));
 
         BlockBrightness directSkyLight;
-        if(pos.y > GetHeight(chunks, pos.x, pos.z))
+        int height = GetHeight(chunks, pos.x, pos.z);
+        if(pos.y > height)
             directSkyLight = BLOCK_BRIGHTNESS_SKY;
 
         BlockBrightness emission = desc->InitialBrightness();

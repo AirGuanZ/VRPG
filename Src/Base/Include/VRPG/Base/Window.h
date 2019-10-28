@@ -64,15 +64,15 @@ public:
 
     void Destroy();
 
+    void ImGuiNewFrame() const;
+
+    void ImGuiRender() const;
+
     int GetClientSizeX() const noexcept;
 
     int GetClientSizeY() const noexcept;
 
     float GetClientAspectRatio() const noexcept;
-
-    void SetWindowTitle(std::wstring title);
-
-    const std::wstring &GetWindowTitle() const noexcept;
 
     void SetVSync(bool vsync) noexcept;
 

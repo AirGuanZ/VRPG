@@ -64,6 +64,9 @@ void Chunk::RegenerateSectionModel(const Vec3i &sectionIndex, const Chunk *neigh
         }
     };
 
+    int xBase = chunkPosition_.x * CHUNK_SIZE_X;
+    int zBase = chunkPosition_.z * CHUNK_SIZE_Z;
+
     for(int x = low.x; x < high.x; ++x)
     {
         for(int z = low.z; z < high.z; ++z)
@@ -73,22 +76,17 @@ void Chunk::RegenerateSectionModel(const Vec3i &sectionIndex, const Chunk *neigh
                 const BlockDescription *neighborDescs[3][3][3];
                 BlockBrightness neighborBrightness[3][3][3];
                 fillNeighbors(x + CHUNK_SIZE_X, y, z + CHUNK_SIZE_Z, neighborDescs, neighborBrightness);
-                neighborDescs[1][1][1]->AddBlockModel(modelBuilderView, { x, y, z }, neighborDescs, neighborBrightness);
+                neighborDescs[1][1][1]->AddBlockModel(modelBuilderView, { xBase + x, y, zBase + z }, neighborDescs, neighborBrightness);
             }
         }
     }
 
     // 用modelBuilders创建新的sectionModel，取代原来的
 
-    Vec3 worldOffset(
-        float(chunkPosition_.x + CHUNK_SECTION_SIZE_X * sectionIndex.x),
-        float(CHUNK_SECTION_SIZE_X * sectionIndex.y),
-        float(chunkPosition_.z + CHUNK_SECTION_SIZE_Z * sectionIndex.z));
-
     auto newSectionModel = std::make_unique<SectionModel>();
     for(auto &builder : modelBuilders)
     {
-        if(auto model = builder->Build(worldOffset))
+        if(auto model = builder->Build())
             newSectionModel->partialModels.push_back(std::move(model));
     }
     model_.sectionModel(sectionIndex) = std::move(newSectionModel);

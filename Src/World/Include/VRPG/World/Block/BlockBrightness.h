@@ -80,7 +80,7 @@ inline Vec4 BlockBrightnessToFloat(BlockBrightness brightness) noexcept
 
 inline Vec4 BlockAO(const Vec4 &a, const Vec4 &b, const Vec4 &c, const Vec4 &d) noexcept
 {
-    return 0.25f * (a + b + c + d);
+    return 0.15f + 0.85f * 0.25f * (a + b + c + d);
 }
 
 VRPG_WORLD_END

@@ -50,6 +50,13 @@ public:
             effect->Unbind();
         }
     }
+
+    void Clear()
+    {
+        size_t blockEffectCount = BlockEffectManager::GetInstance().GetBlockEffectCount();
+        chunkModelSets_.clear();
+        chunkModelSets_.resize(blockEffectCount);
+    }
 };
 
 VRPG_WORLD_END

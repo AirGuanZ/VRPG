@@ -10,20 +10,18 @@ namespace
     {
         const DefaultBlockEffect *blockEffect_;
         VertexBuffer<DefaultBlockEffect::Vertex> vertexBuffer_;
-
-        Mat4 worldTransform_;
         
     public:
 
-        Model(const DefaultBlockEffect *effect, VertexBuffer<DefaultBlockEffect::Vertex> vertexBuffer, const Vec3 &worldOffset)
-            : blockEffect_(effect), vertexBuffer_(std::move(vertexBuffer)), worldTransform_(Trans4::translate(worldOffset))
+        Model(const DefaultBlockEffect *effect, VertexBuffer<DefaultBlockEffect::Vertex> vertexBuffer)
+            : blockEffect_(effect), vertexBuffer_(std::move(vertexBuffer))
         {
-            
+
         }
 
         void Render(const Camera &camera) const override
         {
-            blockEffect_->_setVSTransform({ worldTransform_ * camera.GetViewProjectionMatrix() });
+            blockEffect_->_setVSTransform({ camera.GetViewProjectionMatrix() });
 
             vertexBuffer_.Bind(0);
             RenderState::Draw(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, vertexBuffer_.GetVertexCount());
@@ -51,13 +49,13 @@ void DefaultBlockEffect::ModelBuilder::AddTriangle(const Vertex &a, const Vertex
     vertices_.push_back(c);
 }
 
-std::shared_ptr<const PartialSectionModel> DefaultBlockEffect::ModelBuilder::Build(const Vec3 &worldOffset) const
+std::shared_ptr<const PartialSectionModel> DefaultBlockEffect::ModelBuilder::Build() const
 {
     if(vertices_.empty())
         return nullptr;
     VertexBuffer<Vertex> vertexBuffer;
     vertexBuffer.Initialize(UINT(vertices_.size()), false, vertices_.data());
-    return std::make_shared<Model>(effect_, std::move(vertexBuffer), worldOffset);
+    return std::make_shared<Model>(effect_, std::move(vertexBuffer));
 }
 
 DefaultBlockEffect::DefaultBlockEffect()

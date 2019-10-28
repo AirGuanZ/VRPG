@@ -16,14 +16,14 @@ class Camera
     float vertRadian_ = 0;
     float horiRadian_ = 0;
 
-    static constexpr int CursorHistorySize = 15;
+    static constexpr int CursorHistorySize = 6;
 
     float vertDeltaHistory[CursorHistorySize] = { 0 };
     float horiDeltaHistory[CursorHistorySize] = { 0 };
 
     float FOVYDegree_ = 60;
     float moveSpeed_ = 0.02f;
-    float viewSpeed_ = 0.003f;
+    float viewSpeed_ = 0.0015f;
 
 public:
 
@@ -62,7 +62,7 @@ public:
 
     void Update(const CameraUpdateInput &input) noexcept
     {
-        for(int i = 0; i < CursorHistorySize - 1; ++i)
+        for(int i = CursorHistorySize - 2; i >= 0; --i)
         {
             vertDeltaHistory[i + 1] = vertDeltaHistory[i];
             horiDeltaHistory[i + 1] = horiDeltaHistory[i];
@@ -292,9 +292,7 @@ protected:
     void Frame() override
     {
         window_.DoEvents();
-        ImGui_ImplDX11_NewFrame();
-        ImGui_ImplWin32_NewFrame();
-        ImGui::NewFrame();
+        window_.ImGuiNewFrame();
 
         static float backgroundColor[] = { 0.2f, 0.2f, 0.2f, 0 };
         window_.ClearDefaultDepthStencil();
@@ -332,8 +330,7 @@ protected:
         }
         ImGui::End();
 
-        ImGui::Render();
-        ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+        window_.ImGuiRender();
 
         window_.SwapBuffers();
         fps_.update();

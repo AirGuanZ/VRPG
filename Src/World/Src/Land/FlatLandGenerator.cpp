@@ -11,16 +11,19 @@ FlatLandGenerator::FlatLandGenerator(int landHeight) noexcept
 
 void FlatLandGenerator::Generate(const ChunkPosition &position, ChunkBlockData *blockData)
 {
-    auto defaultBlockID = BlockDescriptionManager::GetInstance()
-                            .GetBlockDescriptionByName("default")->GetBlockID();
+    auto defaultBlockID = BlockDescriptionManager::GetInstance().GetBlockDescriptionByName("default")->GetBlockID();
 
     for(int x = 0; x < CHUNK_SIZE_X; ++x)
     {
         for(int z = 0; z < CHUNK_SIZE_Z; ++z)
         {
-            blockData->SetHeight(x, z, landHeight_);
+            //int height = (x + z) / 4 + 1;
+            int height = landHeight_;
+            if(x == 5 && z == 5)
+                ++height;
 
-            for(int y = 0; y <= landHeight_; ++y)
+            blockData->SetHeight(x, z, height);
+            for(int y = 0; y <= height; ++y)
             {
                 blockData->SetID(x, y, z, defaultBlockID);
             }

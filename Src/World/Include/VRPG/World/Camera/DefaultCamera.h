@@ -7,8 +7,8 @@ VRPG_WORLD_BEGIN
 
 class DefaultCamera : public Camera
 {
-    CursorMoveHistory<12> cursorHistoryX_;
-    CursorMoveHistory<12> cursorHistoryY_;
+    CursorMoveHistory<4> cursorHistoryX_;
+    CursorMoveHistory<4> cursorHistoryY_;
 
     Vec3 position_;
 
@@ -58,6 +58,10 @@ public:
     void SetMoveSpeed(float unitPerSecond) noexcept;
 
     void SetViewSpeed(float radPerPixel) noexcept;
+
+    Vec3 GetPosition() const noexcept;
+
+    Vec3 GetDirection() const noexcept;
 
     void Update(const Input &input, float deltaT) noexcept;
 

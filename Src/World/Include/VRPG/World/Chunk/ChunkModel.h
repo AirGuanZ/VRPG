@@ -39,7 +39,7 @@ public:
 
     virtual ~PartialSectionModelBuilder() = default;
 
-    virtual std::shared_ptr<const PartialSectionModel> Build(const Vec3 &worldOffset) const = 0;
+    virtual std::shared_ptr<const PartialSectionModel> Build() const = 0;
 };
 
 class SectionModel

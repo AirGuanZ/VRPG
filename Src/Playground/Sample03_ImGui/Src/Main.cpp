@@ -21,9 +21,7 @@ protected:
     void Frame() override
     {
         window_.DoEvents();
-        ImGui_ImplDX11_NewFrame();
-        ImGui_ImplWin32_NewFrame();
-        ImGui::NewFrame();
+        window_.ImGuiNewFrame();
 
         if(keyboard_->IsKeyPressed(KEY_ESCAPE))
             window_.SetCloseFlag(true);
@@ -38,8 +36,7 @@ protected:
         }
         ImGui::End();
 
-        ImGui::Render();
-        ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+        window_.ImGuiRender();
         window_.SwapBuffers();
     }
 };

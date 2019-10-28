@@ -21,6 +21,7 @@ using Base::D3D::InputLayout;
 using Base::D3D::InputLayoutBuilder;
 using Base::D3D::ConstantBuffer;
 using Base::D3D::ConstantBufferSlot;
+using Base::D3D::RasterizerState;
 using Base::D3D::Shader;
 using Base::D3D::UniformManager;
 using Base::D3D::VertexBuffer;

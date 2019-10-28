@@ -24,8 +24,8 @@ DefaultCamera::DefaultCamera()
     moveSpeed_ = 0;
     viewSpeed_ = 0;
 
-    nearPlane_ = 0.1f;
-    farPlane_ = 1000.0f;
+    nearPlane_ = 0.01f;
+    farPlane_ = 100.0f;
     FOVYRad_ = agz::math::deg2rad(60.0f);
     wOverH_ = 1;
 
@@ -75,6 +75,19 @@ void DefaultCamera::SetViewSpeed(float radPerPixel) noexcept
     viewSpeed_ = radPerPixel;
 }
 
+Vec3 DefaultCamera::GetPosition() const noexcept
+{
+    return position_;
+}
+
+Vec3 DefaultCamera::GetDirection() const noexcept
+{
+    return Vec3(
+            std::cos(verticalAngle_) * std::cos(horizontalAngle_),
+            std::sin(verticalAngle_),
+            std::cos(verticalAngle_) * std::sin(horizontalAngle_));
+}
+
 void DefaultCamera::Update(const Input &input, float deltaT) noexcept
 {
     // 视角转动
@@ -106,7 +119,7 @@ void DefaultCamera::Update(const Input &input, float deltaT) noexcept
             float(frontMovement) * frontDirection
           + float(rightMovement) * rightDirection
           + float(upMovement) * Vec3(0, 1, 0);
-        position_ += moveSpeed_ * direction.normalize();
+        position_ += moveSpeed_ * direction.normalize() * deltaT / 1000.0f;
     }
 
     UpdateViewProjectionMatrix();

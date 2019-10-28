@@ -174,9 +174,10 @@ BlockBrightness ChunkManager::GetBlockBrightness(int blockX, int blockY, int blo
     return chunk->GetBrightness(localBlockX, localBlockY, localBlockZ);
 }
 
-void ChunkManager::UpdateChunkData()
+bool ChunkManager::UpdateChunkData()
 {
     auto loadingResults = loader_->GetAllLoadingResults();
+    bool ret = !loadingResults.empty();
     for(auto &chunk : loadingResults)
     {
         ChunkPosition position = chunk->GetPosition();
@@ -188,6 +189,7 @@ void ChunkManager::UpdateChunkData()
 
         log_->trace("receive chunk({}, {}) from loader", position.x, position.z);
     }
+    return ret;
 }
 
 bool ChunkManager::UpdateChunkModels()

@@ -39,7 +39,7 @@ public:
 
         void AddTriangle(const Vertex &a, const Vertex &b, const Vertex &c);
 
-        std::shared_ptr<const PartialSectionModel> Build(const Vec3 &worldOffset) const override;
+        std::shared_ptr<const PartialSectionModel> Build() const override;
     };
 
     DefaultBlockEffect();

@@ -1,5 +1,10 @@
 #include <iostream>
 
+#include <ImGui/imgui.h>
+#include <ImGui/imgui_impl_dx11.h>
+#include <ImGui/imgui_impl_win32.h>
+#include <ImGui/input_dispatcher.h>
+
 #include <VRPG/Base/Window.h>
 
 #include "D3DInit.h"
@@ -15,6 +20,68 @@ namespace Impl
         static std::unordered_map<HWND, Window*> ret;
         return ret;
     }
+
+    class ImGuiInputDispatcher :
+        public EventHandler<RawKeyDownEvent>,
+        public EventHandler<RawKeyUpEvent>,
+        public EventHandler<CharInputEvent>,
+        public EventHandler<MouseButtonDownEvent>,
+        public EventHandler<MouseButtonUpEvent>,
+        public EventHandler<WheelScrollEvent>
+    {
+        static int ToImGuiMouseButton(MouseButton mb) noexcept
+        {
+            if(mb == MouseButton::Left)
+                return 0;
+            if(mb == MouseButton::Right)
+                return 1;
+            return 2;
+        }
+
+    public:
+
+        void Handle(const RawKeyDownEvent &e) override
+        {
+            ImGui::Input::KeyDown(e.vk);
+        }
+
+        void Handle(const RawKeyUpEvent &e) override
+        {
+            ImGui::Input::KeyUp(e.vk);
+        }
+
+        void Handle(const CharInputEvent &e) override
+        {
+            ImGui::Input::Char(e.ch);
+        }
+
+        void Handle(const MouseButtonDownEvent &e) override
+        {
+            ImGui::Input::MouseButtonDown(ToImGuiMouseButton(e.button));
+        }
+
+        void Handle(const MouseButtonUpEvent &e) override
+        {
+            ImGui::Input::MouseButtonUp(ToImGuiMouseButton(e.button));
+        }
+
+        void Handle(const WheelScrollEvent &e) override
+        {
+            ImGui::Input::MouseWheel(e.offset);
+        }
+
+        void AttachTo(KeyboardEventManager &keyboard, MouseEventManager &mouse)
+        {
+            keyboard.Attach(static_cast<EventHandler<RawKeyDownEvent> *>(this));
+            keyboard.Attach(static_cast<EventHandler<RawKeyUpEvent> *>(this));
+            keyboard.Attach(static_cast<EventHandler<CharInputEvent> *>(this));
+
+            mouse.Attach(static_cast<EventHandler<MouseButtonDownEvent> *>(this));
+            mouse.Attach(static_cast<EventHandler<MouseButtonUpEvent> *>(this));
+            mouse.Attach(static_cast<EventHandler<WheelScrollEvent> *>(this));
+        }
+    };
+
 } // namespace Impl
 
 struct WindowImplData
@@ -52,6 +119,8 @@ struct WindowImplData
     int mouseUpdateCounter = 0;
     std::unique_ptr<MouseEventManager> mouse;
     std::unique_ptr<KeyboardEventManager> keyboard;
+
+    Impl::ImGuiInputDispatcher inputDispatcher;
 };
 
 Window::~Window()
@@ -163,6 +232,18 @@ void Window::Initialize(const WindowDesc &windowDesc)
     data_->depthStencilView   = depthStencilView;
     data_->deviceContext->OMSetRenderTargets(1, &data_->renderTargetView, data_->depthStencilView);
 
+    // input device
+
+    data_->mouse = std::make_unique<MouseEventManager>(data_->hWindow);
+    data_->keyboard = std::make_unique<KeyboardEventManager>();
+
+    // imgui
+
+    ImGui::CreateContext();
+    ImGui_ImplWin32_Init(data_->hWindow);
+    ImGui_ImplDX11_Init(data_->device, data_->deviceContext);
+    data_->inputDispatcher.AttachTo(*data_->keyboard, *data_->mouse);
+
     // misc
 
     data_->vsync                     = windowDesc.vsync;
@@ -180,9 +261,6 @@ void Window::Initialize(const WindowDesc &windowDesc)
 
     Impl::HandleToWindow().insert(std::make_pair(data_->hWindow, this));
 
-    data_->mouse = std::make_unique<MouseEventManager>(data_->hWindow);
-    data_->keyboard = std::make_unique<KeyboardEventManager>();
-
     data_guard.dismiss();
 }
 
@@ -195,6 +273,10 @@ void Window::Destroy()
 {
     if(!data_)
         return;
+
+    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
 
     gDevice        = nullptr;
     gDeviceContext = nullptr;
@@ -230,6 +312,19 @@ void Window::Destroy()
 
     delete data_;
     data_ = nullptr;
+}
+
+void Window::ImGuiNewFrame() const
+{
+    ImGui_ImplDX11_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
+}
+
+void Window::ImGuiRender() const
+{
+    ImGui::Render();
+    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
 
 int Window::GetClientSizeX() const noexcept

@@ -71,6 +71,21 @@ void DefaultBlockDescription::AddBlockModel(
             neighboringBrightness[1 + x][1 + y][z]);
     };
 
+    auto addFace = [&](
+        const Vec3 &posA, const Vec3 &posB, const Vec3 &posC, const Vec3 &posD,
+        const Vec4 &lhtA, const Vec4 &lhtB, const Vec4 &lhtC, const Vec4 &lhtD)
+    {
+        Vec3 posE = 0.25f * (posA + posB + posC + posD);
+        Vec4 lhtE = 0.25f * (lhtA + lhtB+  lhtC + lhtD);
+        builder->AddTriangle({ posA, lhtA }, { posB, lhtB }, { posE, lhtE });
+        builder->AddTriangle({ posB, lhtB }, { posC, lhtC }, { posE, lhtE });
+        builder->AddTriangle({ posC, lhtC }, { posD, lhtD }, { posE, lhtE });
+        builder->AddTriangle({ posD, lhtD }, { posA, lhtA }, { posE, lhtE });
+
+        /*builder->AddTriangle({ posA, lhtA }, { posB, lhtB }, { posC, lhtC });
+        builder->AddTriangle({ posA, lhtA }, { posC, lhtC }, { posD, lhtD });*/
+    };
+
     // +x
     if(!neighboringBlocks[2][1][1]->IsFullOpaque(NegativeX))
     {
@@ -84,8 +99,9 @@ void DefaultBlockDescription::AddBlockModel(
         Vec4 lightC = vertexAO_x(2, 1, 1);
         Vec4 lightD = vertexAO_x(2, -1, 1);
 
-        builder->AddTriangle({ posA, lightA }, { posB, lightB }, { posC, lightC });
-        builder->AddTriangle({ posA, lightA }, { posC, lightC }, { posD, lightD });
+        /*builder->AddTriangle({ posA, lightA }, { posB, lightB }, { posC, lightC });
+        builder->AddTriangle({ posA, lightA }, { posC, lightC }, { posD, lightD });*/
+        addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD);
     }
 
     // -x
@@ -101,8 +117,7 @@ void DefaultBlockDescription::AddBlockModel(
         Vec4 lightC = vertexAO_x(0, 1, -1);
         Vec4 lightD = vertexAO_x(0, -1, -1);
 
-        builder->AddTriangle({ posA, lightA }, { posB, lightB }, { posC, lightC });
-        builder->AddTriangle({ posA, lightA }, { posC, lightC }, { posD, lightD });
+        addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD);
     }
 
     // +y
@@ -118,8 +133,7 @@ void DefaultBlockDescription::AddBlockModel(
         Vec4 lightC = vertexAO_y(1, 2, 1);
         Vec4 lightD = vertexAO_y(1, 2, -1);
 
-        builder->AddTriangle({ posA, lightA }, { posB, lightB }, { posC, lightC });
-        builder->AddTriangle({ posA, lightA }, { posC, lightC }, { posD, lightD });
+        addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD);
     }
 
     // -y
@@ -135,8 +149,7 @@ void DefaultBlockDescription::AddBlockModel(
         Vec4 lightC = vertexAO_y(-1, 0, 1);
         Vec4 lightD = vertexAO_y(-1, 0, -1);
 
-        builder->AddTriangle({ posA, lightA }, { posB, lightB }, { posC, lightC });
-        builder->AddTriangle({ posA, lightA }, { posC, lightC }, { posD, lightD });
+        addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD);
     }
 
     // +z
@@ -152,8 +165,7 @@ void DefaultBlockDescription::AddBlockModel(
         Vec4 lightC = vertexAO_z(-1, 1, 2);
         Vec4 lightD = vertexAO_z(-1, -1, 2);
 
-        builder->AddTriangle({ posA, lightA }, { posB, lightB }, { posC, lightC });
-        builder->AddTriangle({ posA, lightA }, { posC, lightC }, { posD, lightD });
+        addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD);
     }
 
     // -z
@@ -169,8 +181,7 @@ void DefaultBlockDescription::AddBlockModel(
         Vec4 lightC = vertexAO_z(1, 1, 0);
         Vec4 lightD = vertexAO_z(1, -1, 0);
 
-        builder->AddTriangle({ posA, lightA }, { posB, lightB }, { posC, lightC });
-        builder->AddTriangle({ posA, lightA }, { posC, lightC }, { posD, lightD });
+        addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD);
     }
 }
 
