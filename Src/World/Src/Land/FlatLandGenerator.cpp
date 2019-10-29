@@ -17,10 +17,7 @@ void FlatLandGenerator::Generate(const ChunkPosition &position, ChunkBlockData *
     {
         for(int z = 0; z < CHUNK_SIZE_Z; ++z)
         {
-            //int height = (x + z) / 4 + 1;
-            int height = landHeight_;
-            if(x == 5 && z == 5)
-                ++height;
+            int height = (x + z) / 4 + 1;
 
             blockData->SetHeight(x, z, height);
             for(int y = 0; y <= height; ++y)

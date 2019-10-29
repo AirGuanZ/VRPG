@@ -11,10 +11,16 @@ ChunkManager::ChunkManager(const ChunkManagerParams &params, std::unique_ptr<Lan
     loader_ = std::make_unique<ChunkLoader>();
     loader_->Initialize(
         params_.backgroundThreadCount, params_.backgroundPoolSize, std::move(landGenerator));
+
+    centreChunkPosition_.x = (std::numeric_limits<int>::max)() - 5;
+    centreChunkPosition_.z = (std::numeric_limits<int>::max)() - 5;
 }
 
 ChunkManager::~ChunkManager()
 {
+    for(auto &pair : chunks_)
+        loader_->AddUnloadingTask(std::move(pair.second));
+
     loader_->Destroy();
 }
 

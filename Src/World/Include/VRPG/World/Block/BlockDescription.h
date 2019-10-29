@@ -10,6 +10,7 @@
 VRPG_WORLD_BEGIN
 
 class PartialSectionModelBuilder;
+class PartialSectionModelBuilderSet;
 
 enum Direction
 {
@@ -55,7 +56,7 @@ public:
      * 其中[i][j][k]是与被生成的方块相对位置为[i-1][j-1][k-1]的方块
      */
     virtual void AddBlockModel(
-        agz::misc::span<std::unique_ptr<PartialSectionModelBuilder>> modelBuilders,
+        PartialSectionModelBuilderSet &modelBuilders,
         const Vec3i &blockPosition,
         const BlockDescription *neighboringBlocks[3][3][3],
         BlockBrightness neighboringBrightness[3][3][3]) const = 0;
@@ -96,7 +97,7 @@ public:
     }
 
     void AddBlockModel(
-        agz::misc::span<std::unique_ptr<PartialSectionModelBuilder>>,
+        PartialSectionModelBuilderSet&,
         const Vec3i&, const BlockDescription*[3][3][3], BlockBrightness[3][3][3]) const override
     {
         // do nothing

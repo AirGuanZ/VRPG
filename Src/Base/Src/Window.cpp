@@ -242,6 +242,7 @@ void Window::Initialize(const WindowDesc &windowDesc)
     ImGui::CreateContext();
     ImGui_ImplWin32_Init(data_->hWindow);
     ImGui_ImplDX11_Init(data_->device, data_->deviceContext);
+    ImGui::StyleColorsLight();
     data_->inputDispatcher.AttachTo(*data_->keyboard, *data_->mouse);
 
     // misc

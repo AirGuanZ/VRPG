@@ -28,14 +28,14 @@ public:
         float pad = 0;
     };
 
-    class ModelBuilder : public PartialSectionModelBuilder
+    class Builder : public PartialSectionModelBuilder
     {
         std::vector<Vertex> vertices_;
         const DefaultBlockEffect *effect_;
 
     public:
 
-        explicit ModelBuilder(const DefaultBlockEffect *effect) noexcept;
+        explicit Builder(const DefaultBlockEffect *effect) noexcept;
 
         void AddTriangle(const Vertex &a, const Vertex &b, const Vertex &c);
 

@@ -21,8 +21,8 @@ void Run()
 
     Window window;
     WindowDesc desc;
-    desc.clientWidth = 1440;
-    desc.clientHeight = 768;
+    desc.clientWidth = 640;
+    desc.clientHeight = 480;
     desc.sampleCount = 4;
     window.Initialize(desc);
 
@@ -45,16 +45,15 @@ void Run()
     });
 
     ChunkManagerParams params = {};
-    params.loadDistance = 4;
-    params.backgroundPoolSize = 100;
+    params.loadDistance = 10;
+    params.backgroundPoolSize = 400;
     params.backgroundThreadCount = 1;
-    params.renderDistance = 3;
-    params.unloadDistance = 6;
+    params.renderDistance = 9;
+    params.unloadDistance = 12;
     ChunkManager chunkMgr(params, std::make_unique<FlatLandGenerator>(20));
-    chunkMgr.SetCentreChunk(1, 0);
 
     DefaultCamera camera;
-    camera.SetMoveSpeed(10.0f);
+    camera.SetMoveSpeed(5.0f);
     camera.SetViewSpeed(0.003f);
     camera.SetWOverH(window.GetClientAspectRatio());
     camera.SetPosition({ 0, 30, 0 });
@@ -97,6 +96,10 @@ void Run()
 
         camera.Update(cameraInput, deltaT);
 
+        int cameraChunkX = int(camera.GetPosition().x) / CHUNK_SIZE_X;
+        int cameraChunkZ = int(camera.GetPosition().z) / CHUNK_SIZE_Z;
+        chunkMgr.SetCentreChunk(cameraChunkX, cameraChunkZ);
+
         bool needToGenerateRenderer = false;
         needToGenerateRenderer |= chunkMgr.UpdateChunkData();
         needToGenerateRenderer |= chunkMgr.UpdateChunkModels();
@@ -124,6 +127,8 @@ void Run()
 
             auto camDir = camera.GetDirection();
             ImGui::Text("dir: %f, %f, %f", camDir.x, camDir.y, camDir.z);
+
+            ImGui::Text("%f\n", deltaT);
         }
         ImGui::End();
 

@@ -10,17 +10,11 @@ void Chunk::RegenerateSectionModel(const Vec3i &sectionIndex, const Chunk *neigh
     assert(0 <= sectionIndex.z && sectionIndex.z < CHUNK_SECTION_COUNT_Z);
     assert(neighboringChunks[1][1] == this);
 
-    auto &blockEffectMgr = BlockEffectManager::GetInstance();
     auto &blockDescMgr = BlockDescriptionManager::GetInstance();
 
     // 准备modelBuilders
 
-    std::vector<std::unique_ptr<PartialSectionModelBuilder>> modelBuilders;
-    BlockEffectID blockEffectCount = BlockEffectID(blockEffectMgr.GetBlockEffectCount());
-    modelBuilders.reserve(blockEffectCount);
-    for(BlockEffectID i = 0; i < blockEffectCount; ++i)
-        modelBuilders.push_back(blockEffectMgr.GetBlockEffect(i)->CreateModelBuilder());
-    auto modelBuilderView = agz::misc::span(modelBuilders.data(), modelBuilders.size());
+    PartialSectionModelBuilderSet modelBuilders;
 
     // 遍历每个block，将其model数据追加到各自的model builder中
 
@@ -76,7 +70,7 @@ void Chunk::RegenerateSectionModel(const Vec3i &sectionIndex, const Chunk *neigh
                 const BlockDescription *neighborDescs[3][3][3];
                 BlockBrightness neighborBrightness[3][3][3];
                 fillNeighbors(x + CHUNK_SIZE_X, y, z + CHUNK_SIZE_Z, neighborDescs, neighborBrightness);
-                neighborDescs[1][1][1]->AddBlockModel(modelBuilderView, { xBase + x, y, zBase + z }, neighborDescs, neighborBrightness);
+                neighborDescs[1][1][1]->AddBlockModel(modelBuilders, { xBase + x, y, zBase + z }, neighborDescs, neighborBrightness);
             }
         }
     }

@@ -21,7 +21,7 @@ public:
     bool IsVisible() const noexcept override;
 
     void AddBlockModel(
-        agz::misc::span<std::unique_ptr<PartialSectionModelBuilder>> modelBuilders,
+        PartialSectionModelBuilderSet &modelBuilders,
         const Vec3i &blockPosition,
         const BlockDescription *neighboringBlocks[3][3][3],
         BlockBrightness neighboringBrightness[3][3][3]) const override;

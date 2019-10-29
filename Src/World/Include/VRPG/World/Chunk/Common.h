@@ -9,6 +9,7 @@ class ChunkManager;
 class ChunkModel;
 class ChunkRenderer;
 class PartialSectionModel;
+class PartialSectionModelBuilderSet;
 class SectionModel;
 
 constexpr int CHUNK_SECTION_SIZE_X = 16;

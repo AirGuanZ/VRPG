@@ -35,13 +35,13 @@ namespace
     };
 }
 
-DefaultBlockEffect::ModelBuilder::ModelBuilder(const DefaultBlockEffect *effect) noexcept
+DefaultBlockEffect::Builder::Builder(const DefaultBlockEffect *effect) noexcept
     : effect_(effect)
 {
     assert(effect);
 }
 
-void DefaultBlockEffect::ModelBuilder::AddTriangle(const Vertex &a, const Vertex &b, const Vertex &c)
+void DefaultBlockEffect::Builder::AddTriangle(const Vertex &a, const Vertex &b, const Vertex &c)
 {
     vertices_.reserve(vertices_.size() + 3);
     vertices_.push_back(a);
@@ -49,7 +49,7 @@ void DefaultBlockEffect::ModelBuilder::AddTriangle(const Vertex &a, const Vertex
     vertices_.push_back(c);
 }
 
-std::shared_ptr<const PartialSectionModel> DefaultBlockEffect::ModelBuilder::Build() const
+std::shared_ptr<const PartialSectionModel> DefaultBlockEffect::Builder::Build() const
 {
     if(vertices_.empty())
         return nullptr;
@@ -102,7 +102,7 @@ void DefaultBlockEffect::Unbind() const
 
 std::unique_ptr<PartialSectionModelBuilder> DefaultBlockEffect::CreateModelBuilder() const
 {
-    return std::make_unique<ModelBuilder>(this);
+    return std::make_unique<Builder>(this);
 }
 
 void DefaultBlockEffect::SetSkyLight(const Vec3 &light) const

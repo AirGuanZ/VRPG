@@ -94,4 +94,45 @@ public:
     }
 };
 
+class PartialSectionModelBuilderSet
+{
+    std::vector<std::unique_ptr<PartialSectionModelBuilder>> builders_;
+
+public:
+
+    PartialSectionModelBuilderSet()
+    {
+        auto &effectMgr = BlockEffectManager::GetInstance();
+        BlockEffectID blockEffectCount = BlockEffectID(effectMgr.GetBlockEffectCount());
+        builders_.reserve(effectMgr.GetBlockEffectCount());
+        for(BlockEffectID i = 0; i < blockEffectCount; ++i)
+        {
+            const BlockEffect *effect = effectMgr.GetBlockEffect(i);
+            builders_.push_back(effect->CreateModelBuilder());
+        }
+    }
+
+    template<typename Effect>
+    auto GetBuilderByEffect(const Effect *effect)
+    {
+        using Builder = typename Effect::Builder;
+        static_assert(std::is_base_of_v<BlockEffect, Effect>);
+        static_assert(std::is_base_of_v<PartialSectionModelBuilder, Builder>);
+
+        BlockEffectID id = effect->GetBlockEffectID();
+        assert(0 <= id && id < builders_.size());
+
+        PartialSectionModelBuilder *rawBuilder = builders_[id].get();
+        Builder *builder = dynamic_cast<Builder*>(rawBuilder);
+        assert(builder);
+        return builder;
+    }
+
+    auto begin() { return builders_.begin(); }
+    auto end()   { return builders_.end();   }
+
+    auto begin() const { return builders_.begin(); }
+    auto end()   const { return builders_.end();   }
+};
+
 VRPG_WORLD_END

@@ -20,15 +20,12 @@ bool DefaultBlockDescription::IsVisible() const noexcept
 }
 
 void DefaultBlockDescription::AddBlockModel(
-    agz::misc::span<std::unique_ptr<PartialSectionModelBuilder>> modelBuilders,
+    PartialSectionModelBuilderSet &modelBuilders,
     const Vec3i &blockPosition,
     const BlockDescription *neighboringBlocks[3][3][3],
     BlockBrightness neighboringBrightness[3][3][3]) const
 {
-    BlockEffectID effectID = effect_->GetBlockEffectID();
-    auto builder = dynamic_cast<DefaultBlockEffect::ModelBuilder*>(modelBuilders[effectID].get());
-    assert(builder);
-
+    auto builder = modelBuilders.GetBuilderByEffect(effect_);
     Vec3 blockPositionf = blockPosition.map([](int i) { return float(i); });
 
     auto vertexMean = [&](
@@ -81,9 +78,6 @@ void DefaultBlockDescription::AddBlockModel(
         builder->AddTriangle({ posB, lhtB }, { posC, lhtC }, { posE, lhtE });
         builder->AddTriangle({ posC, lhtC }, { posD, lhtD }, { posE, lhtE });
         builder->AddTriangle({ posD, lhtD }, { posA, lhtA }, { posE, lhtE });
-
-        /*builder->AddTriangle({ posA, lhtA }, { posB, lhtB }, { posC, lhtC });
-        builder->AddTriangle({ posA, lhtA }, { posC, lhtC }, { posD, lhtD });*/
     };
 
     // +x
@@ -99,8 +93,6 @@ void DefaultBlockDescription::AddBlockModel(
         Vec4 lightC = vertexAO_x(2, 1, 1);
         Vec4 lightD = vertexAO_x(2, -1, 1);
 
-        /*builder->AddTriangle({ posA, lightA }, { posB, lightB }, { posC, lightC });
-        builder->AddTriangle({ posA, lightA }, { posC, lightC }, { posD, lightD });*/
         addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD);
     }
 

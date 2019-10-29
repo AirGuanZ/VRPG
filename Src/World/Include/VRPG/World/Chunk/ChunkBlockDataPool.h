@@ -4,6 +4,7 @@
 
 #include <agz/utility/container.h>
 #include <agz/utility/misc.h>
+#include <agz/utility/thread.h>
 
 #include <VRPG/World/Chunk/Chunk.h>
 
@@ -18,15 +19,62 @@ class ChunkBlockDataPool : public agz::misc::uncopyable_t
 {
     std::mutex mapMutex_;
     agz::container::linked_map_t<ChunkPosition, std::unique_ptr<ChunkBlockData>> map_;
-
     size_t maxDataCount_;
+
+    struct DataModifyTask
+    {
+        Vec3i blockPosition;
+        BlockID newBlockID;
+    };
+
+    std::thread dataModifierThread_;
+    agz::thread::blocking_queue_t<DataModifyTask> dataModifyTaskQueue_;
+
+    void DataModifierFunc()
+    {
+        for(;;)
+        {
+            auto optTask = dataModifyTaskQueue_.pop_or_stop();
+            if(!optTask)
+                break;
+
+            auto &task = *optTask;
+            int ckX = task.blockPosition.x / CHUNK_SIZE_X;
+            int ckZ = task.blockPosition.z / CHUNK_SIZE_Z;
+            int blkX = task.blockPosition.x % CHUNK_SIZE_X;
+            int blkY = task.blockPosition.y;
+            int blkZ = task.blockPosition.z % CHUNK_SIZE_Z;
+
+            ForGivenChunkPosition({ ckX, ckZ }, [&](ChunkBlockData &blockData)
+            {
+                blockData.SetID(blkX, blkY, blkZ, task.newBlockID);
+
+                int oldHeight = blockData.GetHeight(blkX, blkZ);
+                if(blkY > oldHeight && task.newBlockID != BLOCK_ID_VOID)
+                    blockData.SetHeight(blkX, blkZ, blkY);
+                else if(blkY == oldHeight && task.newBlockID == BLOCK_ID_VOID)
+                {
+                    int newHeight = blkY;
+                    while(newHeight >= 0 && blockData.GetID(blkX, newHeight, blkZ))
+                        --newHeight;
+                    blockData.SetHeight(blkX, newHeight, blkZ);
+                }
+            });
+        }
+    }
 
 public:
 
     explicit ChunkBlockDataPool(size_t maxDataCount)
         : maxDataCount_(maxDataCount)
     {
-        
+        dataModifierThread_ = std::thread(&ChunkBlockDataPool::DataModifierFunc, this);
+    }
+
+    ~ChunkBlockDataPool()
+    {
+        dataModifyTaskQueue_.stop();
+        dataModifierThread_.join();
     }
 
     /**
@@ -115,6 +163,16 @@ public:
             return true;
         }
         return false;
+    }
+
+    /**
+     * @brief 异步地试图修改池子中指定方块的id
+     *
+     * 若池子中没有该方块所在的区块，则此修改无效
+     */
+    void ModifyBlockIDInPool(const Vec3i &blockPosition, BlockID id)
+    {
+        dataModifyTaskQueue_.push({ blockPosition, id });
     }
 };
 
