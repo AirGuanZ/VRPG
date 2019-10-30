@@ -47,7 +47,7 @@ void Run()
     ChunkManagerParams params = {};
     params.loadDistance = 10;
     params.backgroundPoolSize = 200;
-    params.backgroundThreadCount = 1;
+    params.backgroundThreadCount = 4;
     params.renderDistance = 9;
     params.unloadDistance = 12;
     ChunkManager chunkMgr(params, std::make_unique<FlatLandGenerator>(20));
@@ -56,7 +56,7 @@ void Run()
     camera.SetMoveSpeed(5.0f);
     camera.SetViewSpeed(0.003f);
     camera.SetWOverH(window.GetClientAspectRatio());
-    camera.SetPosition({ 0, 30, 0 });
+    camera.SetPosition({ 100000, 30, 100000 });
     camera.SetClipDistance(0.1f, 1000.0f);
 
     spdlog::info("start mainloop");
@@ -70,6 +70,8 @@ void Run()
     mouse->UpdatePosition();
 
     ScalarHistory deltaTHistory(4);
+
+    bool rrr = false;
 
     while(!window.GetCloseFlag())
     {
@@ -102,6 +104,12 @@ void Run()
         int cameraChunkZ = int(camera.GetPosition().z) / CHUNK_SIZE_Z;
         chunkMgr.SetCentreChunk(cameraChunkX, cameraChunkZ);
 
+        if(!rrr && keyboard->IsKeyPressed('X'))
+        {
+            rrr = true;
+            chunkMgr.SetBlockID(100000, 21, 100000, 1, {});
+        }
+
         bool needToGenerateRenderer = false;
         needToGenerateRenderer |= chunkMgr.UpdateChunkData();
         needToGenerateRenderer |= chunkMgr.UpdateChunkModels();
@@ -122,7 +130,7 @@ void Run()
             ImGuiWindowFlags_NoNav;
         if(ImGui::Begin("debug", nullptr, PANEL_FLAG))
         {
-            ImGui::Text("fps: %d, interval: %f", fps.fps(), deltaT);
+            ImGui::Text("fps: %d", fps.fps());
 
             auto camPos = camera.GetPosition();
             ImGui::Text("pos: %f, %f, %f", camPos.x, camPos.y, camPos.z);

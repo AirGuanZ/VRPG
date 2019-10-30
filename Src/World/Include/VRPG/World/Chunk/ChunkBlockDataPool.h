@@ -25,6 +25,7 @@ class ChunkBlockDataPool : public agz::misc::uncopyable_t
     {
         Vec3i blockPosition;
         BlockID newBlockID;
+        BlockOrientation newBlockOrientation;
     };
 
     std::thread dataModifierThread_;
@@ -47,7 +48,7 @@ class ChunkBlockDataPool : public agz::misc::uncopyable_t
 
             ForGivenChunkPosition({ ckX, ckZ }, [&](ChunkBlockData &blockData)
             {
-                blockData.SetID(blkX, blkY, blkZ, task.newBlockID);
+                blockData.SetID(blkX, blkY, blkZ, task.newBlockID, task.newBlockOrientation);
 
                 int oldHeight = blockData.GetHeight(blkX, blkZ);
                 if(blkY > oldHeight && task.newBlockID != BLOCK_ID_VOID)
@@ -170,9 +171,9 @@ public:
      *
      * 若池子中没有该方块所在的区块，则此修改无效
      */
-    void ModifyBlockIDInPool(const Vec3i &blockPosition, BlockID id)
+    void ModifyBlockIDInPool(const Vec3i &blockPosition, BlockID id, BlockOrientation orientation)
     {
-        dataModifyTaskQueue_.push({ blockPosition, id });
+        dataModifyTaskQueue_.push({ blockPosition, id, orientation });
     }
 };
 

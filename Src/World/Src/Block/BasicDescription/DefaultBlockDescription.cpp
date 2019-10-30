@@ -22,50 +22,39 @@ bool DefaultBlockDescription::IsVisible() const noexcept
 void DefaultBlockDescription::AddBlockModel(
     PartialSectionModelBuilderSet &modelBuilders,
     const Vec3i &blockPosition,
-    const BlockDescription *neighboringBlocks[3][3][3],
-    BlockBrightness neighboringBrightness[3][3][3]) const
+    const BlockDescription *neighborBlocks[3][3][3],
+    const BlockBrightness neighborBrightness[3][3][3],
+    const BlockOrientation neighborOrientations[3][3][3]) const
 {
     auto builder = modelBuilders.GetBuilderByEffect(effect_);
     Vec3 blockPositionf = blockPosition.map([](int i) { return float(i); });
 
-    auto vertexMean = [&](
-        BlockBrightness a,
-        BlockBrightness b,
-        BlockBrightness c,
-        BlockBrightness d)
-    {
-        return BlockAO(
-            BlockBrightnessToFloat(a),
-            BlockBrightnessToFloat(b),
-            BlockBrightnessToFloat(c),
-            BlockBrightnessToFloat(d));
-    };
-
     auto vertexAO_x = [&](int x, int y, int z)
     {
-        return vertexMean(
-            neighboringBrightness[x][1    ][1    ],
-            neighboringBrightness[x][1 + y][1    ],
-            neighboringBrightness[x][1    ][1 + z],
-            neighboringBrightness[x][1 + y][1 + z]);
+        return SIDE_VERTEX_BRIGHTNESS_RATIO * ComputeVertexBrightness(
+            neighborBrightness[x][1    ][1    ],
+            neighborBrightness[x][1 + y][1    ],
+            neighborBrightness[x][1    ][1 + z],
+            neighborBrightness[x][1 + y][1 + z]);
     };
 
     auto vertexAO_y = [&](int x, int y, int z)
     {
-        return vertexMean(
-            neighboringBrightness[1    ][y][1    ],
-            neighboringBrightness[1 + x][y][1    ],
-            neighboringBrightness[1    ][y][1 + z],
-            neighboringBrightness[1 + x][y][1 + z]);
+        float ratio = y > 1 ? 1.0f : SIDE_VERTEX_BRIGHTNESS_RATIO;
+        return ratio * ComputeVertexBrightness(
+            neighborBrightness[1    ][y][1    ],
+            neighborBrightness[1 + x][y][1    ],
+            neighborBrightness[1    ][y][1 + z],
+            neighborBrightness[1 + x][y][1 + z]);
     };
 
     auto vertexAO_z = [&](int x, int y, int z)
     {
-        return vertexMean(
-            neighboringBrightness[1    ][1    ][z],
-            neighboringBrightness[1 + x][1    ][z],
-            neighboringBrightness[1    ][1 + y][z],
-            neighboringBrightness[1 + x][1 + y][z]);
+        return SIDE_VERTEX_BRIGHTNESS_RATIO * ComputeVertexBrightness(
+            neighborBrightness[1    ][1    ][z],
+            neighborBrightness[1 + x][1    ][z],
+            neighborBrightness[1    ][1 + y][z],
+            neighborBrightness[1 + x][1 + y][z]);
     };
 
     auto addFace = [&](
@@ -89,8 +78,14 @@ void DefaultBlockDescription::AddBlockModel(
         builder->AddIndexedTriangle(vertexCount + 3, vertexCount + 0, vertexCount + 4);
     };
 
+    auto isFaceVisible = [&](int neighborX, int neighborY, int neighborZ, Direction neighborDir)
+    {
+        Direction direction = neighborOrientations[neighborX][neighborY][neighborZ].RotatedToOrigin(neighborDir);
+        return !neighborBlocks[neighborX][neighborY][neighborZ]->IsFullOpaque(direction);
+    };
+
     // +x
-    if(!neighboringBlocks[2][1][1]->IsFullOpaque(NegativeX))
+    if(isFaceVisible(2, 1, 1, NegativeX))
     {
         Vec3 posA = blockPositionf + Vec3(1, 0, 0);
         Vec3 posB = blockPositionf + Vec3(1, 1, 0);
@@ -106,7 +101,7 @@ void DefaultBlockDescription::AddBlockModel(
     }
 
     // -x
-    if(!neighboringBlocks[0][1][1]->IsFullOpaque(PositiveX))
+    if(isFaceVisible(0, 1, 1, PositiveX))
     {
         Vec3 posA = blockPositionf + Vec3(0, 0, 1);
         Vec3 posB = blockPositionf + Vec3(0, 1, 1);
@@ -122,7 +117,7 @@ void DefaultBlockDescription::AddBlockModel(
     }
 
     // +y
-    if(!neighboringBlocks[1][2][1]->IsFullOpaque(NegativeY))
+    if(isFaceVisible(1, 2, 1, NegativeY))
     {
         Vec3 posA = blockPositionf + Vec3(0, 1, 0);
         Vec3 posB = blockPositionf + Vec3(0, 1, 1);
@@ -138,7 +133,7 @@ void DefaultBlockDescription::AddBlockModel(
     }
 
     // -y
-    if(!neighboringBlocks[1][0][1]->IsFullOpaque(PositiveY))
+    if(isFaceVisible(1, 0, 1, PositiveY))
     {
         Vec3 posA = blockPositionf + Vec3(1, 0, 0);
         Vec3 posB = blockPositionf + Vec3(1, 0, 1);
@@ -154,7 +149,7 @@ void DefaultBlockDescription::AddBlockModel(
     }
 
     // +z
-    if(!neighboringBlocks[1][1][2]->IsFullOpaque(NegativeZ))
+    if(isFaceVisible(1, 1, 2, NegativeZ))
     {
         Vec3 posA = blockPositionf + Vec3(1, 0, 1);
         Vec3 posB = blockPositionf + Vec3(1, 1, 1);
@@ -170,7 +165,7 @@ void DefaultBlockDescription::AddBlockModel(
     }
 
     // -z
-    if(!neighboringBlocks[1][1][0]->IsFullOpaque(PositiveZ))
+    if(isFaceVisible(1, 1, 0, PositiveZ))
     {
         Vec3 posA = blockPositionf + Vec3(0, 0, 0);
         Vec3 posB = blockPositionf + Vec3(0, 1, 0);

@@ -90,11 +90,25 @@ inline Vec4 BlockBrightnessToFloat(BlockBrightness brightness) noexcept
 }
 
 /**
- * @brief 将四个block brightness映射为一份vertex brightness
+ * @brief 将四个float block brightness映射为一份vertex brightness
  */
-inline Vec4 BlockAO(const Vec4 &a, const Vec4 &b, const Vec4 &c, const Vec4 &d) noexcept
+inline Vec4 ComputeVertexBrightness(const Vec4 &a, const Vec4 &b, const Vec4 &c, const Vec4 &d) noexcept
 {
     return 0.15f + 0.85f * 0.25f * (a + b + c + d);
 }
+
+/**
+ * @brief 将四个block brightness映射为一份vertex brightness
+ */
+inline Vec4 ComputeVertexBrightness(const BlockBrightness &a, const BlockBrightness &b, const BlockBrightness &c, const BlockBrightness &d) noexcept
+{
+    return ComputeVertexBrightness(
+        BlockBrightnessToFloat(a),
+        BlockBrightnessToFloat(b),
+        BlockBrightnessToFloat(c),
+        BlockBrightnessToFloat(d));
+}
+
+constexpr float SIDE_VERTEX_BRIGHTNESS_RATIO = 0.9f;
 
 VRPG_WORLD_END

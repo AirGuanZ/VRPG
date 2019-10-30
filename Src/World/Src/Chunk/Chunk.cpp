@@ -22,10 +22,10 @@ void Chunk::RegenerateSectionModel(const Vec3i &sectionIndex, const Chunk *neigh
     Vec3i high = low + Vec3i(CHUNK_SECTION_SIZE_X, CHUNK_SECTION_SIZE_Y, CHUNK_SECTION_SIZE_Z);
 
     auto voidDesc = blockDescMgr.GetBlockDescription(BLOCK_ID_VOID);
-    auto getDescAndBrightness = [&](int x, int y, int z)
+    auto getBlock = [&](int x, int y, int z)
     {
         if(y < 0 || y >= CHUNK_SIZE_Y)
-            return std::make_pair(voidDesc, BLOCK_BRIGHTNESS_MIN);
+            return std::make_tuple(voidDesc, BLOCK_BRIGHTNESS_MIN, BlockOrientation{});
 
         int ckX = x / CHUNK_SIZE_X;
         int ckZ = z / CHUNK_SIZE_Z;
@@ -35,13 +35,15 @@ void Chunk::RegenerateSectionModel(const Vec3i &sectionIndex, const Chunk *neigh
 
         BlockID id = neighboringChunks[ckX][ckZ]->GetID(blkX, blkY, blkZ);
         BlockBrightness brightness = neighboringChunks[ckX][ckZ]->GetBrightness(blkX, blkY, blkZ);
-        return std::make_pair(blockDescMgr.GetBlockDescription(id), brightness);
+        BlockOrientation orientation = neighboringChunks[ckX][ckZ]->GetOrientation(blkX, blkY, blkZ);
+        return std::make_tuple(blockDescMgr.GetBlockDescription(id), brightness, orientation);
     };
 
     auto fillNeighbors = [&](
         int x, int y, int z,
         const BlockDescription *neighbors[3][3][3],
-        BlockBrightness brightness[3][3][3])
+        BlockBrightness brightness[3][3][3],
+        BlockOrientation orientations[3][3][3])
     {
         --x, --y, --z;
         for(int lx = 0; lx <= 2; ++lx)
@@ -50,9 +52,10 @@ void Chunk::RegenerateSectionModel(const Vec3i &sectionIndex, const Chunk *neigh
             {
                 for(int lz = 0; lz <= 2; ++lz)
                 {
-                    auto [desc, light] = getDescAndBrightness(x + lx, y + ly, z + lz);
+                    auto [desc, light, orientation] = getBlock(x + lx, y + ly, z + lz);
                     neighbors[lx][ly][lz] = desc;
                     brightness[lx][ly][lz] = light;
+                    orientations[lx][ly][lz] = orientation;
                 }
             }
         }
@@ -61,16 +64,22 @@ void Chunk::RegenerateSectionModel(const Vec3i &sectionIndex, const Chunk *neigh
     int xBase = chunkPosition_.x * CHUNK_SIZE_X;
     int zBase = chunkPosition_.z * CHUNK_SIZE_Z;
 
+    const BlockDescription *neighborDescs[3][3][3];
+    BlockBrightness neighborBrightness[3][3][3];
+    BlockOrientation neighborOrientations[3][3][3];
+
     for(int x = low.x; x < high.x; ++x)
     {
         for(int z = low.z; z < high.z; ++z)
         {
             for(int y = low.y; y < high.y; ++y)
             {
-                const BlockDescription *neighborDescs[3][3][3];
-                BlockBrightness neighborBrightness[3][3][3];
-                fillNeighbors(x + CHUNK_SIZE_X, y, z + CHUNK_SIZE_Z, neighborDescs, neighborBrightness);
-                neighborDescs[1][1][1]->AddBlockModel(modelBuilders, { xBase + x, y, zBase + z }, neighborDescs, neighborBrightness);
+                if(!blockDescMgr.GetBlockDescription(GetID(x, y, z))->IsVisible())
+                    continue;
+
+                fillNeighbors(x + CHUNK_SIZE_X, y, z + CHUNK_SIZE_Z, neighborDescs, neighborBrightness, neighborOrientations);
+                neighborDescs[1][1][1]->AddBlockModel(
+                    modelBuilders, { xBase + x, y, zBase + z }, neighborDescs, neighborBrightness, neighborOrientations);
             }
         }
     }

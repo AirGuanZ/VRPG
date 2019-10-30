@@ -66,7 +66,7 @@ public:
      *
      * 这会触发光照传播计算和渲染数据更新，必要时还会阻塞地加载该位置的区块
      */
-    void SetBlockID(int blockX, int blockY, int blockZ, BlockID id);
+    void SetBlockID(int blockX, int blockY, int blockZ, BlockID id, BlockOrientation orientation);
 
     /**
      * @brief 取得某个位置的block id

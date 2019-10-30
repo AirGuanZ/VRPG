@@ -6,6 +6,7 @@
 
 #include <VRPG/Base/Singleton.h>
 #include <VRPG/World/Block/BlockBrightness.h>
+#include <VRPG/World/Block/BlockOrientation.h>
 
 VRPG_WORLD_BEGIN
 
@@ -56,8 +57,9 @@ public:
     virtual void AddBlockModel(
         PartialSectionModelBuilderSet &modelBuilders,
         const Vec3i &blockPosition,
-        const BlockDescription *neighboringBlocks[3][3][3],
-        BlockBrightness neighboringBrightness[3][3][3]) const = 0;
+        const BlockDescription *neighborBlocks[3][3][3],
+        const BlockBrightness neighborBrightness[3][3][3],
+        const BlockOrientation neighborOrientations[3][3][3]) const = 0;
 
     /**
      * @brief 本方块是否是一个光源
@@ -99,7 +101,7 @@ public:
 
     void AddBlockModel(
         PartialSectionModelBuilderSet&,
-        const Vec3i&, const BlockDescription*[3][3][3], BlockBrightness[3][3][3]) const override
+        const Vec3i&, const BlockDescription*[3][3][3], const BlockBrightness[3][3][3], const BlockOrientation[3][3][3]) const override
     {
         // do nothing
     }

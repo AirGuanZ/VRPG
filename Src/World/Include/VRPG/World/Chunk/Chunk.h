@@ -9,6 +9,7 @@ VRPG_WORLD_BEGIN
 class ChunkBlockData
 {
     BlockID blockID_[CHUNK_SIZE_X][CHUNK_SIZE_Z][CHUNK_SIZE_Y] = { { { 0 } } };
+    BlockOrientation orientations_[CHUNK_SIZE_X][CHUNK_SIZE_Z][CHUNK_SIZE_Y];
     int heightMap_[CHUNK_SIZE_X][CHUNK_SIZE_Z] = { { 0 } };
 
 public:
@@ -21,12 +22,21 @@ public:
         return blockID_[x][z][y];
     }
 
-    void SetID(int x, int y, int z, BlockID id) noexcept
+    BlockOrientation GetOrientation(int x, int y, int z) const noexcept
+    {
+        assert(0 <= x && x < CHUNK_SIZE_X);
+        assert(0 <= y && y < CHUNK_SIZE_Y);
+        assert(0 <= z && z < CHUNK_SIZE_Z);
+        return orientations_[x][z][y];
+    }
+
+    void SetID(int x, int y, int z, BlockID id, BlockOrientation orientation) noexcept
     {
         assert(0 <= x && x < CHUNK_SIZE_X);
         assert(0 <= y && y < CHUNK_SIZE_Y);
         assert(0 <= z && z < CHUNK_SIZE_Z);
         blockID_[x][z][y] = id;
+        orientations_[x][z][y] = orientation;
     }
 
     int GetHeight(int blockX, int blockZ) const noexcept
@@ -115,9 +125,14 @@ public:
         return block_.GetID(blockX, blockY, blockZ);
     }
 
-    void SetID(int blockX, int blockY, int blockZ, BlockID id) noexcept
+    BlockOrientation GetOrientation(int blockX, int blockY, int blockZ) const noexcept
     {
-        block_.SetID(blockX, blockY, blockZ, id);
+        return block_.GetOrientation(blockX, blockY, blockZ);
+    }
+
+    void SetID(int blockX, int blockY, int blockZ, BlockID id, BlockOrientation orientation) noexcept
+    {
+        block_.SetID(blockX, blockY, blockZ, id, orientation);
     }
 
     BlockBrightness GetBrightness(int blockX, int blockY, int blockZ) const noexcept

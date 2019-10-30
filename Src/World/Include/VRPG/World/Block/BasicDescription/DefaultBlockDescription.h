@@ -23,8 +23,9 @@ public:
     void AddBlockModel(
         PartialSectionModelBuilderSet &modelBuilders,
         const Vec3i &blockPosition,
-        const BlockDescription *neighboringBlocks[3][3][3],
-        BlockBrightness neighboringBrightness[3][3][3]) const override;
+        const BlockDescription *neighborBlocks[3][3][3],
+        const BlockBrightness neighborBrightness[3][3][3],
+        const BlockOrientation neighborOrientations[3][3][3]) const override;
 
     bool IsLightSource() const noexcept override;
 

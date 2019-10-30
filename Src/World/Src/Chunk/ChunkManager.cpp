@@ -88,7 +88,7 @@ void ChunkManager::SetCentreChunk(int chunkX, int chunkZ)
         chunks_.erase(position);
 }
 
-void ChunkManager::SetBlockID(int blockX, int blockY, int blockZ, BlockID id)
+void ChunkManager::SetBlockID(int blockX, int blockY, int blockZ, BlockID id, BlockOrientation orientation)
 {
     // 分下面几步：
     // 1. 确保被设置的chunk位于内存中，若不，阻塞地加载之
@@ -103,7 +103,7 @@ void ChunkManager::SetBlockID(int blockX, int blockY, int blockZ, BlockID id)
     // 设置方块id
 
     auto [localX, localY, localZ] = Chunk::GlobalToLocal({ blockX, blockY, blockZ });
-    chunk->SetID(localX, localY, localZ, id);
+    chunk->SetID(localX, localY, localZ, id, orientation);
 
     std::queue<Vec3i> blocksWithDirtyLight; // 哪些方块的光照需要重新计算
     blocksWithDirtyLight.push({ blockX, blockY, blockZ });
@@ -134,7 +134,7 @@ void ChunkManager::SetBlockID(int blockX, int blockY, int blockZ, BlockID id)
 
     // 将消息告知loader pool
 
-    loader_->SetChunkBlockDataInPool(blockX, blockY, blockZ, id);
+    loader_->SetChunkBlockDataInPool(blockX, blockY, blockZ, id, orientation);
 
     // 更新光照
 
@@ -150,18 +150,44 @@ void ChunkManager::SetBlockID(int blockX, int blockY, int blockZ, BlockID id)
     int blockInSectionZ = blockZ % CHUNK_SECTION_SIZE_Z;
 
     sectionsWithDirtyModel_.insert({ sectionX, sectionY, sectionZ });
-    if(blockInSectionX == 0)
-        sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY, sectionZ });
-    if(blockInSectionX == CHUNK_SECTION_SIZE_X - 1)
-        sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY, sectionZ });
-    if(blockInSectionZ == 0)
-        sectionsWithDirtyModel_.insert({ sectionX, sectionY, sectionZ - 1 });
-    if(blockInSectionZ == CHUNK_SECTION_SIZE_Z - 1)
-        sectionsWithDirtyModel_.insert({ sectionX, sectionY, sectionZ + 1 });
-    if(blockInSectionY == 0 && sectionY > 0)
-        sectionsWithDirtyModel_.insert({ sectionX, sectionY - 1, sectionZ });
-    if(blockInSectionY == CHUNK_SECTION_SIZE_Y - 1 && sectionY < CHUNK_SECTION_COUNT_Y - 1)
-        sectionsWithDirtyModel_.insert({ sectionX, sectionY + 1, sectionZ });
+
+    bool lowerX  = blockInSectionX == 0;
+    bool lowerY  = blockInSectionY == 0 && sectionY > 0;
+    bool lowerZ  = blockInSectionZ == 0;
+    bool higherX = blockInSectionX == CHUNK_SECTION_SIZE_X - 1;
+    bool higherY = blockInSectionY == CHUNK_SECTION_SIZE_Y && sectionY < CHUNK_SECTION_COUNT_Y - 1;
+    bool higherZ = blockInSectionZ == CHUNK_SECTION_SIZE_Z - 1;
+
+    if(lowerX)  sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY, sectionZ });
+    if(lowerY)  sectionsWithDirtyModel_.insert({ sectionX, sectionY - 1, sectionZ });
+    if(lowerZ)  sectionsWithDirtyModel_.insert({ sectionX, sectionY, sectionZ - 1 });
+    if(higherX) sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY, sectionZ });
+    if(higherY) sectionsWithDirtyModel_.insert({ sectionX, sectionY + 1, sectionZ });
+    if(higherZ) sectionsWithDirtyModel_.insert({ sectionX, sectionY, sectionZ + 1 });
+
+    if(lowerX  && lowerY)  sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY - 1, sectionZ });
+    if(lowerX  && higherY) sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY + 1, sectionZ });
+    if(higherX && lowerY)  sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY - 1, sectionZ });
+    if(higherX && higherY) sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY + 1, sectionZ });
+
+    if(lowerY  && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX, sectionY - 1, sectionZ - 1 });
+    if(lowerY  && higherZ) sectionsWithDirtyModel_.insert({ sectionX, sectionY - 1, sectionZ + 1 });
+    if(higherY && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX, sectionY + 1, sectionZ - 1 });
+    if(higherY && higherZ) sectionsWithDirtyModel_.insert({ sectionX, sectionY + 1, sectionZ + 1 });
+
+    if(lowerX  && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY, sectionZ - 1 });
+    if(lowerX  && higherZ) sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY, sectionZ + 1 });
+    if(higherX && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY, sectionZ - 1 });
+    if(higherX && higherZ) sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY, sectionZ + 1 });
+
+    if(lowerX  && lowerY  && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY - 1, sectionZ - 1 });
+    if(lowerX  && lowerY  && higherZ) sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY - 1, sectionZ + 1 });
+    if(lowerX  && higherY && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY + 1, sectionZ - 1 });
+    if(lowerX  && higherY && higherZ) sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY + 1, sectionZ + 1 });
+    if(higherX && lowerY  && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY - 1, sectionZ - 1 });
+    if(higherX && lowerY  && higherZ) sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY - 1, sectionZ + 1 });
+    if(higherX && higherY && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY + 1, sectionZ - 1 });
+    if(higherX && higherY && higherZ) sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY + 1, sectionZ + 1 });
 }
 
 BlockID ChunkManager::GetBlockID(int blockX, int blockY, int blockZ)
