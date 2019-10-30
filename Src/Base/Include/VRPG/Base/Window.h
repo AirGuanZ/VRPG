@@ -90,6 +90,8 @@ public:
 
     void DoEvents();
 
+    void WaitForFocus();
+
     template<typename Event>
     void Attach(EventHandler<Event> *handler) { eventMgr_.Attach(handler); }
 
@@ -113,6 +115,8 @@ public:
     void SetCloseFlag(bool shouldClose) noexcept;
 
     bool GetCloseFlag() const noexcept;
+
+    bool IsInFocus() const noexcept;
 
     void _resize();
 

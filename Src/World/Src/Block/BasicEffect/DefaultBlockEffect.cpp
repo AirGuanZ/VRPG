@@ -8,29 +8,33 @@ namespace
 {
     class Model : public PartialSectionModel
     {
-        const DefaultBlockEffect *blockEffect_;
+        const DefaultBlockEffect *effect_;
         VertexBuffer<DefaultBlockEffect::Vertex> vertexBuffer_;
+        IndexBuffer<VertexIndex> indexBuffer_;
         
     public:
 
-        Model(const DefaultBlockEffect *effect, VertexBuffer<DefaultBlockEffect::Vertex> vertexBuffer)
-            : blockEffect_(effect), vertexBuffer_(std::move(vertexBuffer))
+        Model(
+            const DefaultBlockEffect *effect,
+            VertexBuffer<DefaultBlockEffect::Vertex> vertexBuffer,
+            IndexBuffer<VertexIndex> indexBuffer) noexcept
+            : effect_(effect), vertexBuffer_(std::move(vertexBuffer)), indexBuffer_(std::move(indexBuffer))
         {
 
         }
 
         void Render(const Camera &camera) const override
         {
-            blockEffect_->_setVSTransform({ camera.GetViewProjectionMatrix() });
-
             vertexBuffer_.Bind(0);
-            RenderState::Draw(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, vertexBuffer_.GetVertexCount());
+            indexBuffer_.Bind();
+            RenderState::DrawIndexed(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, indexBuffer_.GetIndexCount());
+            indexBuffer_.Unbind();
             vertexBuffer_.Unbind(0);
         }
 
         const BlockEffect* GetBlockEffect() const noexcept override
         {
-            return blockEffect_;
+            return effect_;
         }
     };
 }
@@ -41,21 +45,30 @@ DefaultBlockEffect::Builder::Builder(const DefaultBlockEffect *effect) noexcept
     assert(effect);
 }
 
-void DefaultBlockEffect::Builder::AddTriangle(const Vertex &a, const Vertex &b, const Vertex &c)
+void DefaultBlockEffect::Builder::AddVertex(const Vertex &vertex)
 {
-    vertices_.reserve(vertices_.size() + 3);
-    vertices_.push_back(a);
-    vertices_.push_back(b);
-    vertices_.push_back(c);
+    vertices_.push_back(vertex);
+}
+
+void DefaultBlockEffect::Builder::AddIndexedTriangle(uint16_t indexA, uint16_t indexB, uint16_t indexC)
+{
+    indices_.push_back(indexA);
+    indices_.push_back(indexB);
+    indices_.push_back(indexC);
 }
 
 std::shared_ptr<const PartialSectionModel> DefaultBlockEffect::Builder::Build() const
 {
-    if(vertices_.empty())
+    if(vertices_.empty() || indices_.empty())
         return nullptr;
+
     VertexBuffer<Vertex> vertexBuffer;
     vertexBuffer.Initialize(UINT(vertices_.size()), false, vertices_.data());
-    return std::make_shared<Model>(effect_, std::move(vertexBuffer));
+
+    IndexBuffer<VertexIndex> indexBuffer;
+    indexBuffer.Initialize(UINT(indices_.size()), false, indices_.data());
+
+    return std::make_shared<Model>(effect_, std::move(vertexBuffer), std::move(indexBuffer));
 }
 
 DefaultBlockEffect::DefaultBlockEffect()
@@ -105,14 +118,10 @@ std::unique_ptr<PartialSectionModelBuilder> DefaultBlockEffect::CreateModelBuild
     return std::make_unique<Builder>(this);
 }
 
-void DefaultBlockEffect::SetSkyLight(const Vec3 &light) const
+void DefaultBlockEffect::SetRenderParams(const BlockRenderParams &params) const
 {
-    psSky_.SetValue({ light, 0 });
-}
-
-void DefaultBlockEffect::_setVSTransform(const VS_Transform &transform) const
-{
-    vsTransform_.SetValue(transform);
+    vsTransform_.SetValue({ params.camera->GetViewProjectionMatrix() });
+    psSky_.SetValue({ params.skyLight, 0 });
 }
 
 VRPG_WORLD_END

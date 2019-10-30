@@ -22,6 +22,8 @@ VRPG_WORLD_BEGIN
 
 class BlockEffect;
 
+using VertexIndex = uint32_t;
+
 class PartialSectionModel
 {
 public:

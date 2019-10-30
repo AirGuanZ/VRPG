@@ -21,8 +21,8 @@ void Run()
 
     Window window;
     WindowDesc desc;
-    desc.clientWidth = 640;
-    desc.clientHeight = 480;
+    desc.clientWidth = 900;
+    desc.clientHeight = 600;
     desc.sampleCount = 4;
     window.Initialize(desc);
 
@@ -46,7 +46,7 @@ void Run()
 
     ChunkManagerParams params = {};
     params.loadDistance = 10;
-    params.backgroundPoolSize = 400;
+    params.backgroundPoolSize = 200;
     params.backgroundThreadCount = 1;
     params.renderDistance = 9;
     params.unloadDistance = 12;
@@ -73,11 +73,13 @@ void Run()
 
     while(!window.GetCloseFlag())
     {
-        float deltaT = std::chrono::duration_cast<std::chrono::microseconds>(fps.elasped_time()).count() / 1000.0f;
+        float deltaT = fps.elasped_microseconds() / 1000.0f;
         deltaTHistory.Update(deltaT);
         deltaT = deltaTHistory.MeanValue();
 
         window.DoEvents();
+        window.WaitForFocus();
+
         window.ImGuiNewFrame();
 
         if(keyboard->IsKeyPressed(KEY_ESCAPE))
@@ -85,11 +87,11 @@ void Run()
 
         DefaultCamera::Input cameraInput;
         cameraInput.front = keyboard->IsKeyPressed('W');
-        cameraInput.back = keyboard->IsKeyPressed('S');
-        cameraInput.left = keyboard->IsKeyPressed('A');
+        cameraInput.back  = keyboard->IsKeyPressed('S');
+        cameraInput.left  = keyboard->IsKeyPressed('A');
         cameraInput.right = keyboard->IsKeyPressed('D');
-        cameraInput.up = keyboard->IsKeyPressed(KEY_SPACE);
-        cameraInput.down = keyboard->IsKeyPressed(KEY_LSHIFT);
+        cameraInput.up    = keyboard->IsKeyPressed(KEY_SPACE);
+        cameraInput.down  = keyboard->IsKeyPressed(KEY_LSHIFT);
 
         cameraInput.relativeCursorX = float(mouse->GetRelativeCursorPositionX());
         cameraInput.relativeCursorY = float(mouse->GetRelativeCursorPositionY());
@@ -120,15 +122,13 @@ void Run()
             ImGuiWindowFlags_NoNav;
         if(ImGui::Begin("debug", nullptr, PANEL_FLAG))
         {
-            ImGui::Text("fps: %d", fps.fps());
+            ImGui::Text("fps: %d, interval: %f", fps.fps(), deltaT);
 
             auto camPos = camera.GetPosition();
             ImGui::Text("pos: %f, %f, %f", camPos.x, camPos.y, camPos.z);
 
             auto camDir = camera.GetDirection();
             ImGui::Text("dir: %f, %f, %f", camDir.x, camDir.y, camDir.z);
-
-            ImGui::Text("%f\n", deltaT);
         }
         ImGui::End();
 
@@ -139,7 +139,7 @@ void Run()
 
         window.ImGuiRender();
         window.SwapBuffers();
-        fps.update();
+        fps.frame_end();
     }
 
     spdlog::info("stop mainloop");

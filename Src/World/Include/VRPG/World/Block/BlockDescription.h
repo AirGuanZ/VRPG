@@ -12,18 +12,16 @@ VRPG_WORLD_BEGIN
 class PartialSectionModelBuilder;
 class PartialSectionModelBuilderSet;
 
-enum Direction
-{
-    PositiveX = 0,
-    NegativeX = 1,
-    PositiveZ = 2,
-    NegativeZ = 3,
-    PositiveY = 4,
-    NegativeY = 5
-};
-
+/**
+ * @brief 用于表示单个Block的类型
+ */
 using BlockID = uint16_t;
 
+/**
+ * @brief 表示具有相同类型的block的共有属性
+ * 
+ *  对每个block id值，都有唯一的block description与之对应
+ */
 class BlockDescription
 {
     BlockID blockID_ = 0;
@@ -49,7 +47,7 @@ public:
     virtual bool IsVisible() const noexcept = 0;
 
     /**
-     * @brief 追加方块模型数据
+     * @brief 向一个PartialSectionModelBuilderSet追加渲染数据
      *
      * neighboringBlocks[x][y][z]
      * x, y, z in { 0, 1, 2 }
@@ -77,6 +75,9 @@ public:
     virtual BlockBrightness InitialBrightness() const noexcept = 0;
 };
 
+/**
+ * @brief 空方块
+ */
 class VoidBlockDescription : public BlockDescription
 {
 public:
@@ -119,6 +120,9 @@ public:
     }
 };
 
+/**
+ * @brief 空方块拥有固定的ID值
+ */
 constexpr BlockID BLOCK_ID_VOID = 0;
 
 class BlockDescriptionManager : public Base::Singleton<BlockDescriptionManager>

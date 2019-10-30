@@ -74,10 +74,19 @@ void DefaultBlockDescription::AddBlockModel(
     {
         Vec3 posE = 0.25f * (posA + posB + posC + posD);
         Vec4 lhtE = 0.25f * (lhtA + lhtB+  lhtC + lhtD);
-        builder->AddTriangle({ posA, lhtA }, { posB, lhtB }, { posE, lhtE });
-        builder->AddTriangle({ posB, lhtB }, { posC, lhtC }, { posE, lhtE });
-        builder->AddTriangle({ posC, lhtC }, { posD, lhtD }, { posE, lhtE });
-        builder->AddTriangle({ posD, lhtD }, { posA, lhtA }, { posE, lhtE });
+
+        VertexIndex vertexCount = VertexIndex(builder->GetVertexCount());
+
+        builder->AddVertex({ posA, lhtA });
+        builder->AddVertex({ posB, lhtB });
+        builder->AddVertex({ posC, lhtC });
+        builder->AddVertex({ posD, lhtD });
+        builder->AddVertex({ posE, lhtE });
+
+        builder->AddIndexedTriangle(vertexCount + 0, vertexCount + 1, vertexCount + 4);
+        builder->AddIndexedTriangle(vertexCount + 1, vertexCount + 2, vertexCount + 4);
+        builder->AddIndexedTriangle(vertexCount + 2, vertexCount + 3, vertexCount + 4);
+        builder->AddIndexedTriangle(vertexCount + 3, vertexCount + 0, vertexCount + 4);
     };
 
     // +x

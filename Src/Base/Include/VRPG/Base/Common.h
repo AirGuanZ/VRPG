@@ -22,6 +22,9 @@ using Vec2i = agz::math::vec2i;
 using Vec3i = agz::math::vec3i;
 using Vec4i = agz::math::vec4i;
 
+using Vec3b = agz::math::vec3b;
+using Vec4b = agz::math::vec4b;
+
 using Mat3 = agz::math::mat3f_c;
 using Mat4 = agz::math::mat4f_c;
 

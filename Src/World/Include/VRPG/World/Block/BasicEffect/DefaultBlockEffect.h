@@ -31,13 +31,18 @@ public:
     class Builder : public PartialSectionModelBuilder
     {
         std::vector<Vertex> vertices_;
+        std::vector<VertexIndex> indices_;
         const DefaultBlockEffect *effect_;
 
     public:
 
         explicit Builder(const DefaultBlockEffect *effect) noexcept;
 
-        void AddTriangle(const Vertex &a, const Vertex &b, const Vertex &c);
+        void AddVertex(const Vertex &vertex);
+
+        void AddIndexedTriangle(uint16_t indexA, uint16_t indexB, uint16_t indexC);
+
+        size_t GetVertexCount() const noexcept { return vertices_.size(); }
 
         std::shared_ptr<const PartialSectionModel> Build() const override;
     };
@@ -52,9 +57,7 @@ public:
 
     std::unique_ptr<PartialSectionModelBuilder> CreateModelBuilder() const override;
 
-    void SetSkyLight(const Vec3 &light) const override;
-
-    void _setVSTransform(const VS_Transform &transform) const;
+    void SetRenderParams(const BlockRenderParams &params) const override;
 
 private:
 

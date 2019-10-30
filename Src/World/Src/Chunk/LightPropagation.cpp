@@ -53,6 +53,8 @@ namespace
 
 void PropagateLightForCentreChunk(Chunk *(&chunks)[3][3])
 {
+    // IMPROVE: 这里面有大量边界检查和下标计算都是冗余的
+
     auto &blockDescMgr = BlockDescriptionManager::GetInstance();
     std::queue<Vec3i> propagationQueue;
 
@@ -63,7 +65,7 @@ void PropagateLightForCentreChunk(Chunk *(&chunks)[3][3])
             propagationQueue.push({ x, y, z });
     };
 
-    // 对一个位置的六个相邻位置调用addToQueue
+    // 将一个位置的六个相邻位置加入光照更新队列中
     auto addNeighborToQueue = [&](int x, int y, int z)
     {
         addToQueue(x - 1, y, z);

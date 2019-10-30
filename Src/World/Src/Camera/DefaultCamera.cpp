@@ -14,10 +14,8 @@ void DefaultCamera::UpdateViewProjectionMatrix() const noexcept
 }
 
 DefaultCamera::DefaultCamera()
+    : cursorHistoryX_(4), cursorHistoryY_(4)
 {
-    cursorHistoryX_.Clear();
-    cursorHistoryY_.Clear();
-
     verticalAngle_ = 0;
     horizontalAngle_ = 0;
 
@@ -95,8 +93,8 @@ void DefaultCamera::Update(const Input &input, float deltaT) noexcept
     cursorHistoryX_.Update(input.relativeCursorX);
     cursorHistoryY_.Update(input.relativeCursorY);
 
-    verticalAngle_ -= viewSpeed_ * cursorHistoryY_.HistoryMean();
-    horizontalAngle_ -= viewSpeed_ * cursorHistoryX_.HistoryMean();
+    verticalAngle_ -= viewSpeed_ * cursorHistoryY_.MeanValue();
+    horizontalAngle_ -= viewSpeed_ * cursorHistoryX_.MeanValue();
 
     constexpr float VERTICAL_ANGLE_LIMIT = 0.5f * agz::math::PI_f - 0.005f;
     verticalAngle_ = agz::math::clamp(verticalAngle_, -VERTICAL_ANGLE_LIMIT, VERTICAL_ANGLE_LIMIT);

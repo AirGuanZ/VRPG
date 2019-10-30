@@ -130,6 +130,16 @@ public:
         return showCursor_;
     }
 
+    int GetCursorLockX() const noexcept
+    {
+        return lockPositionX_;
+    }
+
+    int GetCursorLockY() const noexcept
+    {
+        return lockPositionY_;
+    }
+
     void UpdatePosition();
 
     void ClearState()

@@ -1,14 +1,14 @@
 #pragma once
 
 #include <VRPG/World/Camera/Camera.h>
-#include <VRPG/World/Camera/CursorMoveHistory.h>
+#include <VRPG/World/Utility/ScalarHistory.h>
 
 VRPG_WORLD_BEGIN
 
 class DefaultCamera : public Camera
 {
-    CursorMoveHistory<4> cursorHistoryX_;
-    CursorMoveHistory<4> cursorHistoryY_;
+    ScalarHistory cursorHistoryX_;
+    ScalarHistory cursorHistoryY_;
 
     Vec3 position_;
 

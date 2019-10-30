@@ -11,16 +11,27 @@ VRPG_WORLD_BEGIN
 
 using BlockEffectID = uint16_t;
 
-constexpr BlockEffectID BLOCK_EFFECT_ID_INVALID = 0;
-
-inline bool IsValidBlockEffectID(BlockEffectID id) noexcept
+/**
+ * @brief 通用区块渲染参数
+ * 
+ * 所有的block effect在渲染时均只接收此参数
+ */
+struct BlockRenderParams
 {
-    return id != BLOCK_EFFECT_ID_INVALID;
-}
+    const Camera *camera;
+    const Vec3 skyLight;
+};
 
+/*
+一个BlockEffect代表一种特定类型的方块外观，包括其shader、纹理、input layout等
+
+一个chunk model由多个section model构成，一个section model包含多个partial section model
+
+每个partial section model对应一种block effect
+*/
 class BlockEffect
 {
-    BlockEffectID blockEffectID_ = BLOCK_EFFECT_ID_INVALID;
+    BlockEffectID blockEffectID_ = 0;
 
 public:
 
@@ -44,7 +55,7 @@ public:
 
     virtual std::unique_ptr<PartialSectionModelBuilder> CreateModelBuilder() const = 0;
 
-    virtual void SetSkyLight(const Vec3 &light) const = 0;
+    virtual void SetRenderParams(const BlockRenderParams &params) const = 0;
 };
 
 class BlockEffectManager : public Base::Singleton<BlockEffectManager>
@@ -94,6 +105,11 @@ public:
     }
 };
 
+/**
+ * @brief 用于生成partial section model的辅助设施
+ * 
+ * 包含所有block effect对应的partial section model builder的实例
+ */
 class PartialSectionModelBuilderSet
 {
     std::vector<std::unique_ptr<PartialSectionModelBuilder>> builders_;

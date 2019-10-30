@@ -333,7 +333,7 @@ protected:
         window_.ImGuiRender();
 
         window_.SwapBuffers();
-        fps_.update();
+        fps_.frame_end();
     }
 };
 

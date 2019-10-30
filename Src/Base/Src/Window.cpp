@@ -1,4 +1,5 @@
 #include <iostream>
+#include <thread>
 
 #include <ImGui/imgui.h>
 #include <ImGui/imgui_impl_dx11.h>
@@ -414,6 +415,33 @@ void Window::DoEvents()
     data_->keyboard->Update();
 }
 
+void Window::WaitForFocus()
+{
+    assert(IsAvailable());
+
+    if(!IsInFocus())
+    {
+        auto mouse = data_->mouse.get();
+
+        bool showCursor = mouse->IsCursorVisible();
+        bool lockCursor = mouse->IsCursorLocked();
+        int cursorLockX = mouse->GetCursorLockX();
+        int cursorLockY = mouse->GetCursorLockY();
+
+        mouse->ShowCursor(true);
+        mouse->SetCursorLock(false, 0, 0);
+        do
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            DoEvents();
+
+        } while(!IsInFocus());
+
+        mouse->ShowCursor(showCursor);
+        mouse->SetCursorLock(lockCursor, cursorLockX, cursorLockY);
+    }
+}
+
 void Window::SetMouseUpdateInterval(int interval) noexcept
 {
     assert(IsAvailable());
@@ -466,6 +494,12 @@ bool Window::GetCloseFlag() const noexcept
 {
     assert(IsAvailable());
     return data_->shouldClose;
+}
+
+bool Window::IsInFocus() const noexcept
+{
+    assert(IsAvailable());
+    return data_->hasFocus;
 }
 
 void Window::_resize()

@@ -15,12 +15,6 @@ class ChunkRenderer : public agz::misc::uncopyable_t
 
 public:
 
-    struct RenderParams
-    {
-        const Camera *camera;
-        const Vec3 skyLight;
-    };
-
     ChunkRenderer()
     {
         size_t blockEffectCount = BlockEffectManager::GetInstance().GetBlockEffectCount();
@@ -35,7 +29,7 @@ public:
         chunkModelSets_[effectID].push_back(std::move(model));
     }
 
-    void Render(const RenderParams &params) const
+    void Render(const BlockRenderParams &params) const
     {
         for(auto &chunkModelSet : chunkModelSets_)
         {
@@ -43,7 +37,7 @@ public:
                 continue;
 
             auto effect = chunkModelSet.front()->GetBlockEffect();
-            effect->SetSkyLight(params.skyLight);
+            effect->SetRenderParams(params);
             effect->Bind();
             for(auto &chunkModel : chunkModelSet)
                 chunkModel->Render(*params.camera);
