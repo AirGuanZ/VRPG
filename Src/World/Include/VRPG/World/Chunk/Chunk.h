@@ -14,39 +14,39 @@ class ChunkBlockData
 
 public:
 
-    BlockID GetID(int x, int y, int z) const noexcept
+    BlockID GetID(const Vec3i &blockInChunk) const noexcept
     {
-        assert(0 <= x && x < CHUNK_SIZE_X);
-        assert(0 <= y && y < CHUNK_SIZE_Y);
-        assert(0 <= z && z < CHUNK_SIZE_Z);
-        return blockID_[x][z][y];
+        assert(0 <= blockInChunk.x && blockInChunk.x < CHUNK_SIZE_X);
+        assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
+        assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
+        return blockID_[blockInChunk.x][blockInChunk.z][blockInChunk.y];
     }
 
-    BlockOrientation GetOrientation(int x, int y, int z) const noexcept
+    BlockOrientation GetOrientation(const Vec3i &blockInChunk) const noexcept
     {
-        assert(0 <= x && x < CHUNK_SIZE_X);
-        assert(0 <= y && y < CHUNK_SIZE_Y);
-        assert(0 <= z && z < CHUNK_SIZE_Z);
-        return orientations_[x][z][y];
+        assert(0 <= blockInChunk.x && blockInChunk.x < CHUNK_SIZE_X);
+        assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
+        assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
+        return orientations_[blockInChunk.x][blockInChunk.z][blockInChunk.y];
     }
 
-    void SetID(int x, int y, int z, BlockID id, BlockOrientation orientation) noexcept
+    void SetID(const Vec3i &blockInChunk, BlockID id, BlockOrientation orientation) noexcept
     {
-        assert(0 <= x && x < CHUNK_SIZE_X);
-        assert(0 <= y && y < CHUNK_SIZE_Y);
-        assert(0 <= z && z < CHUNK_SIZE_Z);
-        blockID_[x][z][y] = id;
-        orientations_[x][z][y] = orientation;
+        assert(0 <= blockInChunk.x && blockInChunk.x < CHUNK_SIZE_X);
+        assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
+        assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
+        blockID_[blockInChunk.x][blockInChunk.z][blockInChunk.y] = id;
+        orientations_[blockInChunk.x][blockInChunk.z][blockInChunk.y] = orientation;
     }
 
-    int GetHeight(int blockX, int blockZ) const noexcept
+    int GetHeight(int blockInChunkX, int blockInChunkZ) const noexcept
     {
-        return heightMap_[blockX][blockZ];
+        return heightMap_[blockInChunkX][blockInChunkZ];
     }
 
-    void SetHeight(int blockX, int blockZ, int height) noexcept
+    void SetHeight(int blockInChunkX, int blockInChunkZ, int height) noexcept
     {
-        heightMap_[blockX][blockZ] = height;
+        heightMap_[blockInChunkX][blockInChunkZ] = height;
     }
 };
 
@@ -56,20 +56,20 @@ class ChunkBrightnessData
 
 public:
 
-    BlockBrightness &operator()(int x, int y, int z) noexcept
+    BlockBrightness &operator()(const Vec3i &blockInChunk) noexcept
     {
-        assert(0 <= x && x < CHUNK_SIZE_X);
-        assert(0 <= y && y < CHUNK_SIZE_Y);
-        assert(0 <= z && z < CHUNK_SIZE_Z);
-        return implBlockBrightness_[x][z][y];
+        assert(0 <= blockInChunk.x && blockInChunk.x < CHUNK_SIZE_X);
+        assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
+        assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
+        return implBlockBrightness_[blockInChunk.x][blockInChunk.z][blockInChunk.y];
     }
 
-    BlockBrightness operator()(int x, int y, int z) const noexcept
+    BlockBrightness operator()(const Vec3i &blockInChunk) const noexcept
     {
-        assert(0 <= x && x < CHUNK_SIZE_X);
-        assert(0 <= y && y < CHUNK_SIZE_Y);
-        assert(0 <= z && z < CHUNK_SIZE_Z);
-        return implBlockBrightness_[x][z][y];
+        assert(0 <= blockInChunk.x && blockInChunk.x < CHUNK_SIZE_X);
+        assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
+        assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
+        return implBlockBrightness_[blockInChunk.x][blockInChunk.z][blockInChunk.y];
     }
 };
 
@@ -84,19 +84,6 @@ class Chunk
     bool isDirtySinceLoaded_;
 
 public:
-
-    static ChunkPosition BlockToChunk(int blockX, int blockZ) noexcept
-    {
-        return { blockX / CHUNK_SIZE_X, blockZ / CHUNK_SIZE_Z };
-    }
-
-    static Vec3i GlobalToLocal(const Vec3i &globalBlockPosition) noexcept
-    {
-        return Vec3i(
-            globalBlockPosition.x % CHUNK_SIZE_X,
-            globalBlockPosition.y,
-            globalBlockPosition.z % CHUNK_SIZE_Z);
-    }
 
     Chunk() noexcept
         : isDirtySinceLoaded_(false)
@@ -120,39 +107,39 @@ public:
         return chunkPosition_;
     }
 
-    BlockID GetID(int blockX, int blockY, int blockZ) const noexcept
+    BlockID GetID(const Vec3i &blockInChunk) const noexcept
     {
-        return block_.GetID(blockX, blockY, blockZ);
+        return block_.GetID(blockInChunk);
     }
 
-    BlockOrientation GetOrientation(int blockX, int blockY, int blockZ) const noexcept
+    BlockOrientation GetOrientation(const Vec3i &blockInChunk) const noexcept
     {
-        return block_.GetOrientation(blockX, blockY, blockZ);
+        return block_.GetOrientation(blockInChunk);
     }
 
-    void SetID(int blockX, int blockY, int blockZ, BlockID id, BlockOrientation orientation) noexcept
+    void SetID(const Vec3i &blockInChunk, BlockID id, BlockOrientation orientation) noexcept
     {
-        block_.SetID(blockX, blockY, blockZ, id, orientation);
+        block_.SetID(blockInChunk, id, orientation);
     }
 
-    BlockBrightness GetBrightness(int blockX, int blockY, int blockZ) const noexcept
+    BlockBrightness GetBrightness(const Vec3i &blockInChunk) const noexcept
     {
-        return brightness_(blockX, blockY, blockZ);
+        return brightness_(blockInChunk);
     }
 
-    void SetBrightness(int blockX, int blockY, int blockZ, BlockBrightness brightness) noexcept
+    void SetBrightness(const Vec3i &blockInChunk, BlockBrightness brightness) noexcept
     {
-        brightness_(blockX, blockY, blockZ) = brightness;
+        brightness_(blockInChunk) = brightness;
     }
 
-    int GetHeight(int blockX, int blockZ) const noexcept
+    int GetHeight(int blockInChunkX, int blockInChunkZ) const noexcept
     {
-        return block_.GetHeight(blockX, blockZ);
+        return block_.GetHeight(blockInChunkX, blockInChunkZ);
     }
 
-    void SetHeight(int blockX, int blockZ, int height) noexcept
+    void SetHeight(int blockInChunkX, int blockInChunkZ, int height) noexcept
     {
-        block_.SetHeight(blockX, blockZ, height);
+        block_.SetHeight(blockInChunkX, blockInChunkZ, height);
     }
 
     const ChunkModel &GetChunkModel() const noexcept
@@ -160,7 +147,7 @@ public:
         return model_;
     }
 
-    void RegenerateSectionModel(const Vec3i &sectionIndex, const Chunk *neighboringChunks[3][3]);
+    void RegenerateSectionModel(const Vec3i &sectionInChunk, const Chunk *neighboringChunks[3][3]);
 
     bool IsDirtySinceLoaded() const noexcept
     {

@@ -40,6 +40,88 @@ struct ChunkPosition
     }
 };
 
+namespace Impl
+{
+    constexpr int BLOCK_POSITION_PAD = 0x40000000;
+}
+
+inline std::pair<ChunkPosition, Vec3i> DecomposeGlobalBlockByChunk(const Vec3i &globalBlock) noexcept
+{
+    ChunkPosition ckPos = {
+        (globalBlock.x + Impl::BLOCK_POSITION_PAD) / CHUNK_SIZE_X - Impl::BLOCK_POSITION_PAD / CHUNK_SIZE_X,
+        (globalBlock.z + Impl::BLOCK_POSITION_PAD) / CHUNK_SIZE_Z - Impl::BLOCK_POSITION_PAD / CHUNK_SIZE_Z
+    };
+    Vec3i blockInChunk = {
+        globalBlock.x - ckPos.x * CHUNK_SIZE_X,
+        globalBlock.y,
+        globalBlock.z - ckPos.z * CHUNK_SIZE_Z
+    };
+    return { ckPos, blockInChunk };
+}
+
+inline Vec3i GlobalBlockToBlockInChunk(const Vec3i &globalBlock) noexcept
+{
+    return {
+        (globalBlock.x + Impl::BLOCK_POSITION_PAD) % CHUNK_SIZE_X,
+        globalBlock.y,
+        (globalBlock.z + Impl::BLOCK_POSITION_PAD) % CHUNK_SIZE_Z
+    };
+}
+
+inline ChunkPosition GlobalBlockToChunk(int globalBlockX, int globalBlockZ) noexcept
+{
+    return {
+        (globalBlockX + Impl::BLOCK_POSITION_PAD) / CHUNK_SIZE_X - Impl::BLOCK_POSITION_PAD / CHUNK_SIZE_X,
+        (globalBlockZ + Impl::BLOCK_POSITION_PAD) / CHUNK_SIZE_Z - Impl::BLOCK_POSITION_PAD / CHUNK_SIZE_Z
+    };
+}
+
+inline ChunkPosition GlobalBlockToChunk(const Vec3i &globalBlock) noexcept
+{
+    return GlobalBlockToChunk(globalBlock.x, globalBlock.z);
+}
+
+inline Vec3i GlobalBlockToGlobalSection(const Vec3i &globalBlock) noexcept
+{
+    return {
+        (globalBlock.x + Impl::BLOCK_POSITION_PAD) / CHUNK_SECTION_SIZE_X - Impl::BLOCK_POSITION_PAD / CHUNK_SECTION_SIZE_X,
+        (globalBlock.y + Impl::BLOCK_POSITION_PAD) / CHUNK_SECTION_SIZE_Y - Impl::BLOCK_POSITION_PAD / CHUNK_SECTION_SIZE_Y,
+        (globalBlock.z + Impl::BLOCK_POSITION_PAD) / CHUNK_SECTION_SIZE_Z - Impl::BLOCK_POSITION_PAD / CHUNK_SECTION_SIZE_Z
+    };
+}
+
+inline Vec3i GlobalBlockToBlockInSection(const Vec3i &globalBlock) noexcept
+{
+    return {
+        (globalBlock.x + Impl::BLOCK_POSITION_PAD) % CHUNK_SECTION_SIZE_X,
+        (globalBlock.y + Impl::BLOCK_POSITION_PAD) % CHUNK_SECTION_SIZE_Y,
+        (globalBlock.z + Impl::BLOCK_POSITION_PAD) % CHUNK_SECTION_SIZE_Z
+    };
+}
+
+inline std::pair<ChunkPosition, Vec3i> DecomposeGlobalSectionByChunk(const Vec3i &globalSection) noexcept
+{
+    ChunkPosition ckPos = {
+        (globalSection.x + Impl::BLOCK_POSITION_PAD) / CHUNK_SECTION_COUNT_X - Impl::BLOCK_POSITION_PAD / CHUNK_SECTION_COUNT_X,
+        (globalSection.z + Impl::BLOCK_POSITION_PAD) / CHUNK_SECTION_COUNT_Z - Impl::BLOCK_POSITION_PAD / CHUNK_SECTION_COUNT_Z
+    };
+    Vec3i sectionInChunk = {
+        globalSection.x - ckPos.x * CHUNK_SECTION_COUNT_X,
+        globalSection.y,
+        globalSection.z - ckPos.z * CHUNK_SECTION_COUNT_Z
+    };
+    return { ckPos, sectionInChunk };
+}
+
+inline Vec3i GlobalSectionToSectionInChunk(const Vec3i &globalSection) noexcept
+{
+    return {
+        (globalSection.x + Impl::BLOCK_POSITION_PAD) % CHUNK_SECTION_COUNT_X,
+        globalSection.y,
+        (globalSection.z + Impl::BLOCK_POSITION_PAD) % CHUNK_SECTION_COUNT_Z
+    };
+}
+
 VRPG_WORLD_END
 
 namespace std

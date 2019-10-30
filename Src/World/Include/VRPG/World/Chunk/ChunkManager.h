@@ -59,28 +59,28 @@ public:
     /**
      * @brief 设置中心区块的位置，这可能会产生一系列的区块加载和卸载
      */
-    void SetCentreChunk(int chunkX, int chunkZ);
+    void SetCentreChunk(const ChunkPosition &chunkPosition);
 
     /**
      * @brief 设置某个位置的block id
      *
      * 这会触发光照传播计算和渲染数据更新，必要时还会阻塞地加载该位置的区块
      */
-    void SetBlockID(int blockX, int blockY, int blockZ, BlockID id, BlockOrientation orientation);
+    void SetBlockID(const Vec3i &globalBlock, BlockID id, BlockOrientation orientation);
 
     /**
      * @brief 取得某个位置的block id
      *
      * 必要时会阻塞地加载该位置的区块
      */
-    BlockID GetBlockID(int blockX, int blockY, int blockZ);
+    BlockID GetBlockID(const Vec3i &globalBlock);
 
     /**
      * @brief 取得某个位置的block brightness
      *
      * 必要时会阻塞地加载该位置的区块
      */
-    BlockBrightness GetBlockBrightness(int blockX, int blockY, int blockZ);
+    BlockBrightness GetBlockBrightness(const Vec3i &globalBlock);
 
     /**
      * @brief 和加载线程交互，获取加载完成的区块
@@ -133,7 +133,7 @@ private:
      *
      * 调用方需保证该方块所在的区块已经在chunks_中
      */
-    void SetBlockBrightness_Unchecked(int blockX, int blockY, int blockZ, BlockBrightness brightness);
+    void SetBlockBrightness_Unchecked(const Vec3i &globalBlock, BlockBrightness brightness);
 
     ChunkManagerParams params_;
 

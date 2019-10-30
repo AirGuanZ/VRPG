@@ -20,7 +20,7 @@ namespace
             return BlockBrightness{ 0, 0, 0, 0 };
         int chunkIndexX = x / CHUNK_SIZE_X, chunkIndexZ = z / CHUNK_SIZE_Z;
         int blockIndexX = x % CHUNK_SIZE_X, blockIndexZ = z % CHUNK_SIZE_Z;
-        return chunks[chunkIndexX][chunkIndexZ]->GetBrightness(blockIndexX, y, blockIndexZ);
+        return chunks[chunkIndexX][chunkIndexZ]->GetBrightness({ blockIndexX, y, blockIndexZ });
     }
 
     void SetLight(Chunk *(&chunks)[3][3], int x, int y, int z, BlockBrightness brightness) noexcept
@@ -29,7 +29,7 @@ namespace
             return;
         int chunkIndexX = x / CHUNK_SIZE_X, chunkIndexZ = z / CHUNK_SIZE_Z;
         int blockIndexX = x % CHUNK_SIZE_X, blockIndexZ = z % CHUNK_SIZE_Z;
-        chunks[chunkIndexX][chunkIndexZ]->SetBrightness(blockIndexX, y, blockIndexZ, brightness);
+        chunks[chunkIndexX][chunkIndexZ]->SetBrightness({ blockIndexX, y, blockIndexZ }, brightness);
     }
 
     int GetHeight(Chunk *(&chunks)[3][3], int x, int z) noexcept
@@ -47,7 +47,7 @@ namespace
             return BLOCK_ID_VOID;
         int chunkIndexX = x / CHUNK_SIZE_X, chunkIndexZ = z / CHUNK_SIZE_Z;
         int blockIndexX = x % CHUNK_SIZE_X, blockIndexZ = z % CHUNK_SIZE_Z;
-        return chunks[chunkIndexX][chunkIndexZ]->GetID(blockIndexX, y, blockIndexZ);
+        return chunks[chunkIndexX][chunkIndexZ]->GetID({ blockIndexX, y, blockIndexZ });
     }
 }
 

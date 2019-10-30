@@ -56,7 +56,7 @@ void Run()
     camera.SetMoveSpeed(5.0f);
     camera.SetViewSpeed(0.003f);
     camera.SetWOverH(window.GetClientAspectRatio());
-    camera.SetPosition({ 100000, 30, 100000 });
+    camera.SetPosition({ 0, 30, 0 });
     camera.SetClipDistance(0.1f, 1000.0f);
 
     spdlog::info("start mainloop");
@@ -70,8 +70,6 @@ void Run()
     mouse->UpdatePosition();
 
     ScalarHistory deltaTHistory(4);
-
-    bool rrr = false;
 
     while(!window.GetCloseFlag())
     {
@@ -100,15 +98,8 @@ void Run()
 
         camera.Update(cameraInput, deltaT);
 
-        int cameraChunkX = int(camera.GetPosition().x) / CHUNK_SIZE_X;
-        int cameraChunkZ = int(camera.GetPosition().z) / CHUNK_SIZE_Z;
-        chunkMgr.SetCentreChunk(cameraChunkX, cameraChunkZ);
-
-        if(!rrr && keyboard->IsKeyPressed('X'))
-        {
-            rrr = true;
-            chunkMgr.SetBlockID(100000, 21, 100000, 1, {});
-        }
+        int cameraBlockX = int(camera.GetPosition().x), cameraBlockZ = int(camera.GetPosition().z);
+        chunkMgr.SetCentreChunk(GlobalBlockToChunk(cameraBlockX, cameraBlockZ));
 
         bool needToGenerateRenderer = false;
         needToGenerateRenderer |= chunkMgr.UpdateChunkData();

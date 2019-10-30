@@ -23,7 +23,7 @@ class ChunkBlockDataPool : public agz::misc::uncopyable_t
 
     struct DataModifyTask
     {
-        Vec3i blockPosition;
+        Vec3i globalBlockPosition;
         BlockID newBlockID;
         BlockOrientation newBlockOrientation;
     };
@@ -40,25 +40,21 @@ class ChunkBlockDataPool : public agz::misc::uncopyable_t
                 break;
 
             auto &task = *optTask;
-            int ckX = task.blockPosition.x / CHUNK_SIZE_X;
-            int ckZ = task.blockPosition.z / CHUNK_SIZE_Z;
-            int blkX = task.blockPosition.x % CHUNK_SIZE_X;
-            int blkY = task.blockPosition.y;
-            int blkZ = task.blockPosition.z % CHUNK_SIZE_Z;
+            auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk(task.globalBlockPosition);
 
-            ForGivenChunkPosition({ ckX, ckZ }, [&](ChunkBlockData &blockData)
+            ForGivenChunkPosition({ ckPos.x, ckPos.z }, [&](ChunkBlockData &blockData)
             {
-                blockData.SetID(blkX, blkY, blkZ, task.newBlockID, task.newBlockOrientation);
+                blockData.SetID(blkPos, task.newBlockID, task.newBlockOrientation);
 
-                int oldHeight = blockData.GetHeight(blkX, blkZ);
-                if(blkY > oldHeight && task.newBlockID != BLOCK_ID_VOID)
-                    blockData.SetHeight(blkX, blkZ, blkY);
-                else if(blkY == oldHeight && task.newBlockID == BLOCK_ID_VOID)
+                int oldHeight = blockData.GetHeight(blkPos.x, blkPos.z);
+                if(blkPos.y > oldHeight && task.newBlockID != BLOCK_ID_VOID)
+                    blockData.SetHeight(blkPos.x, blkPos.z, blkPos.y);
+                else if(blkPos.y == oldHeight && task.newBlockID == BLOCK_ID_VOID)
                 {
-                    int newHeight = blkY;
-                    while(newHeight >= 0 && blockData.GetID(blkX, newHeight, blkZ))
+                    int newHeight = blkPos.y;
+                    while(newHeight >= 0 && blockData.GetID(blkPos))
                         --newHeight;
-                    blockData.SetHeight(blkX, newHeight, blkZ);
+                    blockData.SetHeight(blkPos.x, blkPos.z, newHeight);
                 }
             });
         }

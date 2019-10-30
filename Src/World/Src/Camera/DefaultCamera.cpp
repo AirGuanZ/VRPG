@@ -96,7 +96,7 @@ void DefaultCamera::Update(const Input &input, float deltaT) noexcept
     verticalAngle_ -= viewSpeed_ * cursorHistoryY_.MeanValue();
     horizontalAngle_ -= viewSpeed_ * cursorHistoryX_.MeanValue();
 
-    constexpr float VERTICAL_ANGLE_LIMIT = 0.5f * agz::math::PI_f - 0.005f;
+    constexpr float VERTICAL_ANGLE_LIMIT = 0.5f * agz::math::PI_f - 0.01f;
     verticalAngle_ = agz::math::clamp(verticalAngle_, -VERTICAL_ANGLE_LIMIT, VERTICAL_ANGLE_LIMIT);
 
     // 位置移动

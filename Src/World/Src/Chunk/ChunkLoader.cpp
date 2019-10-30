@@ -165,9 +165,9 @@ std::unique_ptr<Chunk> ChunkLoader::LoadChunk(const ChunkPosition &position)
     return chunk;
 }
 
-void ChunkLoader::SetChunkBlockDataInPool(int blockX, int blockY, int blockZ, BlockID id, BlockOrientation orientation)
+void ChunkLoader::SetChunkBlockDataInPool(int globalBlockX, int globalBlockY, int globalBlockZ, BlockID id, BlockOrientation orientation)
 {
-    blockDataPool_->ModifyBlockIDInPool({ blockX, blockY, blockZ }, id, orientation);
+    blockDataPool_->ModifyBlockIDInPool({ globalBlockX, globalBlockY, globalBlockZ }, id, orientation);
 }
 
 void ChunkLoader::LoadChunkBlockData(const ChunkPosition &position, ChunkBlockData *blockData)

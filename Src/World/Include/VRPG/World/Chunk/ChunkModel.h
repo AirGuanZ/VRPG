@@ -58,24 +58,24 @@ class ChunkModel
 
 public:
 
-    std::unique_ptr<const SectionModel> &sectionModel(int x, int y, int z) noexcept
+    std::unique_ptr<const SectionModel> &sectionModel(int sectionInChunkX, int sectionInChunkY, int sectionInChunkZ) noexcept
     {
-        return sectionModels_[x][z][y];
+        return sectionModels_[sectionInChunkX][sectionInChunkZ][sectionInChunkY];
     }
 
-    const std::unique_ptr<const SectionModel> &sectionModel(int x, int y, int z) const noexcept
+    const std::unique_ptr<const SectionModel> &sectionModel(int sectionInChunkX, int sectionInChunkY, int sectionInChunkZ) const noexcept
     {
-        return sectionModels_[x][z][y];
+        return sectionModels_[sectionInChunkX][sectionInChunkZ][sectionInChunkY];
     }
 
-    std::unique_ptr<const SectionModel> &sectionModel(const Vec3i &sectionIndex) noexcept
+    std::unique_ptr<const SectionModel> &sectionModel(const Vec3i &sectionInChunk) noexcept
     {
-        return sectionModel(sectionIndex.x, sectionIndex.y, sectionIndex.z);
+        return sectionModel(sectionInChunk.x, sectionInChunk.y, sectionInChunk.z);
     }
 
-    const std::unique_ptr<const SectionModel> &sectionModel(const Vec3i &sectionIndex) const noexcept
+    const std::unique_ptr<const SectionModel> &sectionModel(const Vec3i &sectionInChunk) const noexcept
     {
-        return sectionModel(sectionIndex.x, sectionIndex.y, sectionIndex.z);
+        return sectionModel(sectionInChunk.x, sectionInChunk.y, sectionInChunk.z);
     }
 };
 

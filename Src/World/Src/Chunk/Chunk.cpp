@@ -3,11 +3,11 @@
 
 VRPG_WORLD_BEGIN
 
-void Chunk::RegenerateSectionModel(const Vec3i &sectionIndex, const Chunk *neighboringChunks[3][3])
+void Chunk::RegenerateSectionModel(const Vec3i &sectionInChunk, const Chunk *neighboringChunks[3][3])
 {
-    assert(0 <= sectionIndex.x && sectionIndex.x < CHUNK_SECTION_COUNT_X);
-    assert(0 <= sectionIndex.y && sectionIndex.y < CHUNK_SECTION_COUNT_Y);
-    assert(0 <= sectionIndex.z && sectionIndex.z < CHUNK_SECTION_COUNT_Z);
+    assert(0 <= sectionInChunk.x && sectionInChunk.x < CHUNK_SECTION_COUNT_X);
+    assert(0 <= sectionInChunk.y && sectionInChunk.y < CHUNK_SECTION_COUNT_Y);
+    assert(0 <= sectionInChunk.z && sectionInChunk.z < CHUNK_SECTION_COUNT_Z);
     assert(neighboringChunks[1][1] == this);
 
     auto &blockDescMgr = BlockDescriptionManager::GetInstance();
@@ -18,8 +18,8 @@ void Chunk::RegenerateSectionModel(const Vec3i &sectionIndex, const Chunk *neigh
 
     // 遍历每个block，将其model数据追加到各自的model builder中
 
-    Vec3i low = sectionIndex * Vec3i(CHUNK_SECTION_SIZE_X, CHUNK_SECTION_SIZE_Y, CHUNK_SECTION_SIZE_Z);
-    Vec3i high = low + Vec3i(CHUNK_SECTION_SIZE_X, CHUNK_SECTION_SIZE_Y, CHUNK_SECTION_SIZE_Z);
+    Vec3i lowBlockInChunk = sectionInChunk * Vec3i(CHUNK_SECTION_SIZE_X, CHUNK_SECTION_SIZE_Y, CHUNK_SECTION_SIZE_Z);
+    Vec3i highBlockInChunk = lowBlockInChunk + Vec3i(CHUNK_SECTION_SIZE_X, CHUNK_SECTION_SIZE_Y, CHUNK_SECTION_SIZE_Z);
 
     auto voidDesc = blockDescMgr.GetBlockDescription(BLOCK_ID_VOID);
     auto getBlock = [&](int x, int y, int z)
@@ -27,15 +27,11 @@ void Chunk::RegenerateSectionModel(const Vec3i &sectionIndex, const Chunk *neigh
         if(y < 0 || y >= CHUNK_SIZE_Y)
             return std::make_tuple(voidDesc, BLOCK_BRIGHTNESS_MIN, BlockOrientation{});
 
-        int ckX = x / CHUNK_SIZE_X;
-        int ckZ = z / CHUNK_SIZE_Z;
-        int blkX = x % CHUNK_SIZE_X;
-        int blkY = y;
-        int blkZ = z % CHUNK_SIZE_Z;
+        auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk({ x, y, z });
 
-        BlockID id = neighboringChunks[ckX][ckZ]->GetID(blkX, blkY, blkZ);
-        BlockBrightness brightness = neighboringChunks[ckX][ckZ]->GetBrightness(blkX, blkY, blkZ);
-        BlockOrientation orientation = neighboringChunks[ckX][ckZ]->GetOrientation(blkX, blkY, blkZ);
+        BlockID id = neighboringChunks[ckPos.x][ckPos.z]->GetID(blkPos);
+        BlockBrightness brightness = neighboringChunks[ckPos.x][ckPos.z]->GetBrightness(blkPos);
+        BlockOrientation orientation = neighboringChunks[ckPos.x][ckPos.z]->GetOrientation(blkPos);
         return std::make_tuple(blockDescMgr.GetBlockDescription(id), brightness, orientation);
     };
 
@@ -68,13 +64,13 @@ void Chunk::RegenerateSectionModel(const Vec3i &sectionIndex, const Chunk *neigh
     BlockBrightness neighborBrightness[3][3][3];
     BlockOrientation neighborOrientations[3][3][3];
 
-    for(int x = low.x; x < high.x; ++x)
+    for(int x = lowBlockInChunk.x; x < highBlockInChunk.x; ++x)
     {
-        for(int z = low.z; z < high.z; ++z)
+        for(int z = lowBlockInChunk.z; z < highBlockInChunk.z; ++z)
         {
-            for(int y = low.y; y < high.y; ++y)
+            for(int y = lowBlockInChunk.y; y < highBlockInChunk.y; ++y)
             {
-                if(!blockDescMgr.GetBlockDescription(GetID(x, y, z))->IsVisible())
+                if(!blockDescMgr.GetBlockDescription(GetID({ x, y, z }))->IsVisible())
                     continue;
 
                 fillNeighbors(x + CHUNK_SIZE_X, y, z + CHUNK_SIZE_Z, neighborDescs, neighborBrightness, neighborOrientations);
@@ -92,7 +88,7 @@ void Chunk::RegenerateSectionModel(const Vec3i &sectionIndex, const Chunk *neigh
         if(auto model = builder->Build())
             newSectionModel->partialModels.push_back(std::move(model));
     }
-    model_.sectionModel(sectionIndex) = std::move(newSectionModel);
+    model_.sectionModel(sectionInChunk) = std::move(newSectionModel);
 }
 
 VRPG_WORLD_END

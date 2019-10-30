@@ -24,19 +24,19 @@ ChunkManager::~ChunkManager()
     loader_->Destroy();
 }
 
-void ChunkManager::SetCentreChunk(int chunkX, int chunkZ)
+void ChunkManager::SetCentreChunk(const ChunkPosition &chunkPosition)
 {
-    if(chunkX == centreChunkPosition_.x && chunkZ == centreChunkPosition_.z)
+    if(chunkPosition.x == centreChunkPosition_.x && chunkPosition .z == centreChunkPosition_.z)
         return;
-    centreChunkPosition_.x = chunkX;
-    centreChunkPosition_.z = chunkZ;
+    centreChunkPosition_.x = chunkPosition.x;
+    centreChunkPosition_.z = chunkPosition.z;
 
     // 有哪些需要加载的区块
 
-    int loadXMin = chunkX - params_.loadDistance;
-    int loadZMin = chunkZ - params_.loadDistance;
-    int loadXMax = chunkX + params_.loadDistance;
-    int loadZMax = chunkZ + params_.loadDistance;
+    int loadXMin = chunkPosition.x - params_.loadDistance;
+    int loadZMin = chunkPosition.z - params_.loadDistance;
+    int loadXMax = chunkPosition.x + params_.loadDistance;
+    int loadZMax = chunkPosition.z + params_.loadDistance;
     std::vector<ChunkPosition> chunksShouldBeLoad;
     for(int loadX = loadXMin; loadX <= loadXMax; ++loadX)
     {
@@ -53,8 +53,8 @@ void ChunkManager::SetCentreChunk(int chunkX, int chunkZ)
     std::sort(chunksShouldBeLoad.begin(), chunksShouldBeLoad.end(),
         [=](const ChunkPosition &lhs, const ChunkPosition &rhs)
     {
-        Vec2i CL(lhs.x - chunkX, lhs.z - chunkZ);
-        Vec2i CR(rhs.x - chunkX, rhs.z - chunkZ);
+        Vec2i CL(lhs.x - chunkPosition.x, lhs.z - chunkPosition.z);
+        Vec2i CR(rhs.x - chunkPosition.x, rhs.z - chunkPosition.z);
         return CL.length_square() < CR.length_square();
     });
     for(auto &position : chunksShouldBeLoad)
@@ -66,10 +66,10 @@ void ChunkManager::SetCentreChunk(int chunkX, int chunkZ)
     // 发布区块卸载任务
 
     auto shouldBeDestroyed = [
-        unloadXMin = chunkX - params_.unloadDistance,
-        unloadZMin = chunkZ - params_.unloadDistance,
-        unloadXMax = chunkX + params_.unloadDistance,
-        unloadZMax = chunkZ + params_.unloadDistance]
+        unloadXMin = chunkPosition.x - params_.unloadDistance,
+        unloadZMin = chunkPosition.z - params_.unloadDistance,
+        unloadXMax = chunkPosition.x + params_.unloadDistance,
+        unloadZMax = chunkPosition.z + params_.unloadDistance]
         (const ChunkPosition &position)
     {
         return position.x < unloadXMin || position.x > unloadXMax ||
@@ -88,7 +88,7 @@ void ChunkManager::SetCentreChunk(int chunkX, int chunkZ)
         chunks_.erase(position);
 }
 
-void ChunkManager::SetBlockID(int blockX, int blockY, int blockZ, BlockID id, BlockOrientation orientation)
+void ChunkManager::SetBlockID(const Vec3i &globalBlock, BlockID id, BlockOrientation orientation)
 {
     // 分下面几步：
     // 1. 确保被设置的chunk位于内存中，若不，阻塞地加载之
@@ -97,44 +97,44 @@ void ChunkManager::SetBlockID(int blockX, int blockY, int blockZ, BlockID id, Bl
     // 4. 更新光照，其中涉及到的section model均需重新生成
     // 5. 包含被设置的block的section model以及与该block相邻的section model均需重新生成
 
-    auto [ckX, ckZ] = Chunk::BlockToChunk(blockX, blockZ);
-    Chunk *chunk = EnsureChunkExists(ckX, ckZ);
+    auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk(globalBlock);
+
+    Chunk *chunk = EnsureChunkExists(ckPos.x, ckPos.z);
 
     // 设置方块id
 
-    auto [localX, localY, localZ] = Chunk::GlobalToLocal({ blockX, blockY, blockZ });
-    chunk->SetID(localX, localY, localZ, id, orientation);
+    chunk->SetID(blkPos, id, orientation);
 
     std::queue<Vec3i> blocksWithDirtyLight; // 哪些方块的光照需要重新计算
-    blocksWithDirtyLight.push({ blockX, blockY, blockZ });
+    blocksWithDirtyLight.push(globalBlock);
 
     // 更新height map
 
-    int oldHeight = chunk->GetHeight(localX, localZ);
-    if(blockY > oldHeight && id != BLOCK_ID_VOID)
+    int oldHeight = chunk->GetHeight(blkPos.x, blkPos.z);
+    if(blkPos.y > oldHeight && id != BLOCK_ID_VOID)
     {
         // 最大高度提升了
 
-        chunk->SetHeight(localX, localZ, blockY);
-        for(int i = oldHeight; i < blockY; ++i)
-            blocksWithDirtyLight.push({ blockX, i, blockZ });
+        chunk->SetHeight(blkPos.x, blkPos.z, blkPos.y);
+        for(int i = oldHeight; i < globalBlock.y; ++i)
+            blocksWithDirtyLight.push({ globalBlock.x, i, globalBlock .z});
     }
-    else if(blockY == oldHeight && id == BLOCK_ID_VOID)
+    else if(globalBlock .y == oldHeight && id == BLOCK_ID_VOID)
     {
         // 最大高度下降了
 
-        int newHeight = blockY;
-        while(newHeight >= 0 && chunk->GetID(localX, newHeight, localZ) == BLOCK_ID_VOID)
+        int newHeight = globalBlock.y;
+        while(newHeight >= 0 && chunk->GetID(blkPos) == BLOCK_ID_VOID)
             --newHeight;
 
-        chunk->SetHeight(localX, newHeight, localZ);
-        for(int i = newHeight; i <= blockY; ++i)
-            blocksWithDirtyLight.push({ blockX, i, blockZ });
+        chunk->SetHeight(blkPos.x, blkPos.z, newHeight);
+        for(int i = newHeight; i <= globalBlock.y; ++i)
+            blocksWithDirtyLight.push({ globalBlock.x, i, globalBlock .z });
     }
 
     // 将消息告知loader pool
 
-    loader_->SetChunkBlockDataInPool(blockX, blockY, blockZ, id, orientation);
+    loader_->SetChunkBlockDataInPool(globalBlock.x, globalBlock.y, globalBlock.z, id, orientation);
 
     // 更新光照
 
@@ -142,12 +142,8 @@ void ChunkManager::SetBlockID(int blockX, int blockY, int blockZ, BlockID id, Bl
 
     // 将包含该block或与该block相邻的section index放入sectionsWithDirtyModel_
 
-    int sectionX = blockX / CHUNK_SECTION_SIZE_X;
-    int sectionY = blockY / CHUNK_SECTION_SIZE_Y;
-    int sectionZ = blockZ / CHUNK_SECTION_SIZE_Z;
-    int blockInSectionX = blockX % CHUNK_SECTION_SIZE_X;
-    int blockInSectionY = blockY % CHUNK_SECTION_SIZE_Y;
-    int blockInSectionZ = blockZ % CHUNK_SECTION_SIZE_Z;
+    auto [sectionX, sectionY, sectionZ] = GlobalBlockToGlobalSection(globalBlock);
+    auto [blockInSectionX, blockInSectionY, blockInSectionZ] = GlobalBlockToBlockInSection(globalBlock);
 
     sectionsWithDirtyModel_.insert({ sectionX, sectionY, sectionZ });
 
@@ -190,20 +186,18 @@ void ChunkManager::SetBlockID(int blockX, int blockY, int blockZ, BlockID id, Bl
     if(higherX && higherY && higherZ) sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY + 1, sectionZ + 1 });
 }
 
-BlockID ChunkManager::GetBlockID(int blockX, int blockY, int blockZ)
+BlockID ChunkManager::GetBlockID(const Vec3i &globalBlock)
 {
-    auto [ckX, ckZ] = Chunk::BlockToChunk(blockX, blockZ);
-    auto [localBlockX, localBlockY, localBlockZ] = Chunk::GlobalToLocal({ blockX, blockY, blockZ });
-    auto chunk = EnsureChunkExists(ckX, ckZ);
-    return chunk->GetID(localBlockX, localBlockY, localBlockZ);
+    auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk(globalBlock);
+    auto chunk = EnsureChunkExists(ckPos.x, ckPos.z);
+    return chunk->GetID(blkPos);
 }
 
-BlockBrightness ChunkManager::GetBlockBrightness(int blockX, int blockY, int blockZ)
+BlockBrightness ChunkManager::GetBlockBrightness(const Vec3i &globalBlock)
 {
-    auto [ckX, ckZ] = Chunk::BlockToChunk(blockX, blockZ);
-    auto [localBlockX, localBlockY, localBlockZ] = Chunk::GlobalToLocal({ blockX, blockY, blockZ });
-    auto chunk = EnsureChunkExists(ckX, ckZ);
-    return chunk->GetBrightness(localBlockX, localBlockY, localBlockZ);
+    auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk(globalBlock);
+    auto chunk = EnsureChunkExists(ckPos.x, ckPos.z);
+    return chunk->GetBrightness(blkPos);
 }
 
 bool ChunkManager::UpdateChunkData()
@@ -231,12 +225,9 @@ bool ChunkManager::UpdateChunkModels()
 
     for(auto &secPos : sectionsWithDirtyModel_)
     {
-        int ckX = secPos.x / CHUNK_SECTION_COUNT_X;
-        int ckZ = secPos.z / CHUNK_SECTION_COUNT_Z;
-        int localSecX = secPos.x % CHUNK_SECTION_COUNT_X;
-        int localSecZ = secPos.z % CHUNK_SECTION_COUNT_Z;
+        auto [ckPos, secInCk] = DecomposeGlobalSectionByChunk(secPos);
 
-        auto it = chunks_.find({ ckX, ckZ });
+        auto it = chunks_.find({ ckPos.x, ckPos.z});
         if(it == chunks_.end())
             continue;
 
@@ -244,17 +235,17 @@ bool ChunkManager::UpdateChunkModels()
         auto chunk = it->second.get();
 
         const Chunk *neighboringChunks[3][3];
-        neighboringChunks[0][0] = EnsureChunkExists(ckX - 1, ckZ - 1);
-        neighboringChunks[0][1] = EnsureChunkExists(ckX - 1, ckZ);
-        neighboringChunks[0][2] = EnsureChunkExists(ckX - 1, ckZ + 1);
-        neighboringChunks[1][0] = EnsureChunkExists(ckX, ckZ - 1);
+        neighboringChunks[0][0] = EnsureChunkExists(ckPos.x - 1, ckPos.z - 1);
+        neighboringChunks[0][1] = EnsureChunkExists(ckPos.x - 1, ckPos.z);
+        neighboringChunks[0][2] = EnsureChunkExists(ckPos.x - 1, ckPos.z + 1);
+        neighboringChunks[1][0] = EnsureChunkExists(ckPos.x, ckPos.z - 1);
         neighboringChunks[1][1] = chunk;
-        neighboringChunks[1][2] = EnsureChunkExists(ckX, ckZ + 1);
-        neighboringChunks[2][0] = EnsureChunkExists(ckX + 1, ckZ - 1);
-        neighboringChunks[2][1] = EnsureChunkExists(ckX + 1, ckZ);
-        neighboringChunks[2][2] = EnsureChunkExists(ckX + 1, ckZ + 1);
+        neighboringChunks[1][2] = EnsureChunkExists(ckPos.x, ckPos.z + 1);
+        neighboringChunks[2][0] = EnsureChunkExists(ckPos.x + 1, ckPos.z - 1);
+        neighboringChunks[2][1] = EnsureChunkExists(ckPos.x + 1, ckPos.z);
+        neighboringChunks[2][2] = EnsureChunkExists(ckPos.x + 1, ckPos.z + 1);
 
-        chunk->RegenerateSectionModel({ localSecX, secPos.y, localSecZ }, neighboringChunks);
+        chunk->RegenerateSectionModel({ secInCk.x, secInCk.y, secInCk.z }, neighboringChunks);
     }
 
     sectionsWithDirtyModel_.clear();
@@ -325,18 +316,19 @@ void ChunkManager::UpdateLight(std::queue<Vec3i> &blocksQueue)
 
     while(!blocksQueue.empty())
     {
-        auto [x, y, z] = blocksQueue.front();
+        Vec3i pos = blocksQueue.front();
+        auto [x, y, z] = pos;
         blocksQueue.pop();
 
-        auto desc = blockDescMgr.GetBlockDescription(GetBlockID(x, y, z));
-        BlockBrightness original = GetBlockBrightness(x, y, z);
+        auto desc = blockDescMgr.GetBlockDescription(GetBlockID(pos));
+        BlockBrightness original = GetBlockBrightness(pos);
 
-        BlockBrightness posX = GetBlockBrightness(x + 1, y, z);
-        BlockBrightness posY = GetBlockBrightness(x, y + 1, z);
-        BlockBrightness posZ = GetBlockBrightness(x, y, z + 1);
-        BlockBrightness negX = GetBlockBrightness(x - 1, y, z);
-        BlockBrightness negY = GetBlockBrightness(x, y - 1, z);
-        BlockBrightness negZ = GetBlockBrightness(x, y, z - 1);
+        BlockBrightness posX = GetBlockBrightness({ x + 1, y, z });
+        BlockBrightness posY = GetBlockBrightness({ x, y + 1, z });
+        BlockBrightness posZ = GetBlockBrightness({ x, y, z + 1 });
+        BlockBrightness negX = GetBlockBrightness({ x - 1, y, z });
+        BlockBrightness negY = GetBlockBrightness({ x, y - 1, z });
+        BlockBrightness negZ = GetBlockBrightness({ x, y, z - 1 });
         BlockBrightness maxNeighborLight = Max(
             Max(posX, Max(posY, posZ)),
             Max(negX, Max(negY, negZ)));
@@ -352,33 +344,25 @@ void ChunkManager::UpdateLight(std::queue<Vec3i> &blocksQueue)
 
         if(propagated != original)
         {
-            SetBlockBrightness_Unchecked(x, y, z, propagated);
+            SetBlockBrightness_Unchecked(pos, propagated);
             addNeighborToQueue(x, y, z);
 
-            int secX = x / CHUNK_SECTION_SIZE_X;
-            int secY = y / CHUNK_SECTION_SIZE_Y;
-            int secZ = z / CHUNK_SECTION_SIZE_Z;
-            sectionsWithDirtyModel_.insert({ secX, secY, secZ });
+            auto globalSection = GlobalBlockToGlobalSection(pos);
+            sectionsWithDirtyModel_.insert(globalSection);
         }
     }
 }
 
 int ChunkManager::GetHeight_Unchecked(int blockX, int blockZ)
 {
-    int ckX = blockX / CHUNK_SIZE_X;
-    int ckZ = blockZ / CHUNK_SIZE_Z;
-    int lbX = blockX % CHUNK_SIZE_X;
-    int lbZ = blockZ % CHUNK_SIZE_Z;
-    return chunks_[{ ckX, ckZ }]->GetHeight(lbX, lbZ);
+    auto [ck, lb] = DecomposeGlobalBlockByChunk({ blockX, 0, blockZ });
+    return chunks_[ck]->GetHeight(lb.x, lb.z);
 }
 
-void ChunkManager::SetBlockBrightness_Unchecked(int blockX, int blockY, int blockZ, BlockBrightness brightness)
+void ChunkManager::SetBlockBrightness_Unchecked(const Vec3i &globalBlock, BlockBrightness brightness)
 {
-    int ckX = blockX / CHUNK_SIZE_X;
-    int ckZ = blockZ / CHUNK_SIZE_Z;
-    int lbX = blockX % CHUNK_SIZE_X;
-    int lbZ = blockZ % CHUNK_SIZE_Z;
-    chunks_[{ ckX, ckZ }]->SetBrightness(lbX, blockY, lbZ, brightness);
+    auto [ck, lb] = DecomposeGlobalBlockByChunk(globalBlock);
+    chunks_[ck]->SetBrightness(lb, brightness);
 }
 
 VRPG_WORLD_END
