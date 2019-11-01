@@ -94,7 +94,7 @@ inline Vec4 BlockBrightnessToFloat(BlockBrightness brightness) noexcept
  */
 inline Vec4 ComputeVertexBrightness(const Vec4 &a, const Vec4 &b, const Vec4 &c, const Vec4 &d) noexcept
 {
-    return 0.05f + 0.95f * 0.25f * (a + b + c + d);
+    return 0.002f + 0.998f * 0.25f * (a + b + c + d);
 }
 
 /**
@@ -109,6 +109,6 @@ inline Vec4 ComputeVertexBrightness(const BlockBrightness &a, const BlockBrightn
         BlockBrightnessToFloat(d));
 }
 
-constexpr float SIDE_VERTEX_BRIGHTNESS_RATIO = 0.85f;
+constexpr float SIDE_VERTEX_BRIGHTNESS_RATIO = 0.9f;
 
 VRPG_WORLD_END

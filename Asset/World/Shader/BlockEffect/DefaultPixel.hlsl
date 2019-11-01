@@ -11,5 +11,6 @@ struct PSInput
 
 float4 main(PSInput input) : SV_TARGET
 {
-    return float4(pow(max(input.brightness.rgb, input.brightness.a * skylight), 1 / 2.2), 1);
+    float3 light = max(input.brightness.rgb, input.brightness.a * skylight);
+    return float4(pow(light, 1 / 2.2), 1);
 }

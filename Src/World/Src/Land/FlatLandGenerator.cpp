@@ -13,9 +13,10 @@ FlatLandGenerator::FlatLandGenerator(int landHeight) noexcept
 void FlatLandGenerator::Generate(const ChunkPosition &position, ChunkBlockData *blockData)
 {
 	auto &builtinBlocks = BuiltinBlockTypeManager::GetInstance();
-	BlockID stoneID = builtinBlocks.GetDesc(BuiltinBlockType::Stone).desc->GetBlockID();
-	BlockID soilID  = builtinBlocks.GetDesc(BuiltinBlockType::Soil).desc ->GetBlockID();
-	BlockID lawnID  = builtinBlocks.GetDesc(BuiltinBlockType::Lawn).desc ->GetBlockID();
+	BlockID stoneID     = builtinBlocks.GetDesc(BuiltinBlockType::Stone).desc->GetBlockID();
+	BlockID soilID      = builtinBlocks.GetDesc(BuiltinBlockType::Soil).desc ->GetBlockID();
+	BlockID lawnID      = builtinBlocks.GetDesc(BuiltinBlockType::Lawn).desc ->GetBlockID();
+    BlockID glowStoneID = builtinBlocks.GetDesc(BuiltinBlockType::GlowStone).desc->GetBlockID();
 	
     for(int x = 0; x < CHUNK_SIZE_X; ++x)
     {
@@ -23,12 +24,16 @@ void FlatLandGenerator::Generate(const ChunkPosition &position, ChunkBlockData *
         {
             int height = (x + z) / 3;
 
-            blockData->SetHeight(x, z, height);
             for(int y = 0; y < height - 3; ++y)
                 blockData->SetID({ x, y, z }, stoneID, {});
 			for(int y = (std::max)(height - 3, 0); y < height; ++y)
                 blockData->SetID({ x, y ,z }, soilID, {});
             blockData->SetID({ x, height, z }, lawnID, {});
+
+            //for(int y = 0; y <= height; ++y)
+            //    blockData->SetID({ x, y, z }, 1, {});
+
+            blockData->SetHeight(x, z, height);
         }
     }
 }

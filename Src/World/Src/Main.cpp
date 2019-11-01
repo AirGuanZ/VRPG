@@ -9,9 +9,9 @@
 #include <VRPG/World/Camera/DefaultCamera.h>
 #include <VRPG/World/Chunk/ChunkManager.h>
 #include <VRPG/World/Chunk/ChunkRenderer.h>
-#include <VRPG/World/Block/BasicEffect/DefaultBlockEffect.h>
-#include <VRPG/World/Block/BasicDescription/DefaultBlockDescription.h>
 #include <VRPG/World/Block/BuiltinBlock/BuiltinBlock.h>
+#include <VRPG/World/Block/BlockDescription.h>
+#include <VRPG/World/Block/BlockEffect.h>
 #include <VRPG/World/Land/FlatLandGenerator.h>
 #include <VRPG/World/Utility/ScalarHistory.h>
 
@@ -39,25 +39,10 @@ void Run()
 		BlockDescriptionManager::GetInstance().Clear();
 	});
 
-    /*spdlog::info("initialize block effect manager");
-    //auto defaultBlockEffect = std::make_shared<DefaultBlockEffect>();
-    //BlockEffectManager::GetInstance().RegisterBlockEffect(defaultBlockEffect);
-    AGZ_SCOPE_GUARD({
-        spdlog::info("destroy block effect manager");
-        BlockEffectManager::GetInstance().Clear();
-    });
-
-    spdlog::info("initialize block description manager");
-    //BlockDescriptionManager::GetInstance().RegisterBlockDescription(std::make_shared<DefaultBlockDescription>(defaultBlockEffect.get()));
-    AGZ_SCOPE_GUARD({
-        spdlog::info("destroy block description manager");
-        BlockDescriptionManager::GetInstance().Clear();
-    });*/
-
     ChunkManagerParams params = {};
     params.loadDistance = 10;
     params.backgroundPoolSize = 200;
-    params.backgroundThreadCount = 4;
+    params.backgroundThreadCount = 2;
     params.renderDistance = 9;
     params.unloadDistance = 12;
     ChunkManager chunkMgr(params, std::make_unique<FlatLandGenerator>(20));
@@ -141,11 +126,11 @@ void Run()
         }
         ImGui::End();
 
-        const float DEFAULT_RENDER_TARGET_BACKGROUND[] = { 0, 1, 1, 0 };
+        const float DEFAULT_RENDER_TARGET_BACKGROUND[] = { 0.5f, 1, 1, 0 };
         window.ClearDefaultRenderTarget(DEFAULT_RENDER_TARGET_BACKGROUND);
         window.ClearDefaultDepthStencil();
 
-        renderer.Render({ &camera, { 1, 1, 1 } });
+        renderer.Render({ &camera, Vec3(1) });
 
         window.ImGuiRender();
         window.SwapBuffers();

@@ -90,6 +90,17 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
 		info_[int(BuiltinBlockType::Lawn)].desc = lawnDesc;
 	}
 
+    {
+        prepareDiffuseTextureSpace(1);
+        int textureIndex = diffuseEffectGenerator.AddTexture(LoadTextureFrom("Asset/World/Texture/BuiltinBlock/GlowStone.png").raw_data());
+        int textureIndices[] = { textureIndex, textureIndex, textureIndex, textureIndex, textureIndex, textureIndex };
+
+        auto glowStoneDesc = std::make_shared<DiffuseBoxDescription>(
+            "glow stone", diffuseBlockEffect, textureIndices, BlockBrightness{ 15, 15, 15, 0 });
+        descMgr.RegisterBlockDescription(glowStoneDesc);
+        info_[int(BuiltinBlockType::GlowStone)].desc = glowStoneDesc;
+    }
+
     if(!diffuseEffectGenerator.IsEmpty())
         diffuseEffectGenerator.InitializeEffect(*diffuseBlockEffect);
 }

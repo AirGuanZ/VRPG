@@ -12,6 +12,10 @@ class PartialSectionModel;
 class PartialSectionModelBuilderSet;
 class SectionModel;
 
+/**
+ * Chunk是管理BlockData的基本单位，一个Chunk由多个Section构成，Section是管理RenderModel的基本单位
+ */
+
 constexpr int CHUNK_SECTION_SIZE_X = 16;
 constexpr int CHUNK_SECTION_SIZE_Y = 16;
 constexpr int CHUNK_SECTION_SIZE_Z = 16;
@@ -45,6 +49,9 @@ namespace Impl
     constexpr int BLOCK_POSITION_PAD = 0x40000000;
 }
 
+/**
+ * @brief 将世界坐标系中的Block位置分解为它所属的Chunk位置以及它在Chunk中的位置
+ */
 inline std::pair<ChunkPosition, Vec3i> DecomposeGlobalBlockByChunk(const Vec3i &globalBlock) noexcept
 {
     ChunkPosition ckPos = {
@@ -59,6 +66,9 @@ inline std::pair<ChunkPosition, Vec3i> DecomposeGlobalBlockByChunk(const Vec3i &
     return { ckPos, blockInChunk };
 }
 
+/**
+ * @brief 将世界坐标系中的Block位置转换为它在所属的Chunk中的位置
+ */
 inline Vec3i GlobalBlockToBlockInChunk(const Vec3i &globalBlock) noexcept
 {
     return {
@@ -68,6 +78,9 @@ inline Vec3i GlobalBlockToBlockInChunk(const Vec3i &globalBlock) noexcept
     };
 }
 
+/**
+ * @brief 将世界坐标系中的Block位置转换为它所属的Chunk位置
+ */
 inline ChunkPosition GlobalBlockToChunk(int globalBlockX, int globalBlockZ) noexcept
 {
     return {
@@ -76,11 +89,17 @@ inline ChunkPosition GlobalBlockToChunk(int globalBlockX, int globalBlockZ) noex
     };
 }
 
+/**
+ * @brief 将世界坐标系中的Block位置转换为它所属的Chunk位置
+ */
 inline ChunkPosition GlobalBlockToChunk(const Vec3i &globalBlock) noexcept
 {
     return GlobalBlockToChunk(globalBlock.x, globalBlock.z);
 }
 
+/**
+ * @brief 将世界坐标系中的Block位置转换为它所属的Section在世界坐标系中的位置
+ */
 inline Vec3i GlobalBlockToGlobalSection(const Vec3i &globalBlock) noexcept
 {
     return {
@@ -90,6 +109,9 @@ inline Vec3i GlobalBlockToGlobalSection(const Vec3i &globalBlock) noexcept
     };
 }
 
+/**
+ * @brief 将世界坐标系中的Block位置转换为它在所属的Section中的位置
+ */
 inline Vec3i GlobalBlockToBlockInSection(const Vec3i &globalBlock) noexcept
 {
     return {
@@ -99,6 +121,9 @@ inline Vec3i GlobalBlockToBlockInSection(const Vec3i &globalBlock) noexcept
     };
 }
 
+/**
+ * @brief 将世界坐标系中的Section位置分解为它所属的Chunk位置以及它在该Chunk中的位置
+ */
 inline std::pair<ChunkPosition, Vec3i> DecomposeGlobalSectionByChunk(const Vec3i &globalSection) noexcept
 {
     ChunkPosition ckPos = {
@@ -113,6 +138,9 @@ inline std::pair<ChunkPosition, Vec3i> DecomposeGlobalSectionByChunk(const Vec3i
     return { ckPos, sectionInChunk };
 }
 
+/**
+ * @brief 将世界坐标系中的Section位置转换为它在所属Chunk中的位置
+ */
 inline Vec3i GlobalSectionToSectionInChunk(const Vec3i &globalSection) noexcept
 {
     return {

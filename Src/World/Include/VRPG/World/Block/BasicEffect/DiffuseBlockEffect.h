@@ -10,6 +10,13 @@ VRPG_WORLD_BEGIN
 
 class DiffuseBlockEffect;
 
+/**
+ * 一个DiffuseBlockEffect中存有一个表示Diffuse Albedo的Texture Array，
+ * 而单个Texture Array未必能存下所有需要的Texture，所以可能会有多个DiffuseBlockEffect实例。
+ * 这些实例共享Shader、Constant Buffer等，只有Texture Array不同。
+ *
+ * Texture Array的分配就由DiffuseBlockEffect完成
+ */
 class DiffuseBlockEffectGenerator
 {
 public:
@@ -33,6 +40,9 @@ public:
         float pad = 0;
     };
 
+    /**
+     * @brief 由多个DiffuseBlockEffect实例所共享的数据
+     */
     struct CommonProperties
     {
         CommonProperties();
@@ -46,12 +56,6 @@ public:
         ConstantBuffer<PS_Sky> psSky_;
 
         ShaderResourceSlot<SS_PS> *diffuseTextureSlot_;
-    };
-
-    struct TextureCoordRectangle
-    {
-        Vec3 low;
-        Vec3 high;
     };
 
     DiffuseBlockEffectGenerator(int textureSize, int expectedArraySize);

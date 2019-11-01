@@ -64,7 +64,7 @@ DiffuseBlockEffectGenerator::CommonProperties::CommonProperties()
     uniforms_.GetConstantBufferSlot<SS_PS>("Sky")->SetBuffer(psSky_);
 
     Sampler sampler;
-    sampler.Initialize(D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT);
+    sampler.Initialize(D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR);
     uniforms_.GetSamplerSlot<SS_PS>("DiffuseSampler")->SetSampler(sampler);
 
     diffuseTextureSlot_ = uniforms_.GetShaderResourceSlot<SS_PS>("DiffuseTexture");
@@ -138,7 +138,7 @@ void DiffuseBlockEffectGenerator::InitializeEffect(DiffuseBlockEffect &effect)
     srvDesc.Format                         = DXGI_FORMAT_R8G8B8A8_UNORM;
     srvDesc.ViewDimension                  = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
     srvDesc.Texture2DArray.MostDetailedMip = 0;
-    srvDesc.Texture2DArray.MipLevels       = 1;
+    srvDesc.Texture2DArray.MipLevels       = -1;
     srvDesc.Texture2DArray.FirstArraySlice = 0;
     srvDesc.Texture2DArray.ArraySize       = UINT(textureArrayData_.size());
 
