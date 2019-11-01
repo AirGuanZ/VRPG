@@ -18,6 +18,7 @@ public:
     {
         Vec3 position;
         Vec2 texCoord;
+        uint32_t texIndex;
         Vec4 brightness;
     };
 
@@ -58,9 +59,19 @@ public:
     /**
      * @brief array是否已经被填满
      *
-     * 若返回true，则继续调用AddTexture之前必须先Generate
+     * 若返回true，则继续调用AddTexture之前必须先通过InitializeEffect释放出去
      */
     bool IsFull() const noexcept;
+
+    /**
+     * @brief array是否为空
+     */
+    bool IsEmpty() const noexcept;
+
+    /**
+     * @brief array中是否还能再增加arrayDataCount个texture data
+     */
+    bool HasEnoughSpaceFor(int arrayDataCount) const noexcept;
 
     /**
      * @brief 向texture array中添加一个textureSize^2大小的texture data
@@ -68,8 +79,11 @@ public:
      * 返回新添加的texture data在texture array中的下标
      */
     int AddTexture(const Vec4b *data);
-
-    std::shared_ptr<DiffuseBlockEffect> Generate();
+	
+	/**
+	 * @brief 初始化给定的effect
+ 	 */
+	void InitializeEffect(DiffuseBlockEffect &effect);
 
 private:
 
@@ -108,9 +122,9 @@ public:
         std::shared_ptr<const PartialSectionModel> Build() const override;
     };
 
-    explicit DiffuseBlockEffect(
-        std::shared_ptr<Generator::CommonProperties> commonProperties,
-        ShaderResourceView textureArray, int textureIndex);
+	void Initialize(
+		std::shared_ptr<Generator::CommonProperties> commonProperties,
+		ShaderResourceView textureArray, int semanticsIndex);
 
     const char *GetName() const override;
 

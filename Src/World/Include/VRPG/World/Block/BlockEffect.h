@@ -70,6 +70,13 @@ public:
     {
         assert(blockEffects_.size() < (std::numeric_limits<BlockEffectID>::max)());
 
+        if(auto it = name2Effect_.find(effect->GetName()); it != name2Effect_.end())
+        {
+            if(it->second != effect)
+                throw VRPGWorldException("repeated block effect name: " + std::string(effect->GetName()));
+            return effect->GetBlockEffectID();
+        }
+
         BlockEffectID id = BlockEffectID(blockEffects_.size());
         effect->SetBlockEffectID(id);
         spdlog::info("register block effect (name = {}, id = {})", effect->GetName(), id);

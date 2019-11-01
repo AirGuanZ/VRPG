@@ -147,8 +147,6 @@ public:
         return model_;
     }
 
-    void RegenerateSectionModel(const Vec3i &sectionInChunk, const Chunk *neighboringChunks[3][3]);
-
     bool IsDirtySinceLoaded() const noexcept
     {
         return isDirtySinceLoaded_;
@@ -163,6 +161,8 @@ public:
     {
         return block_;
     }
+
+    void RegenerateSectionModel(const Vec3i &sectionInChunk, const Chunk *neighboringChunks[3][3]);
 };
 
 VRPG_WORLD_END

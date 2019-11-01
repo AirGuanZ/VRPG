@@ -11,6 +11,7 @@
 #include <VRPG/World/Chunk/ChunkRenderer.h>
 #include <VRPG/World/Block/BasicEffect/DefaultBlockEffect.h>
 #include <VRPG/World/Block/BasicDescription/DefaultBlockDescription.h>
+#include <VRPG/World/Block/BuiltinBlock/BuiltinBlock.h>
 #include <VRPG/World/Land/FlatLandGenerator.h>
 #include <VRPG/World/Utility/ScalarHistory.h>
 
@@ -28,21 +29,30 @@ void Run()
 
     KeyboardEventManager *keyboard = window.GetKeyboard();
     MouseEventManager *mouse = window.GetMouse();
+	
+	spdlog::info("initialize builtin block manager");
+	BuiltinBlockTypeManager::GetInstance().RegisterBuiltinBlockTypes();
+	AGZ_SCOPE_GUARD({
+		spdlog::info("destroy builtin block manager");
+		BuiltinBlockTypeManager::GetInstance().Clear();
+		BlockEffectManager::GetInstance().Clear();
+		BlockDescriptionManager::GetInstance().Clear();
+	});
 
-    spdlog::info("initialize block effect manager");
-    auto defaultBlockEffect = std::make_shared<DefaultBlockEffect>();
-    BlockEffectManager::GetInstance().RegisterBlockEffect(defaultBlockEffect);
+    /*spdlog::info("initialize block effect manager");
+    //auto defaultBlockEffect = std::make_shared<DefaultBlockEffect>();
+    //BlockEffectManager::GetInstance().RegisterBlockEffect(defaultBlockEffect);
     AGZ_SCOPE_GUARD({
         spdlog::info("destroy block effect manager");
         BlockEffectManager::GetInstance().Clear();
     });
 
     spdlog::info("initialize block description manager");
-    BlockDescriptionManager::GetInstance().RegisterBlockDescription(std::make_shared<DefaultBlockDescription>(defaultBlockEffect.get()));
+    //BlockDescriptionManager::GetInstance().RegisterBlockDescription(std::make_shared<DefaultBlockDescription>(defaultBlockEffect.get()));
     AGZ_SCOPE_GUARD({
         spdlog::info("destroy block description manager");
         BlockDescriptionManager::GetInstance().Clear();
-    });
+    });*/
 
     ChunkManagerParams params = {};
     params.loadDistance = 10;
@@ -131,7 +141,8 @@ void Run()
         }
         ImGui::End();
 
-        window.ClearDefaultRenderTarget();
+        const float DEFAULT_RENDER_TARGET_BACKGROUND[] = { 0, 1, 1, 0 };
+        window.ClearDefaultRenderTarget(DEFAULT_RENDER_TARGET_BACKGROUND);
         window.ClearDefaultDepthStencil();
 
         renderer.Render({ &camera, { 1, 1, 1 } });

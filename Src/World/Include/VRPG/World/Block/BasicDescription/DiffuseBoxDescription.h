@@ -1,20 +1,20 @@
 #pragma once
 
+#include <VRPG/World/Block/BasicEffect/DiffuseBlockEffect.h>
 #include <VRPG/World/Block/BlockDescription.h>
 
 VRPG_WORLD_BEGIN
 
-class DefaultBlockEffect;
-
-class DefaultBlockDescription : public BlockDescription
+class DiffuseBoxDescription : public BlockDescription
 {
-    std::shared_ptr<const DefaultBlockEffect> effect_;
-
 public:
 
-    explicit DefaultBlockDescription(std::shared_ptr<const DefaultBlockEffect> effect) noexcept;
+    DiffuseBoxDescription(
+        std::string name,
+        std::shared_ptr<const DiffuseBlockEffect> effect, int textureIndexInEffect[],
+        BlockBrightness emission);
 
-    const char *GetName() const override { return "default"; }
+    const char *GetName() const override;
 
     bool IsFullOpaque(Direction direction) const noexcept override;
 
@@ -32,6 +32,16 @@ public:
         const BlockDescription *neighborBlocks[3][3][3],
         const BlockBrightness neighborBrightness[3][3][3],
         const BlockOrientation neighborOrientations[3][3][3]) const override;
+
+private:
+
+    std::string name_;
+
+    std::shared_ptr<const DiffuseBlockEffect> effect_;
+    int textureIndexInEffect_[6];
+
+    bool isLightSource_;
+    BlockBrightness emission_;
 };
 
 VRPG_WORLD_END

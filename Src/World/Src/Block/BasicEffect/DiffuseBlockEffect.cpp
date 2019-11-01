@@ -53,6 +53,7 @@ DiffuseBlockEffectGenerator::CommonProperties::CommonProperties()
     inputLayout_ = InputLayoutBuilder
         ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, ByteOffset(&Vertex::position))
         ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, ByteOffset(&Vertex::texCoord))
+        ("TEXINDEX", 0, DXGI_FORMAT_R32_UINT, ByteOffset(&Vertex::texIndex))
         ("BRIGHTNESS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, ByteOffset(&Vertex::brightness))
         .Build(shader_.GetVertexShaderByteCode());
 
@@ -85,6 +86,16 @@ bool DiffuseBlockEffectGenerator::IsFull() const noexcept
     return int(textureArrayData_.size()) >= maxArraySize_;
 }
 
+bool DiffuseBlockEffectGenerator::IsEmpty() const noexcept
+{
+    return textureArrayData_.empty();
+}
+
+bool DiffuseBlockEffectGenerator::HasEnoughSpaceFor(int arrayDataCount) const noexcept
+{
+    return int(textureArrayData_.size()) + arrayDataCount <= maxArraySize_;
+}
+
 int DiffuseBlockEffectGenerator::AddTexture(const Vec4b *data)
 {
     assert(!IsFull());
@@ -93,10 +104,8 @@ int DiffuseBlockEffectGenerator::AddTexture(const Vec4b *data)
     return ret;
 }
 
-std::shared_ptr<DiffuseBlockEffect> DiffuseBlockEffectGenerator::Generate()
+void DiffuseBlockEffectGenerator::InitializeEffect(DiffuseBlockEffect &effect)
 {
-    // 创建texture2d array和shader resource view
-
     assert(!textureArrayData_.empty());
 
     D3D11_TEXTURE2D_DESC textureDesc;
@@ -104,7 +113,7 @@ std::shared_ptr<DiffuseBlockEffect> DiffuseBlockEffectGenerator::Generate()
     textureDesc.Height             = UINT(textureSize_);
     textureDesc.MipLevels          = 1;
     textureDesc.ArraySize          = UINT(textureArrayData_.size());
-    textureDesc.Format             = DXGI_FORMAT_R8G8B8A8_UINT;
+    textureDesc.Format             = DXGI_FORMAT_R8G8B8A8_UNORM;
     textureDesc.SampleDesc.Count   = 1;
     textureDesc.SampleDesc.Quality = 0;
     textureDesc.Usage              = D3D11_USAGE_IMMUTABLE;
@@ -117,7 +126,7 @@ std::shared_ptr<DiffuseBlockEffect> DiffuseBlockEffectGenerator::Generate()
     {
         auto &initData = initDataArr[i];
         initData.pSysMem = textureArrayData_[i].raw_data();
-        initData.SysMemPitch = 0;
+        initData.SysMemPitch = textureSize_ * sizeof(Vec4b);
         initData.SysMemSlicePitch = 0;
     }
 
@@ -126,18 +135,18 @@ std::shared_ptr<DiffuseBlockEffect> DiffuseBlockEffectGenerator::Generate()
         throw VRPGWorldException("failed to create texture2d array for diffuse block effect");
 
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-    srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UINT;
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+    srvDesc.Format                         = DXGI_FORMAT_R8G8B8A8_UNORM;
+    srvDesc.ViewDimension                  = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
     srvDesc.Texture2DArray.MostDetailedMip = 0;
-    srvDesc.Texture2DArray.MipLevels = 1;
+    srvDesc.Texture2DArray.MipLevels       = 1;
     srvDesc.Texture2DArray.FirstArraySlice = 0;
-    srvDesc.Texture2DArray.ArraySize = UINT(textureArrayData_.size());
+    srvDesc.Texture2DArray.ArraySize       = UINT(textureArrayData_.size());
 
     ComPtr<ID3D11ShaderResourceView> srv = Base::D3D::CreateShaderResourceView(srvDesc, texture.Get());
     if(!srv)
         throw VRPGWorldException("failed to create shader resource view of texture2d array of for diffuse block effect");
 
-    return std::make_shared<DiffuseBlockEffect>(commonProperties_, ShaderResourceView(srv), generatedEffectCount_++);
+	effect.Initialize(commonProperties_, ShaderResourceView(srv), generatedEffectCount_++);
 }
 
 DiffuseBlockEffect::Builder::Builder(const DiffuseBlockEffect *effect) noexcept
@@ -160,7 +169,7 @@ void DiffuseBlockEffect::Builder::AddIndexedTriangle(uint16_t indexA, uint16_t i
 
 std::shared_ptr<const PartialSectionModel> DiffuseBlockEffect::Builder::Build() const
 {
-    if(vertices_.empty() || !indices_.empty())
+    if(vertices_.empty() || indices_.empty())
         return nullptr;
 
     VertexBuffer<Vertex> vertexBuffer;
@@ -172,14 +181,13 @@ std::shared_ptr<const PartialSectionModel> DiffuseBlockEffect::Builder::Build() 
     return std::make_shared<Model>(effect_, std::move(vertexBuffer), std::move(indexBuffer));
 }
 
-DiffuseBlockEffect::DiffuseBlockEffect(
+void DiffuseBlockEffect::Initialize(
     std::shared_ptr<Generator::CommonProperties> commonProperties,
-    ShaderResourceView textureArray, int textureIndex)
-    : commonProperties_(std::move(commonProperties)),
-      textureArray_(std::move(textureArray)),
-      name_("diffuse_" + std::to_string(textureIndex))
+    ShaderResourceView textureArray, int semanticsIndex)
 {
-    
+    commonProperties_ = std::move(commonProperties);
+    textureArray_ = std::move(textureArray);
+    name_ = "diffuse_" + std::to_string(semanticsIndex);
 }
 
 const char *DiffuseBlockEffect::GetName() const

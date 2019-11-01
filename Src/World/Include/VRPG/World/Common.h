@@ -59,10 +59,10 @@ enum Direction : uint8_t
 {
     PositiveX = 0,
     NegativeX = 1,
-    PositiveZ = 2,
-    NegativeZ = 3,
-    PositiveY = 4,
-    NegativeY = 5
+    PositiveY = 2,
+    NegativeY = 3,
+    PositiveZ = 4,
+    NegativeZ = 5
 };
 
 inline Direction operator-(Direction origin) noexcept
@@ -124,6 +124,14 @@ inline Direction Cross(Direction lhs, Direction rhs) noexcept
             /* +z, -y */ PositiveX,
             /* +z, +z */ PositiveY,
             /* +z, -z */ NegativeY
+        },
+        {
+            /* +-z, +x */ NegativeY,
+            /* +-z, -x */ PositiveY,
+            /* +-z, +y */ PositiveX,
+            /* +-z, -y */ NegativeX,
+            /* +-z, +z */ NegativeY,
+            /* +-z, -z */ PositiveY
         }
     };
     return table[int(lhs)][int(rhs)];

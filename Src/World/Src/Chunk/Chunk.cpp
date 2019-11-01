@@ -35,6 +35,7 @@ void Chunk::RegenerateSectionModel(const Vec3i &sectionInChunk, const Chunk *nei
         return std::make_tuple(blockDescMgr.GetBlockDescription(id), brightness, orientation);
     };
 
+    // 给定方块坐标，找出它周围3*3*3的方块的信息，方块本身存放在[1][1][1]中
     auto fillNeighbors = [&](
         int x, int y, int z,
         const BlockDescription *neighbors[3][3][3],

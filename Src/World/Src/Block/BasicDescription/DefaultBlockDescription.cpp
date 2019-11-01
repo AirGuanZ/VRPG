@@ -3,8 +3,8 @@
 
 VRPG_WORLD_BEGIN
 
-DefaultBlockDescription::DefaultBlockDescription(const DefaultBlockEffect *effect) noexcept
-    : effect_(effect)
+DefaultBlockDescription::DefaultBlockDescription(std::shared_ptr<const DefaultBlockEffect> effect) noexcept
+    : effect_(std::move(effect))
 {
     
 }
@@ -19,6 +19,21 @@ bool DefaultBlockDescription::IsVisible() const noexcept
     return true;
 }
 
+bool DefaultBlockDescription::IsLightSource() const noexcept
+{
+    return false;
+}
+
+BlockBrightness DefaultBlockDescription::LightAttenuation() const noexcept
+{
+    return BLOCK_BRIGHTNESS_MAX;
+}
+
+BlockBrightness DefaultBlockDescription::InitialBrightness() const noexcept
+{
+    return BLOCK_BRIGHTNESS_MIN;
+}
+
 void DefaultBlockDescription::AddBlockModel(
     PartialSectionModelBuilderSet &modelBuilders,
     const Vec3i &blockPosition,
@@ -26,9 +41,10 @@ void DefaultBlockDescription::AddBlockModel(
     const BlockBrightness neighborBrightness[3][3][3],
     const BlockOrientation neighborOrientations[3][3][3]) const
 {
-    auto builder = modelBuilders.GetBuilderByEffect(effect_);
+    auto builder = modelBuilders.GetBuilderByEffect(effect_.get());
     Vec3 blockPositionf = blockPosition.map([](int i) { return float(i); });
 
+    // 计算法线为+x/-x的顶点的亮度
     auto vertexAO_x = [&](int x, int y, int z)
     {
         return SIDE_VERTEX_BRIGHTNESS_RATIO * ComputeVertexBrightness(
@@ -38,6 +54,7 @@ void DefaultBlockDescription::AddBlockModel(
             neighborBrightness[x][1 + y][1 + z]);
     };
 
+    // 计算法线为+y/-y的顶点的亮度
     auto vertexAO_y = [&](int x, int y, int z)
     {
         float ratio = y > 1 ? 1.0f : SIDE_VERTEX_BRIGHTNESS_RATIO;
@@ -48,6 +65,7 @@ void DefaultBlockDescription::AddBlockModel(
             neighborBrightness[1 + x][y][1 + z]);
     };
 
+    // 计算法线为+z/-z的顶点的亮度
     auto vertexAO_z = [&](int x, int y, int z)
     {
         return SIDE_VERTEX_BRIGHTNESS_RATIO * ComputeVertexBrightness(
@@ -179,21 +197,6 @@ void DefaultBlockDescription::AddBlockModel(
 
         addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD);
     }
-}
-
-bool DefaultBlockDescription::IsLightSource() const noexcept
-{
-    return false;
-}
-
-BlockBrightness DefaultBlockDescription::LightAttenuation() const noexcept
-{
-    return BLOCK_BRIGHTNESS_MAX;
-}
-
-BlockBrightness DefaultBlockDescription::InitialBrightness() const noexcept
-{
-    return BLOCK_BRIGHTNESS_MIN;
 }
 
 VRPG_WORLD_END

@@ -48,20 +48,6 @@ public:
     virtual bool IsVisible() const noexcept = 0;
 
     /**
-     * @brief 向一个PartialSectionModelBuilderSet追加渲染数据
-     *
-     * neighboringBlocks[x][y][z]
-     * x, y, z in { 0, 1, 2 }
-     * 其中[i][j][k]是与被生成的方块相对位置为[i-1][j-1][k-1]的方块
-     */
-    virtual void AddBlockModel(
-        PartialSectionModelBuilderSet &modelBuilders,
-        const Vec3i &blockPosition,
-        const BlockDescription *neighborBlocks[3][3][3],
-        const BlockBrightness neighborBrightness[3][3][3],
-        const BlockOrientation neighborOrientations[3][3][3]) const = 0;
-
-    /**
      * @brief 本方块是否是一个光源
      */
     virtual bool IsLightSource() const noexcept = 0;
@@ -75,6 +61,20 @@ public:
      * @brief 本方块的自发光
      */
     virtual BlockBrightness InitialBrightness() const noexcept = 0;
+
+    /**
+     * @brief 向一个PartialSectionModelBuilderSet追加渲染数据
+     *
+     * neighboringBlocks[x][y][z]
+     * x, y, z in { 0, 1, 2 }
+     * 其中[i][j][k]是与被生成的方块相对位置为[i-1][j-1][k-1]的方块
+     */
+    virtual void AddBlockModel(
+        PartialSectionModelBuilderSet &modelBuilders,
+        const Vec3i &blockPosition,
+        const BlockDescription *neighborBlocks[3][3][3],
+        const BlockBrightness neighborBrightness[3][3][3],
+        const BlockOrientation neighborOrientations[3][3][3]) const = 0;
 };
 
 /**
@@ -144,6 +144,13 @@ public:
     BlockID RegisterBlockDescription(std::shared_ptr<BlockDescription> desc)
     {
         assert(blockDescriptions_.size() < (std::numeric_limits<BlockID>::max)());
+
+        if(auto it = name2Desc_.find(desc->GetName()); it != name2Desc_.end())
+        {
+            if(it->second != desc)
+                throw VRPGWorldException("repeated block description name: " + std::string(desc->GetName()));
+            return desc->GetBlockID();
+        }
 
         BlockID id = BlockID(blockDescriptions_.size());
         desc->SetBlockID(id);
