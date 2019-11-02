@@ -429,7 +429,7 @@ void Window::WaitForFocus()
         int cursorLockY = mouse->GetCursorLockY();
 
         mouse->ShowCursor(true);
-        mouse->SetCursorLock(false, 0, 0);
+        mouse->SetCursorLock(false, cursorLockX, cursorLockY);
         do
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -439,6 +439,7 @@ void Window::WaitForFocus()
 
         mouse->ShowCursor(showCursor);
         mouse->SetCursorLock(lockCursor, cursorLockX, cursorLockY);
+        mouse->UpdatePosition();
     }
 }
 

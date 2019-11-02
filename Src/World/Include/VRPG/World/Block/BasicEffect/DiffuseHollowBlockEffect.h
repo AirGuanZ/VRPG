@@ -9,16 +9,14 @@
 
 VRPG_WORLD_BEGIN
 
-class DiffuseBlockEffect;
+class DiffuseHollowBlockEffect;
 
 /**
- * 一个DiffuseBlockEffect中存有一个表示Diffuse Albedo的Texture Array，
- * 而单个Texture Array未必能存下所有需要的Texture，所以可能会有多个DiffuseBlockEffect实例。
- * 这些实例共享Shader、Constant Buffer等，只有Texture Array不同。
- *
- * Texture Array的分配就由DiffuseBlockEffect完成
+ * 一个DiffuseHollowBlockEffect中存有一个表示Diffuse Albedo的Texture Array，
+ * 而单个Texture Array未必能存下所有需要的Texture，所以可能会有多个DiffuseHollowBlockEffect实例。
+ * 这些实例共享Shader、Constant Buffer等，只有Texture Array不同
  */
-class DiffuseBlockEffectGenerator
+class DiffuseHollowBlockEffectGenerator
 {
 public:
 
@@ -26,7 +24,7 @@ public:
     {
         Vec3 position;
         Vec2 texCoord;
-        uint32_t texIndex;
+        uint32_t texIndex = 0;
         Vec4 brightness;
     };
 
@@ -42,7 +40,7 @@ public:
     };
 
     /**
-     * @brief 由多个DiffuseBlockEffect实例所共享的数据
+     * @brief 由多个DiffuseHollowBlockEffect实例所共享的数据
      */
     struct CommonProperties
     {
@@ -57,9 +55,11 @@ public:
         ConstantBuffer<PS_Sky> psSky_;
 
         ShaderResourceSlot<SS_PS> *diffuseTextureSlot_;
+
+        RasterizerState rasterizerState_;
     };
 
-    DiffuseBlockEffectGenerator(int textureSize, int expectedArraySize);
+    DiffuseHollowBlockEffectGenerator(int textureSize, int expectedArraySize);
 
     /**
      * @brief array是否已经被填满
@@ -83,36 +83,36 @@ public:
      *
      * 返回新添加的texture data在texture array中的下标
      */
-    int AddTexture(const Vec3 *data);
-	
-	/**
-	 * @brief 初始化给定的effect
- 	 */
-	void InitializeEffect(DiffuseBlockEffect &effect);
+    int AddTexture(const Vec4 *data);
+
+    /**
+     * @brief 初始化给定的effect
+     */
+    void InitializeEffect(DiffuseHollowBlockEffect &effect);
 
 private:
 
     std::shared_ptr<CommonProperties> commonProperties_;
 
-    std::vector<agz::texture::texture2d_t<Vec3>> textureArrayData_;
+    std::vector<agz::texture::texture2d_t<Vec4>> textureArrayData_;
     int textureSize_;
     int maxArraySize_;
 
     int generatedEffectCount_;
 };
 
-class DiffuseBlockEffect : public BlockEffect
+class DiffuseHollowBlockEffect : public BlockEffect
 {
 public:
 
-    using Generator = DiffuseBlockEffectGenerator;
+    using Generator = DiffuseHollowBlockEffectGenerator;
     using Vertex = Generator::Vertex;
 
-    using Builder = NativePartialSectionModelBuilder<DiffuseBlockEffect>;
+    using Builder = NativePartialSectionModelBuilder<DiffuseHollowBlockEffect>;
 
-	void Initialize(
-		std::shared_ptr<Generator::CommonProperties> commonProperties,
-		ShaderResourceView textureArray, int semanticsIndex);
+    void Initialize(
+        std::shared_ptr<Generator::CommonProperties> commonProperties,
+        ShaderResourceView textureArray, int semanticsIndex);
 
     const char *GetName() const override;
 

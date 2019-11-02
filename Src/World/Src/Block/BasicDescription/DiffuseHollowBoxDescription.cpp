@@ -1,11 +1,12 @@
-#include <VRPG/World/Block/BasicDescription/DiffuseBoxDescription.h>
+#include <VRPG/World/Block/BasicDescription/DiffuseHollowBoxDescription.h>
 
 VRPG_WORLD_BEGIN
 
-DiffuseBoxDescription::DiffuseBoxDescription(
+DiffuseHollowBoxDescription::DiffuseHollowBoxDescription(
     std::string name,
-    std::shared_ptr<const DiffuseBlockEffect> effect, int textureIndexInEffect[],
-    BlockBrightness emission)
+    std::shared_ptr<const DiffuseHollowBlockEffect> effect, int textureIndexInEffect[],
+    BlockBrightness emission,
+    BlockBrightness attenuation)
 {
     name_ = std::move(name);
 
@@ -15,39 +16,41 @@ DiffuseBoxDescription::DiffuseBoxDescription(
 
     isLightSource_ = emission != BLOCK_BRIGHTNESS_MIN;
     emission_ = emission;
+
+    attenuation_ = attenuation;
 }
 
-const char *DiffuseBoxDescription::GetName() const
+const char *DiffuseHollowBoxDescription::GetName() const
 {
     return name_.c_str();
 }
 
-FaceVisibilityProperty DiffuseBoxDescription::GetFaceVisibilityProperty(Direction direction) const noexcept
+FaceVisibilityProperty DiffuseHollowBoxDescription::GetFaceVisibilityProperty(Direction direction) const noexcept
 {
-    return FaceVisibilityProperty::Solid;
+    return FaceVisibilityProperty::Hollow;
 }
 
-bool DiffuseBoxDescription::IsVisible() const noexcept
+bool DiffuseHollowBoxDescription::IsVisible() const noexcept
 {
     return true;
 }
 
-bool DiffuseBoxDescription::IsLightSource() const noexcept
+bool DiffuseHollowBoxDescription::IsLightSource() const noexcept
 {
     return isLightSource_;
 }
 
-BlockBrightness DiffuseBoxDescription::LightAttenuation() const noexcept
+BlockBrightness DiffuseHollowBoxDescription::LightAttenuation() const noexcept
 {
-    return BLOCK_BRIGHTNESS_MAX;
+    return attenuation_;
 }
 
-BlockBrightness DiffuseBoxDescription::InitialBrightness() const noexcept
+BlockBrightness DiffuseHollowBoxDescription::InitialBrightness() const noexcept
 {
     return emission_;
 }
 
-void DiffuseBoxDescription::AddBlockModel(
+void DiffuseHollowBoxDescription::AddBlockModel(
     PartialSectionModelBuilderSet &modelBuilders,
     const Vec3i &blockPosition,
     const BlockDescription *neighborBlocks[3][3][3],
@@ -59,10 +62,12 @@ void DiffuseBoxDescription::AddBlockModel(
     auto builder = modelBuilders.GetBuilderByEffect(effect_.get());
     Vec3 positionBase = blockPosition.map([](int i) { return float(i); });
 
-    auto isFaceVisible = [&](int neighborX, int neighborY, int neighborZ, Direction neighborDir)
+    auto isFaceVisible = [&](int neiX, int neiY, int neiZ, Direction neiDir)
     {
-        Direction direction = neighborOrientations[neighborX][neighborY][neighborZ].RotatedToOrigin(neighborDir);
-        return !neighborBlocks[neighborX][neighborY][neighborZ]->IsFullOpaque(direction);
+        neiDir = neighborOrientations[neiX][neiY][neiZ].OriginToRotated(neiDir);
+        FaceVisibilityProperty neiVis = neighborBlocks[neiX][neiY][neiZ]->GetFaceVisibilityProperty(neiDir);
+        FaceVisibility visibility = IsFaceVisible(FaceVisibilityProperty::Hollow, neiVis);
+        return visibility == FaceVisibility::Yes || (visibility == FaceVisibility::Pos && !IsPositive(neiDir));
     };
 
     // 计算法线为+x/-x的顶点的亮度
@@ -116,6 +121,9 @@ void DiffuseBoxDescription::AddBlockModel(
         builder->AddIndexedTriangle(vertexCount + 1, vertexCount + 2, vertexCount + 4);
         builder->AddIndexedTriangle(vertexCount + 2, vertexCount + 3, vertexCount + 4);
         builder->AddIndexedTriangle(vertexCount + 3, vertexCount + 0, vertexCount + 4);
+
+        //builder->AddIndexedTriangle(vertexCount + 0, vertexCount + 1, vertexCount + 2);
+        //builder->AddIndexedTriangle(vertexCount + 0, vertexCount + 2, vertexCount + 3);
     };
 
     // +x

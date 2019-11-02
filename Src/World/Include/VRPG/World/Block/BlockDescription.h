@@ -110,11 +110,6 @@ public:
 
     virtual const char *GetName() const = 0;
 
-    bool IsFullOpaque(Direction direction) const noexcept
-    {
-        return GetFaceVisibilityProperty(direction) == FaceVisibilityProperty::Solid;
-    }
-
     virtual FaceVisibilityProperty GetFaceVisibilityProperty(Direction direction) const noexcept = 0;
 
     virtual bool IsVisible() const noexcept = 0;

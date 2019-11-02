@@ -42,7 +42,7 @@ void Run()
     ChunkManagerParams params = {};
     params.loadDistance          = 10;
     params.backgroundPoolSize    = 200;
-    params.backgroundThreadCount = 2;
+    params.backgroundThreadCount = 1;
     params.renderDistance        = 9;
     params.unloadDistance        = 12;
     ChunkManager chunkMgr(params, std::make_unique<FlatLandGenerator>(20));
@@ -126,7 +126,7 @@ void Run()
         }
         ImGui::End();
 
-        const float DEFAULT_RENDER_TARGET_BACKGROUND[] = { 0.5f, 1, 1, 0 };
+        const float DEFAULT_RENDER_TARGET_BACKGROUND[] = { 0.7f, 1, 1, 0 };
         window.ClearDefaultRenderTarget(DEFAULT_RENDER_TARGET_BACKGROUND);
         window.ClearDefaultDepthStencil();
 

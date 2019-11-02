@@ -96,10 +96,12 @@ void DefaultBlockDescription::AddBlockModel(
         builder->AddIndexedTriangle(vertexCount + 3, vertexCount + 0, vertexCount + 4);
     };
 
-    auto isFaceVisible = [&](int neighborX, int neighborY, int neighborZ, Direction neighborDir)
+    auto isFaceVisible = [&](int neiX, int neiY, int neiZ, Direction neiDir)
     {
-        Direction direction = neighborOrientations[neighborX][neighborY][neighborZ].RotatedToOrigin(neighborDir);
-        return !neighborBlocks[neighborX][neighborY][neighborZ]->IsFullOpaque(direction);
+        neiDir = neighborOrientations[neiX][neiY][neiZ].OriginToRotated(neiDir);
+        FaceVisibilityProperty neiVis = neighborBlocks[neiX][neiY][neiZ]->GetFaceVisibilityProperty(neiDir);
+        FaceVisibility visibility = IsFaceVisible(FaceVisibilityProperty::Solid, neiVis);
+        return visibility == FaceVisibility::Yes;
     };
 
     // +x

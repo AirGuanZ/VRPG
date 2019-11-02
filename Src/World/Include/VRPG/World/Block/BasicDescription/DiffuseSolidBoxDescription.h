@@ -1,17 +1,17 @@
 #pragma once
 
-#include <VRPG/World/Block/BasicEffect/DiffuseBlockEffect.h>
+#include <VRPG/World/Block/BasicEffect/DiffuseSolidBlockEffect.h>
 #include <VRPG/World/Block/BlockDescription.h>
 
 VRPG_WORLD_BEGIN
 
-class DiffuseBoxDescription : public BlockDescription
+class DiffuseSolidBoxDescription : public BlockDescription
 {
 public:
 
-    DiffuseBoxDescription(
+    DiffuseSolidBoxDescription(
         std::string name,
-        std::shared_ptr<const DiffuseBlockEffect> effect, int textureIndexInEffect[],
+        std::shared_ptr<const DiffuseSolidBlockEffect> effect, int textureIndexInEffect[],
         BlockBrightness emission);
 
     const char *GetName() const override;
@@ -37,7 +37,7 @@ private:
 
     std::string name_;
 
-    std::shared_ptr<const DiffuseBlockEffect> effect_;
+    std::shared_ptr<const DiffuseSolidBlockEffect> effect_;
     int textureIndexInEffect_[6];
 
     bool isLightSource_;
