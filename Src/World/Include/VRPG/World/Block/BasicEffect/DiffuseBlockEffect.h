@@ -4,6 +4,7 @@
 
 #include <agz/utility/texture.h>
 
+#include <VRPG/World/Block/BasicEffect/NativePartialSectionModel.h>
 #include <VRPG/World/Block/BlockEffect.h>
 
 VRPG_WORLD_BEGIN
@@ -107,24 +108,7 @@ public:
     using Generator = DiffuseBlockEffectGenerator;
     using Vertex = Generator::Vertex;
 
-    class Builder : public PartialSectionModelBuilder
-    {
-        std::vector<Vertex> vertices_;
-        std::vector<VertexIndex> indices_;
-        const DiffuseBlockEffect *effect_;
-
-    public:
-
-        explicit Builder(const DiffuseBlockEffect *effect) noexcept;
-
-        void AddVertex(const Vertex &vertex);
-
-        void AddIndexedTriangle(uint16_t indexA, uint16_t indexB, uint16_t indexC);
-
-        size_t GetVertexCount() const noexcept { return vertices_.size(); }
-
-        std::shared_ptr<const PartialSectionModel> Build() const override;
-    };
+    using Builder = NativePartialSectionModelBuilder<DiffuseBlockEffect>;
 
 	void Initialize(
 		std::shared_ptr<Generator::CommonProperties> commonProperties,

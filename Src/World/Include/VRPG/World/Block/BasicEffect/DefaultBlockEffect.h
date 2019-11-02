@@ -1,7 +1,6 @@
 #pragma once
 
-#include <vector>
-
+#include <VRPG/World/Block/BasicEffect/NativePartialSectionModel.h>
 #include <VRPG/World/Block/BlockEffect.h>
 #include <VRPG/World/Chunk/ChunkModel.h>
 
@@ -28,24 +27,7 @@ public:
         float pad = 0;
     };
 
-    class Builder : public PartialSectionModelBuilder
-    {
-        std::vector<Vertex> vertices_;
-        std::vector<VertexIndex> indices_;
-        const DefaultBlockEffect *effect_;
-
-    public:
-
-        explicit Builder(const DefaultBlockEffect *effect) noexcept;
-
-        void AddVertex(const Vertex &vertex);
-
-        void AddIndexedTriangle(uint16_t indexA, uint16_t indexB, uint16_t indexC);
-
-        size_t GetVertexCount() const noexcept { return vertices_.size(); }
-
-        std::shared_ptr<const PartialSectionModel> Build() const override;
-    };
+    using Builder = NativePartialSectionModelBuilder<DefaultBlockEffect>;
 
     DefaultBlockEffect();
 

@@ -22,9 +22,9 @@ void Run()
 
     Window window;
     WindowDesc desc;
-    desc.clientWidth = 1440;
+    desc.clientWidth  = 900;
     desc.clientHeight = 600;
-    desc.sampleCount = 4;
+    desc.sampleCount  = 4;
     window.Initialize(desc);
 
     KeyboardEventManager *keyboard = window.GetKeyboard();
@@ -40,11 +40,11 @@ void Run()
 	});
 
     ChunkManagerParams params = {};
-    params.loadDistance = 10;
-    params.backgroundPoolSize = 200;
+    params.loadDistance          = 10;
+    params.backgroundPoolSize    = 200;
     params.backgroundThreadCount = 2;
-    params.renderDistance = 9;
-    params.unloadDistance = 12;
+    params.renderDistance        = 9;
+    params.unloadDistance        = 12;
     ChunkManager chunkMgr(params, std::make_unique<FlatLandGenerator>(20));
 
     DefaultCamera camera;

@@ -4,45 +4,10 @@
 
 VRPG_WORLD_BEGIN
 
-namespace
-{
-    class Model : public PartialSectionModel
-    {
-        const DiffuseBlockEffect *effect_;
-        VertexBuffer<DiffuseBlockEffect::Vertex> vertexBuffer_;
-        IndexBuffer<VertexIndex> indexBuffer_;
-
-    public:
-
-        Model(
-            const DiffuseBlockEffect *effect,
-            VertexBuffer<DiffuseBlockEffect::Vertex> vertexBuffer,
-            IndexBuffer<VertexIndex> indexBuffer) noexcept
-            : effect_(effect), vertexBuffer_(std::move(vertexBuffer)), indexBuffer_(std::move(indexBuffer))
-        {
-
-        }
-
-        void Render(const Camera &camera) const override
-        {
-            vertexBuffer_.Bind(0);
-            indexBuffer_.Bind();
-            RenderState::DrawIndexed(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, indexBuffer_.GetIndexCount());
-            indexBuffer_.Unbind();
-            vertexBuffer_.Unbind(0);
-        }
-
-        const BlockEffect *GetBlockEffect() const noexcept override
-        {
-            return effect_;
-        }
-    };
-}
-
 DiffuseBlockEffectGenerator::CommonProperties::CommonProperties()
 {
     std::string vertexShaderSource = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/DiffuseVertex.hlsl");
-    std::string pixelShaderSource = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/DiffusePixel.hlsl");
+    std::string pixelShaderSource  = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/DiffusePixel.hlsl");
     shader_.InitializeStage<SS_VS>(vertexShaderSource);
     shader_.InitializeStage<SS_PS>(pixelShaderSource);
     if(!shader_.IsAllStagesAvailable())
@@ -51,9 +16,9 @@ DiffuseBlockEffectGenerator::CommonProperties::CommonProperties()
     uniforms_ = shader_.CreateUniformManager();
 
     inputLayout_ = InputLayoutBuilder
-        ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, ByteOffset(&Vertex::position))
-        ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, ByteOffset(&Vertex::texCoord))
-        ("TEXINDEX", 0, DXGI_FORMAT_R32_UINT, ByteOffset(&Vertex::texIndex))
+        ("POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT,    ByteOffset(&Vertex::position))
+        ("TEXCOORD",   0, DXGI_FORMAT_R32G32_FLOAT,       ByteOffset(&Vertex::texCoord))
+        ("TEXINDEX",   0, DXGI_FORMAT_R32_UINT,           ByteOffset(&Vertex::texIndex))
         ("BRIGHTNESS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, ByteOffset(&Vertex::brightness))
         .Build(shader_.GetVertexShaderByteCode());
 
@@ -64,11 +29,7 @@ DiffuseBlockEffectGenerator::CommonProperties::CommonProperties()
     uniforms_.GetConstantBufferSlot<SS_PS>("Sky")->SetBuffer(psSky_);
 
     Sampler sampler;
-    sampler.Initialize(
-        D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR,
-        D3D11_TEXTURE_ADDRESS_MIRROR,
-        D3D11_TEXTURE_ADDRESS_MIRROR,
-        D3D11_TEXTURE_ADDRESS_MIRROR);
+    sampler.Initialize(D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR);
     uniforms_.GetSamplerSlot<SS_PS>("DiffuseSampler")->SetSampler(sampler);
 
     diffuseTextureSlot_ = uniforms_.GetShaderResourceSlot<SS_PS>("DiffuseTexture");
@@ -118,10 +79,7 @@ void DiffuseBlockEffectGenerator::InitializeEffect(DiffuseBlockEffect &effect)
     for(size_t i = 0; i < textureArrayData_.size(); ++i)
     {
         auto &textureData = textureArrayData_[i];
-        mipmapChains[i].generate(textureData.map([](const Vec3 &v)
-        {
-            return v.map([](float f) { return std::pow(f, 2.2f); }); // 生成之前先将图像转换到线性空间
-        }));
+        mipmapChains[i].generate(textureData);
     }
 
     // 创建texture和srv
@@ -171,38 +129,6 @@ void DiffuseBlockEffectGenerator::InitializeEffect(DiffuseBlockEffect &effect)
         throw VRPGWorldException("failed to create shader resource view of texture2d array of for diffuse block effect");
 
 	effect.Initialize(commonProperties_, ShaderResourceView(srv), generatedEffectCount_++);
-}
-
-DiffuseBlockEffect::Builder::Builder(const DiffuseBlockEffect *effect) noexcept
-    : effect_(effect)
-{
-    
-}
-
-void DiffuseBlockEffect::Builder::AddVertex(const Vertex &vertex)
-{
-    vertices_.push_back(vertex);
-}
-
-void DiffuseBlockEffect::Builder::AddIndexedTriangle(uint16_t indexA, uint16_t indexB, uint16_t indexC)
-{
-    indices_.push_back(indexA);
-    indices_.push_back(indexB);
-    indices_.push_back(indexC);
-}
-
-std::shared_ptr<const PartialSectionModel> DiffuseBlockEffect::Builder::Build() const
-{
-    if(vertices_.empty() || indices_.empty())
-        return nullptr;
-
-    VertexBuffer<Vertex> vertexBuffer;
-    vertexBuffer.Initialize(UINT(vertices_.size()), false, vertices_.data());
-
-    IndexBuffer<VertexIndex> indexBuffer;
-    indexBuffer.Initialize(UINT(indices_.size()), false, indices_.data());
-
-    return std::make_shared<Model>(effect_, std::move(vertexBuffer), std::move(indexBuffer));
 }
 
 void DiffuseBlockEffect::Initialize(

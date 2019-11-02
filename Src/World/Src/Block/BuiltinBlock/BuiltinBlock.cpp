@@ -15,7 +15,10 @@ namespace
 		return agz::img::load_rgb_from_file(filename).map(
         [](const agz::math::color3b &c)
 		{
-            return Vec3(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f);
+            return Vec3(
+                std::pow(c.r / 255.0f, 2.2f),
+                std::pow(c.g / 255.0f, 2.2f),
+                std::pow(c.b / 255.0f, 2.2f));
 		});
 	}
 }
