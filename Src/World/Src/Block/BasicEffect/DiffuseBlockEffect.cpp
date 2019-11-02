@@ -64,7 +64,11 @@ DiffuseBlockEffectGenerator::CommonProperties::CommonProperties()
     uniforms_.GetConstantBufferSlot<SS_PS>("Sky")->SetBuffer(psSky_);
 
     Sampler sampler;
-    sampler.Initialize(D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR);
+    sampler.Initialize(
+        D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR,
+        D3D11_TEXTURE_ADDRESS_MIRROR,
+        D3D11_TEXTURE_ADDRESS_MIRROR,
+        D3D11_TEXTURE_ADDRESS_MIRROR);
     uniforms_.GetSamplerSlot<SS_PS>("DiffuseSampler")->SetSampler(sampler);
 
     diffuseTextureSlot_ = uniforms_.GetShaderResourceSlot<SS_PS>("DiffuseTexture");
@@ -96,7 +100,7 @@ bool DiffuseBlockEffectGenerator::HasEnoughSpaceFor(int arrayDataCount) const no
     return int(textureArrayData_.size()) + arrayDataCount <= maxArraySize_;
 }
 
-int DiffuseBlockEffectGenerator::AddTexture(const Vec4b *data)
+int DiffuseBlockEffectGenerator::AddTexture(const Vec3 *data)
 {
     assert(!IsFull());
     int ret = int(textureArrayData_.size());
@@ -108,12 +112,26 @@ void DiffuseBlockEffectGenerator::InitializeEffect(DiffuseBlockEffect &effect)
 {
     assert(!textureArrayData_.empty());
 
+    // 生成mipmap chain
+
+    std::vector<agz::texture::mipmap_chain_t<Vec3>> mipmapChains(textureArrayData_.size());
+    for(size_t i = 0; i < textureArrayData_.size(); ++i)
+    {
+        auto &textureData = textureArrayData_[i];
+        mipmapChains[i].generate(textureData.map([](const Vec3 &v)
+        {
+            return v.map([](float f) { return std::pow(f, 2.2f); }); // 生成之前先将图像转换到线性空间
+        }));
+    }
+
+    // 创建texture和srv
+
     D3D11_TEXTURE2D_DESC textureDesc;
     textureDesc.Width              = UINT(textureSize_);
     textureDesc.Height             = UINT(textureSize_);
-    textureDesc.MipLevels          = 1;
+    textureDesc.MipLevels          = UINT(mipmapChains[0].chain_length());
     textureDesc.ArraySize          = UINT(textureArrayData_.size());
-    textureDesc.Format             = DXGI_FORMAT_R8G8B8A8_UNORM;
+    textureDesc.Format             = DXGI_FORMAT_R32G32B32_FLOAT;
     textureDesc.SampleDesc.Count   = 1;
     textureDesc.SampleDesc.Quality = 0;
     textureDesc.Usage              = D3D11_USAGE_IMMUTABLE;
@@ -121,13 +139,19 @@ void DiffuseBlockEffectGenerator::InitializeEffect(DiffuseBlockEffect &effect)
     textureDesc.CPUAccessFlags     = 0;
     textureDesc.MiscFlags          = 0;
 
-    std::vector<D3D11_SUBRESOURCE_DATA> initDataArr(textureArrayData_.size());
+    std::vector<D3D11_SUBRESOURCE_DATA> initDataArr(textureArrayData_.size() * mipmapChains[0].chain_length());
+    int initDataArrIndex = 0;
     for(size_t i = 0; i < textureArrayData_.size(); ++i)
     {
-        auto &initData = initDataArr[i];
-        initData.pSysMem = textureArrayData_[i].raw_data();
-        initData.SysMemPitch = textureSize_ * sizeof(Vec4b);
-        initData.SysMemSlicePitch = 0;
+        for(int j = 0; j < mipmapChains[i].chain_length(); ++j)
+        {
+            auto &initData = initDataArr[initDataArrIndex++];
+            auto &mipmapData = mipmapChains[i].chain_elem(j);
+
+            initData.pSysMem          = mipmapData.raw_data();
+            initData.SysMemPitch      = mipmapData.width() * sizeof(Vec3);
+            initData.SysMemSlicePitch = 0;
+        }
     }
 
     ComPtr<ID3D11Texture2D> texture = Base::D3D::CreateTexture2D(textureDesc, initDataArr.data());
@@ -135,7 +159,7 @@ void DiffuseBlockEffectGenerator::InitializeEffect(DiffuseBlockEffect &effect)
         throw VRPGWorldException("failed to create texture2d array for diffuse block effect");
 
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-    srvDesc.Format                         = DXGI_FORMAT_R8G8B8A8_UNORM;
+    srvDesc.Format                         = DXGI_FORMAT_R32G32B32_FLOAT;
     srvDesc.ViewDimension                  = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
     srvDesc.Texture2DArray.MostDetailedMip = 0;
     srvDesc.Texture2DArray.MipLevels       = -1;

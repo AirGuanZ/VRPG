@@ -10,12 +10,12 @@ VRPG_WORLD_BEGIN
 
 namespace
 {
-	agz::math::tensor_t<Vec4b, 2> LoadTextureFrom(const std::string &filename)
+	agz::math::tensor_t<Vec3, 2> LoadTextureFrom(const std::string &filename)
 	{
-		return agz::img::load_rgba_from_file(filename).map(
-        [](const agz::math::color4b &c)
+		return agz::img::load_rgb_from_file(filename).map(
+        [](const agz::math::color3b &c)
 		{
-            return Vec4b(c.r, c.g, c.b, c.a);
+            return Vec3(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f);
 		});
 	}
 }
@@ -34,7 +34,7 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
 		info_[int(BuiltinBlockType::Default)].desc = defaultDesc;
 	}
 
-    DiffuseBlockEffectGenerator diffuseEffectGenerator(64, 64);
+    DiffuseBlockEffectGenerator diffuseEffectGenerator(32, 64);
 	auto diffuseBlockEffect = std::make_shared<DiffuseBlockEffect>();
 	effectMgr.RegisterBlockEffect(diffuseBlockEffect);
 	

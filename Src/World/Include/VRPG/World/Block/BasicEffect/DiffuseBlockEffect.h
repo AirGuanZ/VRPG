@@ -82,7 +82,7 @@ public:
      *
      * 返回新添加的texture data在texture array中的下标
      */
-    int AddTexture(const Vec4b *data);
+    int AddTexture(const Vec3 *data);
 	
 	/**
 	 * @brief 初始化给定的effect
@@ -93,7 +93,7 @@ private:
 
     std::shared_ptr<CommonProperties> commonProperties_;
 
-    std::vector<agz::texture::texture2d_t<Vec4b>> textureArrayData_;
+    std::vector<agz::texture::texture2d_t<Vec3>> textureArrayData_;
     int textureSize_;
     int maxArraySize_;
 

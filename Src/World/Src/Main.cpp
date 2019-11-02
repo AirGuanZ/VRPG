@@ -22,7 +22,7 @@ void Run()
 
     Window window;
     WindowDesc desc;
-    desc.clientWidth = 900;
+    desc.clientWidth = 1440;
     desc.clientHeight = 600;
     desc.sampleCount = 4;
     window.Initialize(desc);

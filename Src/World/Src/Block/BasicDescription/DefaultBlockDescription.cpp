@@ -9,9 +9,9 @@ DefaultBlockDescription::DefaultBlockDescription(std::shared_ptr<const DefaultBl
     
 }
 
-bool DefaultBlockDescription::IsFullOpaque(Direction direction) const noexcept
+FaceVisibilityProperty DefaultBlockDescription::GetFaceVisibilityProperty(Direction direction) const noexcept
 {
-    return true;
+    return FaceVisibilityProperty::Solid;
 }
 
 bool DefaultBlockDescription::IsVisible() const noexcept

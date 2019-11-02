@@ -22,9 +22,9 @@ const char *DiffuseBoxDescription::GetName() const
     return name_.c_str();
 }
 
-bool DiffuseBoxDescription::IsFullOpaque(Direction direction) const noexcept
+FaceVisibilityProperty DiffuseBoxDescription::GetFaceVisibilityProperty(Direction direction) const noexcept
 {
-    return true;
+    return FaceVisibilityProperty::Solid;
 }
 
 bool DiffuseBoxDescription::IsVisible() const noexcept

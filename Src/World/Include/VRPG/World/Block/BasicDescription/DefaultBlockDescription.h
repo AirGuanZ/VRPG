@@ -16,7 +16,7 @@ public:
 
     const char *GetName() const override { return "default"; }
 
-    bool IsFullOpaque(Direction direction) const noexcept override;
+    FaceVisibilityProperty GetFaceVisibilityProperty(Direction direction) const noexcept override;
 
     bool IsVisible() const noexcept override;
 
