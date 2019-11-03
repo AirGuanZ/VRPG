@@ -62,13 +62,6 @@ public:
     DiffuseHollowBlockEffectGenerator(int textureSize, int expectedArraySize);
 
     /**
-     * @brief array是否已经被填满
-     *
-     * 若返回true，则继续调用AddTexture之前必须先通过InitializeEffect释放出去
-     */
-    bool IsFull() const noexcept;
-
-    /**
      * @brief array是否为空
      */
     bool IsEmpty() const noexcept;
@@ -116,11 +109,13 @@ public:
 
     const char *GetName() const override;
 
+    bool IsTransparent() const noexcept override;
+
     void Bind() const override;
 
     void Unbind() const override;
 
-    std::unique_ptr<PartialSectionModelBuilder> CreateModelBuilder() const override;
+    std::unique_ptr<PartialSectionModelBuilder> CreateModelBuilder(const Vec3i &globalSectionPosition) const override;
 
     void SetRenderParams(const BlockRenderParams &params) const override;
 

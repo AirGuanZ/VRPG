@@ -59,13 +59,13 @@ public:
 
     void SetViewSpeed(float radPerPixel) noexcept;
 
-    Vec3 GetPosition() const noexcept;
-
-    Vec3 GetDirection() const noexcept;
-
     void Update(const Input &input, float deltaT) noexcept;
 
     Mat4 GetViewProjectionMatrix() const override;
+
+    Vec3 GetPosition() const noexcept override;
+
+    Vec3 GetDirection() const noexcept override;
 };
 
 VRPG_WORLD_END

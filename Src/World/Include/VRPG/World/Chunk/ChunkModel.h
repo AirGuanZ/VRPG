@@ -26,7 +26,20 @@ using VertexIndex = uint32_t;
 
 class PartialSectionModel
 {
+    Vec3i globalSectionPosition_;
+
 public:
+
+    explicit PartialSectionModel(const Vec3i &globalSectionPosition) noexcept
+        : globalSectionPosition_(globalSectionPosition)
+    {
+        
+    }
+
+    const Vec3i &GetGlobalSectionPosition() const noexcept
+    {
+        return globalSectionPosition_;
+    }
 
     virtual ~PartialSectionModel() = default;
 
@@ -41,7 +54,7 @@ public:
 
     virtual ~PartialSectionModelBuilder() = default;
 
-    virtual std::shared_ptr<const PartialSectionModel> Build() const = 0;
+    virtual std::shared_ptr<const PartialSectionModel> Build() = 0;
 };
 
 class SectionModel

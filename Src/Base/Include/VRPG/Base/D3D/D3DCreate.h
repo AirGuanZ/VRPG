@@ -21,6 +21,8 @@ inline ComPtr<ID3D11RasterizerState> CreateRasterizerState(const D3D11_RASTERIZE
 
 inline ComPtr<ID3D11BlendState> CreateBlendState(const D3D11_BLEND_DESC &desc);
 
+inline ComPtr<ID3D11DepthStencilState> CreateDepthStencilState(const D3D11_DEPTH_STENCIL_DESC &desc);
+
 //############################# impl #############################
 
 inline ComPtr<ID3D11Buffer> CreateD3D11Buffer(
@@ -65,6 +67,13 @@ inline ComPtr<ID3D11BlendState> CreateBlendState(const D3D11_BLEND_DESC &desc)
 {
     ComPtr<ID3D11BlendState> state;
     HRESULT hr = gDevice->CreateBlendState(&desc, state.GetAddressOf());
+    return SUCCEEDED(hr) ? state : nullptr;
+}
+
+inline ComPtr<ID3D11DepthStencilState> CreateDepthStencilState(const D3D11_DEPTH_STENCIL_DESC &desc)
+{
+    ComPtr<ID3D11DepthStencilState> state;
+    HRESULT hr = gDevice->CreateDepthStencilState(&desc, state.GetAddressOf());
     return SUCCEEDED(hr) ? state : nullptr;
 }
 

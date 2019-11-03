@@ -60,13 +60,6 @@ public:
     DiffuseSolidBlockEffectGenerator(int textureSize, int expectedArraySize);
 
     /**
-     * @brief array是否已经被填满
-     *
-     * 若返回true，则继续调用AddTexture之前必须先通过InitializeEffect释放出去
-     */
-    bool IsFull() const noexcept;
-
-    /**
      * @brief array是否为空
      */
     bool IsEmpty() const noexcept;
@@ -81,7 +74,7 @@ public:
      *
      * 返回新添加的texture data在texture array中的下标
      */
-    int AddTexture(const Vec3 *data);
+    int AddTexture(const Vec4 *data);
 	
 	/**
 	 * @brief 初始化给定的effect
@@ -92,7 +85,7 @@ private:
 
     std::shared_ptr<CommonProperties> commonProperties_;
 
-    std::vector<agz::texture::texture2d_t<Vec3>> textureArrayData_;
+    std::vector<agz::texture::texture2d_t<Vec4>> textureArrayData_;
     int textureSize_;
     int maxArraySize_;
 
@@ -114,11 +107,13 @@ public:
 
     const char *GetName() const override;
 
+    bool IsTransparent() const noexcept override;
+
     void Bind() const override;
 
     void Unbind() const override;
 
-    std::unique_ptr<PartialSectionModelBuilder> CreateModelBuilder() const override;
+    std::unique_ptr<PartialSectionModelBuilder> CreateModelBuilder(const Vec3i &globalSectionPosition) const override;
 
     void SetRenderParams(const BlockRenderParams &params) const override;
 

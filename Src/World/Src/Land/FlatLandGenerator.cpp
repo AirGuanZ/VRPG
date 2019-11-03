@@ -13,12 +13,14 @@ FlatLandGenerator::FlatLandGenerator(int landHeight) noexcept
 void FlatLandGenerator::Generate(const ChunkPosition &position, ChunkBlockData *blockData)
 {
 	auto &builtinBlocks = BuiltinBlockTypeManager::GetInstance();
-	BlockID stoneID     = builtinBlocks.GetDesc(BuiltinBlockType::Stone).desc->GetBlockID();
-	BlockID soilID      = builtinBlocks.GetDesc(BuiltinBlockType::Soil).desc ->GetBlockID();
-	BlockID lawnID      = builtinBlocks.GetDesc(BuiltinBlockType::Lawn).desc ->GetBlockID();
-    BlockID glowStoneID = builtinBlocks.GetDesc(BuiltinBlockType::GlowStone).desc->GetBlockID();
-    BlockID leafID      = builtinBlocks.GetDesc(BuiltinBlockType::Leaf).desc->GetBlockID();
-	
+	BlockID stoneID      = builtinBlocks.GetDesc(BuiltinBlockType::Stone).desc->GetBlockID();
+	BlockID soilID       = builtinBlocks.GetDesc(BuiltinBlockType::Soil).desc ->GetBlockID();
+	BlockID lawnID       = builtinBlocks.GetDesc(BuiltinBlockType::Lawn).desc ->GetBlockID();
+    BlockID glowStoneID  = builtinBlocks.GetDesc(BuiltinBlockType::GlowStone).desc->GetBlockID();
+    BlockID leafID       = builtinBlocks.GetDesc(BuiltinBlockType::Leaf).desc->GetBlockID();
+    BlockID whiteGlassID = builtinBlocks.GetDesc(BuiltinBlockType::WhiteGlass).desc->GetBlockID();
+    BlockID redGlassID   = builtinBlocks.GetDesc(BuiltinBlockType::RedGlass).desc->GetBlockID();
+
     for(int x = 0; x < CHUNK_SIZE_X; ++x)
     {
         for(int z = 0; z < CHUNK_SIZE_Z; ++z)
@@ -36,6 +38,11 @@ void FlatLandGenerator::Generate(const ChunkPosition &position, ChunkBlockData *
 
             if(6 <= x && x <= 7 && 8 <= z && z <= 9)
                 blockData->SetID({ x, ++height, z }, leafID, {});
+
+            if(12 <= x && x <= 13 && 12 <= z && z <= 13)
+                blockData->SetID({ x, ++height, z }, whiteGlassID, {});
+            if(12 <= x && x <= 13 && 14 <= z && z <= 15)
+                blockData->SetID({ x, ++height, z }, redGlassID, {});
 
             //for(int y = 0; y <= height; ++y)
             //    blockData->SetID({ x, y, z }, 1, {});

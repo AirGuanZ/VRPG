@@ -14,7 +14,12 @@ void Chunk::RegenerateSectionModel(const Vec3i &sectionInChunk, const Chunk *nei
 
     // 准备modelBuilders
 
-    PartialSectionModelBuilderSet modelBuilders;
+    Vec3i globalSectionPosition = {
+        chunkPosition_.x * CHUNK_SECTION_COUNT_X + sectionInChunk.x,
+        sectionInChunk.y,
+        chunkPosition_.z * CHUNK_SECTION_COUNT_Z + sectionInChunk.z
+    };
+    PartialSectionModelBuilderSet modelBuilders(globalSectionPosition);
 
     // 遍历每个block，将其model数据追加到各自的model builder中
 

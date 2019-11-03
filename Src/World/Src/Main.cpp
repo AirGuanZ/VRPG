@@ -104,6 +104,7 @@ void Run()
         {
             renderer.Clear();
             chunkMgr.FillRenderer(renderer);
+            renderer.Done();
         }
 
         constexpr auto PANEL_FLAG =
@@ -126,8 +127,8 @@ void Run()
         }
         ImGui::End();
 
-        const float DEFAULT_RENDER_TARGET_BACKGROUND[] = { 0.7f, 1, 1, 0 };
-        window.ClearDefaultRenderTarget(DEFAULT_RENDER_TARGET_BACKGROUND);
+        Vec4 backgroundColor = Vec4(0.7f, 1, 1, 0).map([](float x) { return std::pow(x, 1 / 2.2f); });
+        window.ClearDefaultRenderTarget(&backgroundColor[0]);
         window.ClearDefaultDepthStencil();
 
         renderer.Render({ &camera, Vec3(1) });

@@ -1,26 +1,29 @@
 #include <agz/utility/image.h>
 
-#include <VRPG/World/Block/BasicDescription/DefaultBlockDescription.h>
+#include <VRPG/World/Block/BasicDescription/DefaultBoxDescription.h>
 #include <VRPG/World/Block/BasicDescription/DiffuseHollowBoxDescription.h>
 #include <VRPG/World/Block/BasicDescription/DiffuseSolidBoxDescription.h>
+#include <VRPG/World/Block/BasicDescription/TransparentBoxDescription.h>
 #include <VRPG/World/Block/BasicEffect/DefaultBlockEffect.h>
 #include <VRPG/World/Block/BasicEffect/DiffuseHollowBlockEffect.h>
 #include <VRPG/World/Block/BasicEffect/DiffuseSolidBlockEffect.h>
+#include <VRPG/World/Block/BasicEffect/TransparentBlockEffect.h>
 #include <VRPG/World/Block/BuiltinBlock/BuiltinBlock.h>
 
 VRPG_WORLD_BEGIN
 
 namespace
 {
-	agz::math::tensor_t<Vec3, 2> LoadRGBTextureFrom(const std::string &filename)
+	agz::math::tensor_t<Vec4, 2> LoadSolidTextureFrom(const std::string &filename)
 	{
 		return agz::img::load_rgb_from_file(filename).map(
         [](const agz::math::color3b &c)
 		{
-            return Vec3(
+            return Vec4(
                 std::pow(c.r / 255.0f, 2.2f),
                 std::pow(c.g / 255.0f, 2.2f),
-                std::pow(c.b / 255.0f, 2.2f));
+                std::pow(c.b / 255.0f, 2.2f),
+                1);
 		});
 	}
 
@@ -58,6 +61,19 @@ namespace
             return c.w > 0.5f ? c : Vec4(avg.x, avg.y, avg.z, c.w);
         });
     }
+
+    agz::math::tensor_t<Vec4, 2> LoadTransparentTextureFrom(const std::string &filename)
+	{
+	    return agz::img::load_rgba_from_file(filename).map(
+            [](const agz::math::color4b &c)
+        {
+            return Vec4(
+                std::pow(c.r / 255.0f, 2.2f),
+                std::pow(c.g / 255.0f, 2.2f),
+                std::pow(c.b / 255.0f, 2.2f),
+                c.a / 255.0f);
+        });
+	}
 }
 
 void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
@@ -79,6 +95,9 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
 
     DiffuseSolidBlockEffectGenerator diffuseSolidEffectGenerator(32, 64);
 	auto diffuseSolidEffect = std::make_shared<DiffuseSolidBlockEffect>();
+
+    auto transparentEffect = std::make_shared<TransparentBlockEffect>();
+    effectMgr.RegisterBlockEffect(transparentEffect);
 
     auto prepareDiffuseHollowTextureSpace = [&](int textureCount)
     {
@@ -102,7 +121,7 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
 	
 	{
         prepareDiffuseSolidTextureSpace(1);
-		int textureIndex = diffuseSolidEffectGenerator.AddTexture(LoadRGBTextureFrom("Asset/World/Texture/BuiltinBlock/Stone.png").raw_data());
+		int textureIndex = diffuseSolidEffectGenerator.AddTexture(LoadSolidTextureFrom("Asset/World/Texture/BuiltinBlock/Stone.png").raw_data());
 		int textureIndices[] = { textureIndex, textureIndex, textureIndex, textureIndex, textureIndex, textureIndex };
 		
 		auto stoneDesc = std::make_shared<DiffuseSolidBoxDescription>(
@@ -113,7 +132,7 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
 	
 	{
         prepareDiffuseSolidTextureSpace(1);
-		int textureIndex = diffuseSolidEffectGenerator.AddTexture(LoadRGBTextureFrom("Asset/World/Texture/BuiltinBlock/Soil.png").raw_data());
+		int textureIndex = diffuseSolidEffectGenerator.AddTexture(LoadSolidTextureFrom("Asset/World/Texture/BuiltinBlock/Soil.png").raw_data());
 		int textureIndices[] = { textureIndex, textureIndex, textureIndex, textureIndex, textureIndex, textureIndex };
 		
 		auto soilDesc = std::make_shared<DiffuseSolidBoxDescription>(
@@ -124,9 +143,9 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
 	
 	{
         prepareDiffuseSolidTextureSpace(3);
-		int topIndex    = diffuseSolidEffectGenerator.AddTexture(LoadRGBTextureFrom("Asset/World/Texture/BuiltinBlock/LawnTop.png").raw_data());
-		int sideIndex   = diffuseSolidEffectGenerator.AddTexture(LoadRGBTextureFrom("Asset/World/Texture/BuiltinBlock/LawnSide.png").raw_data());
-		int bottomIndex = diffuseSolidEffectGenerator.AddTexture(LoadRGBTextureFrom("Asset/World/Texture/BuiltinBlock/LawnBottom.png").raw_data());
+		int topIndex    = diffuseSolidEffectGenerator.AddTexture(LoadSolidTextureFrom("Asset/World/Texture/BuiltinBlock/LawnTop.png").raw_data());
+		int sideIndex   = diffuseSolidEffectGenerator.AddTexture(LoadSolidTextureFrom("Asset/World/Texture/BuiltinBlock/LawnSide.png").raw_data());
+		int bottomIndex = diffuseSolidEffectGenerator.AddTexture(LoadSolidTextureFrom("Asset/World/Texture/BuiltinBlock/LawnBottom.png").raw_data());
 		
 		int textureIndices[6];
 		textureIndices[PositiveX] = sideIndex;
@@ -144,7 +163,7 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
 
     {
         prepareDiffuseSolidTextureSpace(1);
-        int textureIndex = diffuseSolidEffectGenerator.AddTexture(LoadRGBTextureFrom("Asset/World/Texture/BuiltinBlock/GlowStone.png").raw_data());
+        int textureIndex = diffuseSolidEffectGenerator.AddTexture(LoadSolidTextureFrom("Asset/World/Texture/BuiltinBlock/GlowStone.png").raw_data());
         int textureIndices[] = { textureIndex, textureIndex, textureIndex, textureIndex, textureIndex, textureIndex };
 
         auto glowStoneDesc = std::make_shared<DiffuseSolidBoxDescription>(
@@ -164,6 +183,28 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
         info_[int(BuiltinBlockType::Leaf)].desc = leafDesc;
 	}
 
+	{
+        auto textureData = LoadTransparentTextureFrom("Asset/World/Texture/BuiltinBlock/WhiteGlass.png");
+        int textureIndex = transparentEffect->AddTexture(agz::texture::texture2d_t<Vec4>(std::move(textureData)));
+        int textureIndices[] = { textureIndex, textureIndex, textureIndex, textureIndex, textureIndex, textureIndex };
+
+        auto whiteGlassDesc = std::make_shared<TransparentBoxDescription>(
+            "white glass", transparentEffect, textureIndices, BlockBrightness{ 1, 1, 1, 1 });
+        descMgr.RegisterBlockDescription(whiteGlassDesc);
+        info_[int(BuiltinBlockType::WhiteGlass)].desc = whiteGlassDesc;
+	}
+
+    {
+        auto textureData = LoadTransparentTextureFrom("Asset/World/Texture/BuiltinBlock/RedGlass.png");
+        int textureIndex = transparentEffect->AddTexture(agz::texture::texture2d_t<Vec4>(std::move(textureData)));
+        int textureIndices[] = { textureIndex, textureIndex, textureIndex, textureIndex, textureIndex, textureIndex };
+
+        auto whiteGlassDesc = std::make_shared<TransparentBoxDescription>(
+            "red glass", transparentEffect, textureIndices, BlockBrightness{ 1, 1, 1, 1 });
+        descMgr.RegisterBlockDescription(whiteGlassDesc);
+        info_[int(BuiltinBlockType::RedGlass)].desc = whiteGlassDesc;
+    }
+
     if(!diffuseHollowBlockEffectGenerator.IsEmpty())
     {
         diffuseHollowBlockEffectGenerator.InitializeEffect(*diffuseHollowEffect);
@@ -175,6 +216,8 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
         diffuseSolidEffectGenerator.InitializeEffect(*diffuseSolidEffect);
         effectMgr.RegisterBlockEffect(diffuseSolidEffect);
     }
+
+    transparentEffect->Initialize();
 }
 
 VRPG_WORLD_END

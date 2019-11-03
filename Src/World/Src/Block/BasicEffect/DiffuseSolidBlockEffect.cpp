@@ -46,11 +46,6 @@ DiffuseSolidBlockEffectGenerator::DiffuseSolidBlockEffectGenerator(int textureSi
     generatedEffectCount_ = 0;
 }
 
-bool DiffuseSolidBlockEffectGenerator::IsFull() const noexcept
-{
-    return int(textureArrayData_.size()) >= maxArraySize_;
-}
-
 bool DiffuseSolidBlockEffectGenerator::IsEmpty() const noexcept
 {
     return textureArrayData_.empty();
@@ -61,9 +56,8 @@ bool DiffuseSolidBlockEffectGenerator::HasEnoughSpaceFor(int arrayDataCount) con
     return int(textureArrayData_.size()) + arrayDataCount <= maxArraySize_;
 }
 
-int DiffuseSolidBlockEffectGenerator::AddTexture(const Vec3 *data)
+int DiffuseSolidBlockEffectGenerator::AddTexture(const Vec4 *data)
 {
-    assert(!IsFull());
     int ret = int(textureArrayData_.size());
     textureArrayData_.emplace_back(textureSize_, textureSize_, data);
     return ret;
@@ -75,7 +69,7 @@ void DiffuseSolidBlockEffectGenerator::InitializeEffect(DiffuseSolidBlockEffect 
 
     // 生成mipmap chain
 
-    std::vector<agz::texture::mipmap_chain_t<Vec3>> mipmapChains(textureArrayData_.size());
+    std::vector<agz::texture::mipmap_chain_t<Vec4>> mipmapChains(textureArrayData_.size());
     for(size_t i = 0; i < textureArrayData_.size(); ++i)
     {
         auto &textureData = textureArrayData_[i];
@@ -89,7 +83,7 @@ void DiffuseSolidBlockEffectGenerator::InitializeEffect(DiffuseSolidBlockEffect 
     textureDesc.Height             = UINT(textureSize_);
     textureDesc.MipLevels          = UINT(mipmapChains[0].chain_length());
     textureDesc.ArraySize          = UINT(textureArrayData_.size());
-    textureDesc.Format             = DXGI_FORMAT_R32G32B32_FLOAT;
+    textureDesc.Format             = DXGI_FORMAT_R32G32B32A32_FLOAT;
     textureDesc.SampleDesc.Count   = 1;
     textureDesc.SampleDesc.Quality = 0;
     textureDesc.Usage              = D3D11_USAGE_IMMUTABLE;
@@ -107,17 +101,17 @@ void DiffuseSolidBlockEffectGenerator::InitializeEffect(DiffuseSolidBlockEffect 
             auto &mipmapData = mipmapChains[i].chain_elem(j);
 
             initData.pSysMem          = mipmapData.raw_data();
-            initData.SysMemPitch      = mipmapData.width() * sizeof(Vec3);
+            initData.SysMemPitch      = mipmapData.width() * sizeof(Vec4);
             initData.SysMemSlicePitch = 0;
         }
     }
-
+    
     ComPtr<ID3D11Texture2D> texture = Base::D3D::CreateTexture2D(textureDesc, initDataArr.data());
     if(!texture)
         throw VRPGWorldException("failed to create texture2d array for diffuse solid block effect");
 
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-    srvDesc.Format                         = DXGI_FORMAT_R32G32B32_FLOAT;
+    srvDesc.Format                         = DXGI_FORMAT_R32G32B32A32_FLOAT;
     srvDesc.ViewDimension                  = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
     srvDesc.Texture2DArray.MostDetailedMip = 0;
     srvDesc.Texture2DArray.MipLevels       = -1;
@@ -145,6 +139,11 @@ const char *DiffuseSolidBlockEffect::GetName() const
     return name_.c_str();
 }
 
+bool DiffuseSolidBlockEffect::IsTransparent() const noexcept
+{
+    return false;
+}
+
 void DiffuseSolidBlockEffect::Bind() const
 {
     commonProperties_->diffuseTextureSlot_->SetShaderResourceView(textureArray_);
@@ -160,9 +159,9 @@ void DiffuseSolidBlockEffect::Unbind() const
     commonProperties_->inputLayout_.Unbind();
 }
 
-std::unique_ptr<PartialSectionModelBuilder> DiffuseSolidBlockEffect::CreateModelBuilder() const
+std::unique_ptr<PartialSectionModelBuilder> DiffuseSolidBlockEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
 {
-    return std::make_unique<Builder>(this);
+    return std::make_unique<Builder>(globalSectionPosition, this);
 }
 
 void DiffuseSolidBlockEffect::SetRenderParams(const BlockRenderParams &params) const

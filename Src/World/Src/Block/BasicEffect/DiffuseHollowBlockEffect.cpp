@@ -48,11 +48,6 @@ DiffuseHollowBlockEffectGenerator::DiffuseHollowBlockEffectGenerator(int texture
     generatedEffectCount_ = 0;
 }
 
-bool DiffuseHollowBlockEffectGenerator::IsFull() const noexcept
-{
-    return int(textureArrayData_.size()) >= maxArraySize_;
-}
-
 bool DiffuseHollowBlockEffectGenerator::IsEmpty() const noexcept
 {
     return textureArrayData_.empty();
@@ -65,7 +60,6 @@ bool DiffuseHollowBlockEffectGenerator::HasEnoughSpaceFor(int arrayDataCount) co
 
 int DiffuseHollowBlockEffectGenerator::AddTexture(const Vec4 *data)
 {
-    assert(!IsFull());
     int ret = int(textureArrayData_.size());
     textureArrayData_.emplace_back(textureSize_, textureSize_, data);
     return ret;
@@ -147,6 +141,11 @@ const char *DiffuseHollowBlockEffect::GetName() const
     return name_.c_str();
 }
 
+bool DiffuseHollowBlockEffect::IsTransparent() const noexcept
+{
+    return false;
+}
+
 void DiffuseHollowBlockEffect::Bind() const
 {
     commonProperties_->diffuseTextureSlot_->SetShaderResourceView(textureArray_);
@@ -164,9 +163,9 @@ void DiffuseHollowBlockEffect::Unbind() const
     commonProperties_->inputLayout_.Unbind();
 }
 
-std::unique_ptr<PartialSectionModelBuilder> DiffuseHollowBlockEffect::CreateModelBuilder() const
+std::unique_ptr<PartialSectionModelBuilder> DiffuseHollowBlockEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
 {
-    return std::make_unique<Builder>(this);
+    return std::make_unique<Builder>(globalSectionPosition, this);
 }
 
 void DiffuseHollowBlockEffect::SetRenderParams(const BlockRenderParams &params) const

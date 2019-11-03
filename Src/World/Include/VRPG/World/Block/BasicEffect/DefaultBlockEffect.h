@@ -33,11 +33,13 @@ public:
 
     const char *GetName() const override;
 
+    bool IsTransparent() const noexcept override;
+
     void Bind() const override;
 
     void Unbind() const override;
 
-    std::unique_ptr<PartialSectionModelBuilder> CreateModelBuilder() const override;
+    std::unique_ptr<PartialSectionModelBuilder> CreateModelBuilder(const Vec3i &globalSectionPosition) const override;
 
     void SetRenderParams(const BlockRenderParams &params) const override;
 

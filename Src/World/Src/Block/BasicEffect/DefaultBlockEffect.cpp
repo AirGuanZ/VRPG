@@ -32,6 +32,11 @@ const char *DefaultBlockEffect::GetName() const
     return "default";
 }
 
+bool DefaultBlockEffect::IsTransparent() const noexcept
+{
+    return false;
+}
+
 void DefaultBlockEffect::Bind() const
 {
     shader_.Bind();
@@ -46,9 +51,9 @@ void DefaultBlockEffect::Unbind() const
     shader_.Unbind();
 }
 
-std::unique_ptr<PartialSectionModelBuilder> DefaultBlockEffect::CreateModelBuilder() const
+std::unique_ptr<PartialSectionModelBuilder> DefaultBlockEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
 {
-    return std::make_unique<Builder>(this);
+    return std::make_unique<Builder>(globalSectionPosition, this);
 }
 
 void DefaultBlockEffect::SetRenderParams(const BlockRenderParams &params) const

@@ -40,8 +40,8 @@ public:
         UINT cpuFlag;
         if(dynamic)
         {
-            usage = D3D11_USAGE_DYNAMIC;
-            cpuFlag = D3D11_CPU_ACCESS_WRITE;
+            usage = D3D11_USAGE_DEFAULT;
+            cpuFlag = 0;
         }
         else
         {
@@ -76,16 +76,9 @@ public:
         indexCount_ = 0;
     }
 
-    void SetValue(size_t start, size_t count, const Index *data)
+    void SetValue(const Index *data)
     {
-        D3D11_BOX box;
-        box.left   = UINT(start * sizeof(Index));
-        box.right  = box.left + UINT(count * sizeof(Index));
-        box.top    = 0;
-        box.bottom = 1;
-        box.front  = 0;
-        box.back   = 1;
-        gDeviceContext->UpdateSubresource(obj_.Get(), 0, &box, data, 0, 0);
+        gDeviceContext->UpdateSubresource(obj_.Get(), 0, nullptr, data, 0, 0);
     }
 
     UINT GetIndexCount() const noexcept

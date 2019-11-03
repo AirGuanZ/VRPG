@@ -19,6 +19,9 @@ using Base::D3D::SS_PS;
 
 namespace RenderState = Base::D3D::RenderState;
 
+using Base::D3D::BlendState;
+using Base::D3D::BlendStateBuilder;
+using Base::D3D::DepthState;
 using Base::D3D::IndexBuffer;
 using Base::D3D::InputLayout;
 using Base::D3D::InputLayoutBuilder;

@@ -39,6 +39,8 @@ public:
 
     virtual const char *GetName() const = 0;
 
+    virtual bool IsTransparent() const noexcept = 0;
+
     void SetBlockEffectID(BlockEffectID id) noexcept
     {
         blockEffectID_ = id;
@@ -53,7 +55,7 @@ public:
 
     virtual void Unbind() const = 0;
 
-    virtual std::unique_ptr<PartialSectionModelBuilder> CreateModelBuilder() const = 0;
+    virtual std::unique_ptr<PartialSectionModelBuilder> CreateModelBuilder(const Vec3i &globalSectionPosition) const = 0;
 
     virtual void SetRenderParams(const BlockRenderParams &params) const = 0;
 };
@@ -123,7 +125,7 @@ class PartialSectionModelBuilderSet
 
 public:
 
-    PartialSectionModelBuilderSet()
+    PartialSectionModelBuilderSet(const Vec3i &globalSectionModel)
     {
         auto &effectMgr = BlockEffectManager::GetInstance();
         BlockEffectID blockEffectCount = BlockEffectID(effectMgr.GetBlockEffectCount());
@@ -131,7 +133,7 @@ public:
         for(BlockEffectID i = 0; i < blockEffectCount; ++i)
         {
             const BlockEffect *effect = effectMgr.GetBlockEffect(i);
-            builders_.push_back(effect->CreateModelBuilder());
+            builders_.push_back(effect->CreateModelBuilder(globalSectionModel));
         }
     }
 

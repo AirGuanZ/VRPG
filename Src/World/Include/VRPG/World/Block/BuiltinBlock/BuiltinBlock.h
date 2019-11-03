@@ -12,6 +12,8 @@ enum class BuiltinBlockType
     Lawn,
     GlowStone,
     Leaf,
+    WhiteGlass,
+    RedGlass,
 
     TypeCount
 };

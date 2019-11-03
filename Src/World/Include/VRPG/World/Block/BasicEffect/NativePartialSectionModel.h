@@ -20,10 +20,11 @@ class NativePartialSectionModel : public PartialSectionModel
 public:
 
     NativePartialSectionModel(
-        const Effect *effect,
+        const Vec3i &globalSectionPosition, const Effect *effect,
         VertexBuffer<typename Effect::Vertex> vertexBuffer,
         IndexBuffer<VertexIndex> indexBuffer) noexcept
-        : effect_(effect), vertexBuffer_(std::move(vertexBuffer)), indexBuffer_(std::move(indexBuffer))
+        : PartialSectionModel(globalSectionPosition), effect_(effect),
+          vertexBuffer_(std::move(vertexBuffer)), indexBuffer_(std::move(indexBuffer))
     {
 
     }
@@ -51,14 +52,16 @@ class NativePartialSectionModelBuilder : public PartialSectionModelBuilder
 {
     static_assert(std::is_base_of_v<BlockEffect, Effect>);
 
+    Vec3i globalSectionPosition_;
+
     std::vector<typename Effect::Vertex> vertices_;
     std::vector<VertexIndex> indices_;
     const Effect *effect_;
 
 public:
 
-    explicit NativePartialSectionModelBuilder(const Effect *effect)
-        : effect_(effect)
+    explicit NativePartialSectionModelBuilder(const Vec3i &globalSectionPosition, const Effect *effect)
+        : globalSectionPosition_(globalSectionPosition), effect_(effect)
     {
         
     }
@@ -77,7 +80,7 @@ public:
 
     size_t GetVertexCount() const noexcept { return vertices_.size(); }
 
-    std::shared_ptr<const PartialSectionModel> Build() const override
+    std::shared_ptr<const PartialSectionModel> Build() override
     {
         if(vertices_.empty() || indices_.empty())
             return nullptr;
@@ -88,7 +91,8 @@ public:
         IndexBuffer<VertexIndex> indexBuffer;
         indexBuffer.Initialize(UINT(indices_.size()), false, indices_.data());
 
-        return std::make_shared<NativePartialSectionModel<Effect>>(effect_, std::move(vertexBuffer), std::move(indexBuffer));
+        return std::make_shared<NativePartialSectionModel<Effect>>(
+            globalSectionPosition_, effect_, std::move(vertexBuffer), std::move(indexBuffer));
     }
 };
 
