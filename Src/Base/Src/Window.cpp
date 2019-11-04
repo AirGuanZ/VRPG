@@ -398,7 +398,7 @@ void Window::SwapBuffers()
     data_->swapChain->Present(data_->vsync ? 1 : 0, 0);
 }
 
-void Window::DoEvents()
+void Window::DoEvents(bool updateMouse, bool updateKeyboard)
 {
     MSG msg;
     while(PeekMessage(&msg, data_->hWindow, 0, 0, PM_REMOVE))
@@ -407,12 +407,14 @@ void Window::DoEvents()
         DispatchMessage(&msg);
     }
 
-    if(++data_->mouseUpdateCounter >= data_->mouseUpdateInterval)
+    if(updateMouse && ++data_->mouseUpdateCounter >= data_->mouseUpdateInterval)
     {
         data_->mouseUpdateCounter = 0;
         data_->mouse->UpdatePosition();
     }
-    data_->keyboard->Update();
+
+    if(updateKeyboard)
+        data_->keyboard->Update();
 }
 
 void Window::WaitForFocus()

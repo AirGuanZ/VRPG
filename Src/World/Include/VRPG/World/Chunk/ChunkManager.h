@@ -83,6 +83,18 @@ public:
     BlockBrightness GetBlockBrightness(const Vec3i &globalBlock);
 
     /**
+     * @brief 射线与方块求交测试
+     *
+     * 输入为参数化线段 o + t * d (t \in [0, maxDistance])
+     *
+     * d必须是归一化的，maxDistance需>0
+     *
+     * （可选）输出被选中的方块位置
+     */
+    bool FindClosestIntersectedBlock(const Vec3 &o, const Vec3 &d, float maxDistance, Vec3i *pickedBlock = nullptr,
+        const std::function<bool(const BlockDescription *)> &blockFilter = [](const BlockDescription *) { return true; });
+
+    /**
      * @brief 和加载线程交互，获取加载完成的区块
      *
      * 获得了新的区块时返回true
@@ -134,6 +146,11 @@ private:
      * 调用方需保证该方块所在的区块已经在chunks_中
      */
     void SetBlockBrightness_Unchecked(const Vec3i &globalBlock, BlockBrightness brightness);
+
+    /**
+     * @brief 假设globalBlockPosition处的方块改变了，将所有包含它或与之相关的section model标记为dirty
+     */
+    void MakeNeighborSectionsDirty(const Vec3i &globalBlockPosition);
 
     ChunkManagerParams params_;
 

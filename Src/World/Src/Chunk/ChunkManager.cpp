@@ -97,8 +97,10 @@ void ChunkManager::SetBlockID(const Vec3i &globalBlock, BlockID id, BlockOrienta
     // 4. 更新光照，其中涉及到的section model均需重新生成
     // 5. 包含被设置的block的section model以及与该block相邻的section model均需重新生成
 
-    auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk(globalBlock);
+    if(globalBlock.y < 0 || globalBlock.y >= CHUNK_SIZE_Y)
+        return;
 
+    auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk(globalBlock);
     Chunk *chunk = EnsureChunkExists(ckPos.x, ckPos.z);
 
     // 设置方块id
@@ -124,7 +126,7 @@ void ChunkManager::SetBlockID(const Vec3i &globalBlock, BlockID id, BlockOrienta
         // 最大高度下降了
 
         int newHeight = globalBlock.y;
-        while(newHeight >= 0 && chunk->GetID(blkPos) == BLOCK_ID_VOID)
+        while(newHeight >= 0 && chunk->GetID({ blkPos.x, newHeight, blkPos.z }) == BLOCK_ID_VOID)
             --newHeight;
 
         chunk->SetHeight(blkPos.x, blkPos.z, newHeight);
@@ -140,54 +142,15 @@ void ChunkManager::SetBlockID(const Vec3i &globalBlock, BlockID id, BlockOrienta
 
     UpdateLight(blocksWithDirtyLight);
 
-    // 将包含该block或与该block相邻的section index放入sectionsWithDirtyModel_
+    // 更新section model
 
-    auto [sectionX, sectionY, sectionZ] = GlobalBlockToGlobalSection(globalBlock);
-    auto [blockInSectionX, blockInSectionY, blockInSectionZ] = GlobalBlockToBlockInSection(globalBlock);
-
-    sectionsWithDirtyModel_.insert({ sectionX, sectionY, sectionZ });
-
-    bool lowerX  = blockInSectionX == 0;
-    bool lowerY  = blockInSectionY == 0 && sectionY > 0;
-    bool lowerZ  = blockInSectionZ == 0;
-    bool higherX = blockInSectionX == CHUNK_SECTION_SIZE_X - 1;
-    bool higherY = blockInSectionY == CHUNK_SECTION_SIZE_Y && sectionY < CHUNK_SECTION_COUNT_Y - 1;
-    bool higherZ = blockInSectionZ == CHUNK_SECTION_SIZE_Z - 1;
-
-    if(lowerX)  sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY, sectionZ });
-    if(lowerY)  sectionsWithDirtyModel_.insert({ sectionX, sectionY - 1, sectionZ });
-    if(lowerZ)  sectionsWithDirtyModel_.insert({ sectionX, sectionY, sectionZ - 1 });
-    if(higherX) sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY, sectionZ });
-    if(higherY) sectionsWithDirtyModel_.insert({ sectionX, sectionY + 1, sectionZ });
-    if(higherZ) sectionsWithDirtyModel_.insert({ sectionX, sectionY, sectionZ + 1 });
-
-    if(lowerX  && lowerY)  sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY - 1, sectionZ });
-    if(lowerX  && higherY) sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY + 1, sectionZ });
-    if(higherX && lowerY)  sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY - 1, sectionZ });
-    if(higherX && higherY) sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY + 1, sectionZ });
-
-    if(lowerY  && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX, sectionY - 1, sectionZ - 1 });
-    if(lowerY  && higherZ) sectionsWithDirtyModel_.insert({ sectionX, sectionY - 1, sectionZ + 1 });
-    if(higherY && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX, sectionY + 1, sectionZ - 1 });
-    if(higherY && higherZ) sectionsWithDirtyModel_.insert({ sectionX, sectionY + 1, sectionZ + 1 });
-
-    if(lowerX  && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY, sectionZ - 1 });
-    if(lowerX  && higherZ) sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY, sectionZ + 1 });
-    if(higherX && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY, sectionZ - 1 });
-    if(higherX && higherZ) sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY, sectionZ + 1 });
-
-    if(lowerX  && lowerY  && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY - 1, sectionZ - 1 });
-    if(lowerX  && lowerY  && higherZ) sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY - 1, sectionZ + 1 });
-    if(lowerX  && higherY && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY + 1, sectionZ - 1 });
-    if(lowerX  && higherY && higherZ) sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY + 1, sectionZ + 1 });
-    if(higherX && lowerY  && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY - 1, sectionZ - 1 });
-    if(higherX && lowerY  && higherZ) sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY - 1, sectionZ + 1 });
-    if(higherX && higherY && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY + 1, sectionZ - 1 });
-    if(higherX && higherY && higherZ) sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY + 1, sectionZ + 1 });
+    MakeNeighborSectionsDirty(globalBlock);
 }
 
 BlockID ChunkManager::GetBlockID(const Vec3i &globalBlock)
 {
+    if(globalBlock.y < 0 || globalBlock.y >= CHUNK_SIZE_Y)
+        return BLOCK_ID_VOID;
     auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk(globalBlock);
     auto chunk = EnsureChunkExists(ckPos.x, ckPos.z);
     return chunk->GetID(blkPos);
@@ -195,9 +158,50 @@ BlockID ChunkManager::GetBlockID(const Vec3i &globalBlock)
 
 BlockBrightness ChunkManager::GetBlockBrightness(const Vec3i &globalBlock)
 {
+    if(globalBlock.y < 0 || globalBlock.y >= CHUNK_SIZE_Y)
+        return BLOCK_BRIGHTNESS_MIN;
     auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk(globalBlock);
     auto chunk = EnsureChunkExists(ckPos.x, ckPos.z);
     return chunk->GetBrightness(blkPos);
+}
+
+bool ChunkManager::FindClosestIntersectedBlock(
+    const Vec3 &o, const Vec3 &d, float maxDistance, Vec3i *pickedBlock,
+    const std::function<bool(const BlockDescription*)> &blockFilter)
+{
+    auto &blockDescMgr = BlockDescriptionManager::GetInstance();
+    Vec3i lastBlockPosition = Vec3i(std::numeric_limits<Vec3i::elem_t>::lowest());
+    Vec3 invDir = d.map([](float c) { return 1 / c; });
+
+    constexpr float STEP = 0.04f;
+    for(float t = 0; t <= maxDistance; t += STEP)
+    {
+        Vec3 p = o + t * d;
+        Vec3i blockPosition = p.map([](float c) { return int(std::floor(c)); });
+        if(blockPosition == lastBlockPosition)
+            continue;
+
+        BlockID id = GetBlockID(blockPosition);
+        if(id == BLOCK_ID_VOID)
+            continue;
+        const BlockDescription *desc = blockDescMgr.GetBlockDescription(id);
+
+        // IMPROVE: block orientation
+        Vec3 localStart = {
+            o.x - blockPosition.x,
+            o.y - blockPosition.y,
+            o.z - blockPosition.z
+        };
+
+        if(desc->RayIntersect(localStart, invDir, 0, maxDistance) && blockFilter(desc))
+        {
+            if(pickedBlock)
+                *pickedBlock = blockPosition;
+            return true;
+        }
+    }
+
+    return false;
 }
 
 bool ChunkManager::UpdateChunkData()
@@ -320,6 +324,9 @@ void ChunkManager::UpdateLight(std::queue<Vec3i> &blocksQueue)
         auto [x, y, z] = pos;
         blocksQueue.pop();
 
+        if(y < 0 || y >= CHUNK_SIZE_Y)
+            continue;
+
         auto desc = blockDescMgr.GetBlockDescription(GetBlockID(pos));
         BlockBrightness original = GetBlockBrightness(pos);
 
@@ -346,9 +353,7 @@ void ChunkManager::UpdateLight(std::queue<Vec3i> &blocksQueue)
         {
             SetBlockBrightness_Unchecked(pos, propagated);
             addNeighborToQueue(x, y, z);
-
-            auto globalSection = GlobalBlockToGlobalSection(pos);
-            sectionsWithDirtyModel_.insert(globalSection);
+            MakeNeighborSectionsDirty(pos);
         }
     }
 }
@@ -363,6 +368,52 @@ void ChunkManager::SetBlockBrightness_Unchecked(const Vec3i &globalBlock, BlockB
 {
     auto [ck, lb] = DecomposeGlobalBlockByChunk(globalBlock);
     chunks_[ck]->SetBrightness(lb, brightness);
+}
+
+void ChunkManager::MakeNeighborSectionsDirty(const Vec3i &globalBlockPosition)
+{
+    auto [sectionX, sectionY, sectionZ] = GlobalBlockToGlobalSection(globalBlockPosition);
+    auto [blockInSectionX, blockInSectionY, blockInSectionZ] = GlobalBlockToBlockInSection(globalBlockPosition);
+
+    sectionsWithDirtyModel_.insert({ sectionX, sectionY, sectionZ });
+
+    bool lowerX  = blockInSectionX == 0;
+    bool lowerY  = blockInSectionY == 0 && sectionY > 0;
+    bool lowerZ  = blockInSectionZ == 0;
+    bool higherX = blockInSectionX == CHUNK_SECTION_SIZE_X - 1;
+    bool higherY = blockInSectionY == CHUNK_SECTION_SIZE_Y - 1 && sectionY < CHUNK_SECTION_COUNT_Y - 1;
+    bool higherZ = blockInSectionZ == CHUNK_SECTION_SIZE_Z - 1;
+
+    if(lowerX)  sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY, sectionZ });
+    if(lowerY)  sectionsWithDirtyModel_.insert({ sectionX, sectionY - 1, sectionZ });
+    if(lowerZ)  sectionsWithDirtyModel_.insert({ sectionX, sectionY, sectionZ - 1 });
+    if(higherX) sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY, sectionZ });
+    if(higherY) sectionsWithDirtyModel_.insert({ sectionX, sectionY + 1, sectionZ });
+    if(higherZ) sectionsWithDirtyModel_.insert({ sectionX, sectionY, sectionZ + 1 });
+
+    if(lowerX  && lowerY)  sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY - 1, sectionZ });
+    if(lowerX  && higherY) sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY + 1, sectionZ });
+    if(higherX && lowerY)  sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY - 1, sectionZ });
+    if(higherX && higherY) sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY + 1, sectionZ });
+
+    if(lowerY  && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX, sectionY - 1, sectionZ - 1 });
+    if(lowerY  && higherZ) sectionsWithDirtyModel_.insert({ sectionX, sectionY - 1, sectionZ + 1 });
+    if(higherY && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX, sectionY + 1, sectionZ - 1 });
+    if(higherY && higherZ) sectionsWithDirtyModel_.insert({ sectionX, sectionY + 1, sectionZ + 1 });
+
+    if(lowerX  && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY, sectionZ - 1 });
+    if(lowerX  && higherZ) sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY, sectionZ + 1 });
+    if(higherX && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY, sectionZ - 1 });
+    if(higherX && higherZ) sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY, sectionZ + 1 });
+
+    if(lowerX  && lowerY  && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY - 1, sectionZ - 1 });
+    if(lowerX  && lowerY  && higherZ) sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY - 1, sectionZ + 1 });
+    if(lowerX  && higherY && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY + 1, sectionZ - 1 });
+    if(lowerX  && higherY && higherZ) sectionsWithDirtyModel_.insert({ sectionX - 1, sectionY + 1, sectionZ + 1 });
+    if(higherX && lowerY  && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY - 1, sectionZ - 1 });
+    if(higherX && lowerY  && higherZ) sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY - 1, sectionZ + 1 });
+    if(higherX && higherY && lowerZ)  sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY + 1, sectionZ - 1 });
+    if(higherX && higherY && higherZ) sectionsWithDirtyModel_.insert({ sectionX + 1, sectionY + 1, sectionZ + 1 });
 }
 
 VRPG_WORLD_END

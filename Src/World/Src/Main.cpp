@@ -40,15 +40,15 @@ void Run()
 	});
 
     ChunkManagerParams params = {};
-    params.loadDistance          = 10;
+    params.loadDistance          = 6;
     params.backgroundPoolSize    = 200;
     params.backgroundThreadCount = 1;
-    params.renderDistance        = 9;
-    params.unloadDistance        = 12;
+    params.renderDistance        = 5;
+    params.unloadDistance        = 8;
     ChunkManager chunkMgr(params, std::make_unique<FlatLandGenerator>(20));
 
     DefaultCamera camera;
-    camera.SetMoveSpeed(5.0f);
+    camera.SetMoveSpeed(7);
     camera.SetViewSpeed(0.003f);
     camera.SetWOverH(window.GetClientAspectRatio());
     camera.SetPosition({ 0, 30, 0 });
@@ -56,7 +56,7 @@ void Run()
 
     spdlog::info("start mainloop");
 
-    ChunkRenderer renderer;
+    auto renderer = std::make_shared<ChunkRenderer>();
 
     agz::time::fps_counter_t fps;
 
@@ -66,13 +66,16 @@ void Run()
 
     ScalarHistory deltaTHistory(4);
 
+    bool isLBPressed = false;
+    bool isLBDown    = false;
+
     while(!window.GetCloseFlag())
     {
         float deltaT = fps.elasped_microseconds() / 1000.0f;
         deltaTHistory.Update(deltaT);
         deltaT = deltaTHistory.MeanValue();
 
-        window.DoEvents();
+        window.DoEvents(true, true);
         window.WaitForFocus();
 
         window.ImGuiNewFrame();
@@ -96,15 +99,27 @@ void Run()
         int cameraBlockX = int(camera.GetPosition().x), cameraBlockZ = int(camera.GetPosition().z);
         chunkMgr.SetCentreChunk(GlobalBlockToChunk(cameraBlockX, cameraBlockZ));
 
+        isLBDown = !isLBPressed && mouse->IsMouseButtonPressed(MouseButton::Left);
+        isLBPressed = mouse->IsMouseButtonPressed(MouseButton::Left);
+
+        if(isLBDown)
+        {
+            Vec3i pickedBlock;
+            if(chunkMgr.FindClosestIntersectedBlock(camera.GetPosition(), camera.GetDirection(), 8.0f, &pickedBlock))
+            {
+                chunkMgr.SetBlockID(pickedBlock, BLOCK_ID_VOID, {});
+            }
+        }
+
         bool needToGenerateRenderer = false;
         needToGenerateRenderer |= chunkMgr.UpdateChunkData();
         needToGenerateRenderer |= chunkMgr.UpdateChunkModels();
 
         if(needToGenerateRenderer)
         {
-            renderer.Clear();
-            chunkMgr.FillRenderer(renderer);
-            renderer.Done();
+            renderer->Clear();
+            chunkMgr.FillRenderer(*renderer);
+            renderer->Done();
         }
 
         constexpr auto PANEL_FLAG =
@@ -131,7 +146,7 @@ void Run()
         window.ClearDefaultRenderTarget(&backgroundColor[0]);
         window.ClearDefaultDepthStencil();
 
-        renderer.Render({ &camera, Vec3(1) });
+        renderer->Render({ &camera, Vec3(1) });
 
         window.ImGuiRender();
         window.SwapBuffers();

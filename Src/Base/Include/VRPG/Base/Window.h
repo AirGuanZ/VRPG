@@ -88,7 +88,7 @@ public:
 
     void SwapBuffers();
 
-    void DoEvents();
+    void DoEvents(bool updateMouse = true, bool updateKeyboard = true);
 
     void WaitForFocus();
 

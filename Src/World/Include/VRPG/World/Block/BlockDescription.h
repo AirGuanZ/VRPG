@@ -7,6 +7,7 @@
 #include <VRPG/Base/Singleton.h>
 #include <VRPG/World/Block/BlockBrightness.h>
 #include <VRPG/World/Block/BlockOrientation.h>
+#include <VRPG/World/Utility/RayBoxIntersect.h>
 
 VRPG_WORLD_BEGIN
 
@@ -142,6 +143,16 @@ public:
         const BlockDescription *neighborBlocks[3][3][3],
         const BlockBrightness neighborBrightness[3][3][3],
         const BlockOrientation neighborOrientations[3][3][3]) const = 0;
+
+    /**
+     * @brief 射线与方块求交测试
+     *
+     * 输入为参数化线段 o + t * d (t \in [minT, maxT])，射线位于方块的局部坐标系中（即假设方块位于[0, 1]^3）
+     */
+    virtual bool RayIntersect(const Vec3 &start, const Vec3 &invDir, float minT, float maxT) const noexcept
+    {
+        return RayIntersectStdBox(start, invDir, minT, maxT);
+    }
 };
 
 /**
@@ -186,6 +197,11 @@ public:
     BlockBrightness InitialBrightness() const noexcept override
     {
         return { 0, 0, 0, 0 };
+    }
+
+    bool RayIntersect(const Vec3 &start, const Vec3 &invDir, float minT, float maxT) const noexcept override
+    {
+        return false;
     }
 };
 
