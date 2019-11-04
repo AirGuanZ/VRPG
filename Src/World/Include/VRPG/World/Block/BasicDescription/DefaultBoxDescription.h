@@ -20,6 +20,8 @@ public:
 
     bool IsVisible() const noexcept override;
 
+    bool IsFullOpaque() const noexcept override;
+
     bool IsLightSource() const noexcept override;
 
     BlockBrightness LightAttenuation() const noexcept override;

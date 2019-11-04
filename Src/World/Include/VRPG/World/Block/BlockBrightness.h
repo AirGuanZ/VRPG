@@ -74,7 +74,7 @@ constexpr BlockBrightness BLOCK_BRIGHTNESS_SKY = { 0, 0, 0, 15 };
  */
 inline float BlockBrightnessToFloat(uint8_t brightness) noexcept
 {
-    return (std::min)(brightness, uint8_t(15)) / 15.0f;
+    return std::pow((std::min)(brightness, uint8_t(15)) / 15.0f, 2.2f);
 }
 
 /**
@@ -90,11 +90,30 @@ inline Vec4 BlockBrightnessToFloat(BlockBrightness brightness) noexcept
 }
 
 /**
+ * @brief 将三个float block brightness映射为一份vertex brightness
+ */
+inline Vec4 ComputeVertexBrightness(const Vec4 &a, const Vec4 &b, const Vec4 &c) noexcept
+{
+    return 0.002f + 0.998f * 0.333333f * (a + b + c);
+}
+
+/**
  * @brief 将四个float block brightness映射为一份vertex brightness
  */
 inline Vec4 ComputeVertexBrightness(const Vec4 &a, const Vec4 &b, const Vec4 &c, const Vec4 &d) noexcept
 {
     return 0.002f + 0.998f * 0.25f * (a + b + c + d);
+}
+
+/**
+ * @brief 将三个block brightness映射为一份vertex brightness
+ */
+inline Vec4 ComputeVertexBrightness(const BlockBrightness &a, const BlockBrightness &b, const BlockBrightness &c) noexcept
+{
+    return ComputeVertexBrightness(
+        BlockBrightnessToFloat(a),
+        BlockBrightnessToFloat(b),
+        BlockBrightnessToFloat(c));
 }
 
 /**

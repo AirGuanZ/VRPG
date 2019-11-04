@@ -115,6 +115,8 @@ public:
 
     virtual bool IsVisible() const noexcept = 0;
 
+    virtual bool IsFullOpaque() const noexcept = 0;
+
     /**
      * @brief 本方块是否是一个光源
      */
@@ -173,6 +175,11 @@ public:
     }
 
     bool IsVisible() const noexcept override
+    {
+        return false;
+    }
+
+    bool IsFullOpaque() const noexcept override
     {
         return false;
     }

@@ -1,4 +1,5 @@
 #include <VRPG/World/Block/BasicDescription/DiffuseSolidBoxDescription.h>
+#include <VRPG/World/Utility/BoxVertexBrightness.h>
 
 VRPG_WORLD_BEGIN
 
@@ -28,6 +29,11 @@ FaceVisibilityProperty DiffuseSolidBoxDescription::GetFaceVisibilityProperty(Dir
 }
 
 bool DiffuseSolidBoxDescription::IsVisible() const noexcept
+{
+    return true;
+}
+
+bool DiffuseSolidBoxDescription::IsFullOpaque() const noexcept
 {
     return true;
 }
@@ -66,38 +72,7 @@ void DiffuseSolidBoxDescription::AddBlockModel(
         FaceVisibility visibility = IsFaceVisible(FaceVisibilityProperty::Solid, neiVis);
         return visibility == FaceVisibility::Yes;
     };
-
-    // 计算法线为+x/-x的顶点的亮度
-    auto vertexAO_x = [&](int x, int y, int z)
-    {
-        return SIDE_VERTEX_BRIGHTNESS_RATIO * ComputeVertexBrightness(
-            neighborBrightness[x][1][1],
-            neighborBrightness[x][1 + y][1],
-            neighborBrightness[x][1][1 + z],
-            neighborBrightness[x][1 + y][1 + z]);
-    };
-
-    // 计算法线为+y/-y的顶点的亮度
-    auto vertexAO_y = [&](int x, int y, int z)
-    {
-        float ratio = y > 1 ? 1.0f : SIDE_VERTEX_BRIGHTNESS_RATIO;
-        return ratio * ComputeVertexBrightness(
-            neighborBrightness[1][y][1],
-            neighborBrightness[1 + x][y][1],
-            neighborBrightness[1][y][1 + z],
-            neighborBrightness[1 + x][y][1 + z]);
-    };
-
-    // 计算法线为+z/-z的顶点的亮度
-    auto vertexAO_z = [&](int x, int y, int z)
-    {
-        return SIDE_VERTEX_BRIGHTNESS_RATIO * ComputeVertexBrightness(
-            neighborBrightness[1][1][z],
-            neighborBrightness[1 + x][1][z],
-            neighborBrightness[1][1 + y][z],
-            neighborBrightness[1 + x][1 + y][z]);
-    };
-
+    
     auto addFace = [&](
         const Vec3 &posA, const Vec3 &posB, const Vec3 &posC, const Vec3 &posD,
         const Vec4 &lhtA, const Vec4 &lhtB, const Vec4 &lhtC, const Vec4 &lhtD,
@@ -131,10 +106,10 @@ void DiffuseSolidBoxDescription::AddBlockModel(
         Vec3 posC = positionBase + Vec3(1, 1, 1);
         Vec3 posD = positionBase + Vec3(1, 0, 1);
 
-        Vec4 lightA = vertexAO_x(2, -1, -1);
-        Vec4 lightB = vertexAO_x(2, 1, -1);
-        Vec4 lightC = vertexAO_x(2, 1, 1);
-        Vec4 lightD = vertexAO_x(2, -1, 1);
+        Vec4 lightA = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 2, -1, -1);
+        Vec4 lightB = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 2, 1, -1);
+        Vec4 lightC = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 2, 1, 1);
+        Vec4 lightD = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 2, -1, 1);
 
         addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD, textureIndexInEffect_[PositiveX]);
     }
@@ -147,10 +122,10 @@ void DiffuseSolidBoxDescription::AddBlockModel(
         Vec3 posC = positionBase + Vec3(0, 1, 0);
         Vec3 posD = positionBase + Vec3(0, 0, 0);
 
-        Vec4 lightA = vertexAO_x(0, -1, 1);
-        Vec4 lightB = vertexAO_x(0, 1, 1);
-        Vec4 lightC = vertexAO_x(0, 1, -1);
-        Vec4 lightD = vertexAO_x(0, -1, -1);
+        Vec4 lightA = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 0, -1, 1);
+        Vec4 lightB = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 0, 1, 1);
+        Vec4 lightC = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 0, 1, -1);
+        Vec4 lightD = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 0, -1, -1);
 
         addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD, textureIndexInEffect_[NegativeX]);
     }
@@ -163,10 +138,10 @@ void DiffuseSolidBoxDescription::AddBlockModel(
         Vec3 posC = positionBase + Vec3(1, 1, 1);
         Vec3 posD = positionBase + Vec3(1, 1, 0);
 
-        Vec4 lightA = vertexAO_y(-1, 2, -1);
-        Vec4 lightB = vertexAO_y(-1, 2, 1);
-        Vec4 lightC = vertexAO_y(1, 2, 1);
-        Vec4 lightD = vertexAO_y(1, 2, -1);
+        Vec4 lightA = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, -1, 2, -1);
+        Vec4 lightB = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, -1, 2, 1);
+        Vec4 lightC = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, 1, 2, 1);
+        Vec4 lightD = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, 1, 2, -1);
 
         addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD, textureIndexInEffect_[PositiveY]);
     }
@@ -179,10 +154,10 @@ void DiffuseSolidBoxDescription::AddBlockModel(
         Vec3 posC = positionBase + Vec3(0, 0, 1);
         Vec3 posD = positionBase + Vec3(0, 0, 0);
 
-        Vec4 lightA = vertexAO_y(1, 0, -1);
-        Vec4 lightB = vertexAO_y(1, 0, 1);
-        Vec4 lightC = vertexAO_y(-1, 0, 1);
-        Vec4 lightD = vertexAO_y(-1, 0, -1);
+        Vec4 lightA = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, 1, 0, -1);
+        Vec4 lightB = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, 1, 0, 1);
+        Vec4 lightC = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, -1, 0, 1);
+        Vec4 lightD = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, -1, 0, -1);
 
         addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD, textureIndexInEffect_[NegativeY]);
     }
@@ -195,10 +170,10 @@ void DiffuseSolidBoxDescription::AddBlockModel(
         Vec3 posC = positionBase + Vec3(0, 1, 1);
         Vec3 posD = positionBase + Vec3(0, 0, 1);
 
-        Vec4 lightA = vertexAO_z(1, -1, 2);
-        Vec4 lightB = vertexAO_z(1, 1, 2);
-        Vec4 lightC = vertexAO_z(-1, 1, 2);
-        Vec4 lightD = vertexAO_z(-1, -1, 2);
+        Vec4 lightA = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, 1, -1, 2);
+        Vec4 lightB = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, 1, 1, 2);
+        Vec4 lightC = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, -1, 1, 2);
+        Vec4 lightD = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, -1, -1, 2);
 
         addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD, textureIndexInEffect_[PositiveZ]);
     }
@@ -211,10 +186,10 @@ void DiffuseSolidBoxDescription::AddBlockModel(
         Vec3 posC = positionBase + Vec3(1, 1, 0);
         Vec3 posD = positionBase + Vec3(1, 0, 0);
 
-        Vec4 lightA = vertexAO_z(-1, -1, 0);
-        Vec4 lightB = vertexAO_z(-1, 1, 0);
-        Vec4 lightC = vertexAO_z(1, 1, 0);
-        Vec4 lightD = vertexAO_z(1, -1, 0);
+        Vec4 lightA = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, -1, -1, 0);
+        Vec4 lightB = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, -1, 1, 0);
+        Vec4 lightC = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, 1, 1, 0);
+        Vec4 lightD = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, 1, -1, 0);
 
         addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD, textureIndexInEffect_[NegativeZ]);
     }
