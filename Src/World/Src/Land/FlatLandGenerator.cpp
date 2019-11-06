@@ -20,6 +20,7 @@ void FlatLandGenerator::Generate(const ChunkPosition &position, ChunkBlockData *
     BlockID leafID       = builtinBlocks.GetDesc(BuiltinBlockType::Leaf)      .desc->GetBlockID();
     BlockID whiteGlassID = builtinBlocks.GetDesc(BuiltinBlockType::WhiteGlass).desc->GetBlockID();
     BlockID redGlassID   = builtinBlocks.GetDesc(BuiltinBlockType::RedGlass)  .desc->GetBlockID();
+    BlockID logID        = builtinBlocks.GetDesc(BuiltinBlockType::Log)       .desc->GetBlockID();
 
     for(int x = 0; x < CHUNK_SIZE_X; ++x)
     {
@@ -43,6 +44,13 @@ void FlatLandGenerator::Generate(const ChunkPosition &position, ChunkBlockData *
                 blockData->SetID({ x, ++height, z }, whiteGlassID, {});
             if(12 <= x && x <= 13 && 14 <= z && z <= 15)
                 blockData->SetID({ x, ++height, z }, redGlassID, {});
+
+            if(x == 15 && z == 15)
+                blockData->SetID({ x, ++height, z }, logID, {});
+            if(x == 16 && z == 16)
+                blockData->SetID({ x, ++height, z }, logID, { PositiveY, PositiveZ, PositiveX });
+            if(x == 17 && z == 17)
+                blockData->SetID({ x, ++height, z }, logID, { PositiveZ, PositiveX, PositiveY });
 
             //for(int y = 0; y <= height; ++y)
             //    blockData->SetID({ x, y, z }, 1, {});

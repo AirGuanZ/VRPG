@@ -1,5 +1,5 @@
 #include <VRPG/World/Block/BasicDescription/DiffuseSolidBoxDescription.h>
-#include <VRPG/World/Utility/BoxVertexBrightness.h>
+#include <VRPG/World/Utility/BoxModel.h>
 
 VRPG_WORLD_BEGIN
 
@@ -60,8 +60,6 @@ void DiffuseSolidBoxDescription::AddBlockModel(
     const BlockBrightness neighborBrightness[3][3][3],
     const BlockOrientation neighborOrientations[3][3][3]) const
 {
-    // IMPROVE: 没考虑本方块的旋转
-
     auto builder = modelBuilders.GetBuilderByEffect(effect_.get());
     Vec3 positionBase = blockPosition.map([](int i) { return float(i); });
 
@@ -83,10 +81,10 @@ void DiffuseSolidBoxDescription::AddBlockModel(
 
         VertexIndex vertexCount = VertexIndex(builder->GetVertexCount());
 
-        builder->AddVertex({ posA, Vec2(0, 1),       textureIndexInEffect, lhtA });
-        builder->AddVertex({ posB, Vec2(0, 0),       textureIndexInEffect, lhtB });
-        builder->AddVertex({ posC, Vec2(1, 0),       textureIndexInEffect, lhtC });
-        builder->AddVertex({ posD, Vec2(1, 1),       textureIndexInEffect, lhtD });
+        builder->AddVertex({ posA, BOX_FACE_TEXCOORD[0], textureIndexInEffect, lhtA });
+        builder->AddVertex({ posB, BOX_FACE_TEXCOORD[1], textureIndexInEffect, lhtB });
+        builder->AddVertex({ posC, BOX_FACE_TEXCOORD[2], textureIndexInEffect, lhtC });
+        builder->AddVertex({ posD, BOX_FACE_TEXCOORD[3], textureIndexInEffect, lhtD });
         builder->AddVertex({ posE, Vec2(0.5f, 0.5f), textureIndexInEffect, lhtE });
 
         builder->AddIndexedTriangle(vertexCount + 0, vertexCount + 1, vertexCount + 4);
@@ -95,101 +93,46 @@ void DiffuseSolidBoxDescription::AddBlockModel(
         builder->AddIndexedTriangle(vertexCount + 3, vertexCount + 0, vertexCount + 4);
     };
 
-    // +x
-    if(isFaceVisible(2, 1, 1, NegativeX))
+    BlockOrientation orientation = neighborOrientations[1][1][1];
+
+    auto generateFace = [&](Direction normalDirection)
     {
-        Vec3 posA = positionBase + Vec3(1, 0, 0);
-        Vec3 posB = positionBase + Vec3(1, 1, 0);
-        Vec3 posC = positionBase + Vec3(1, 1, 1);
-        Vec3 posD = positionBase + Vec3(1, 0, 1);
+        Direction rotDir = orientation.OriginToRotated(normalDirection);;
+        static const Vec3i ROT_DIR_TO_NEI_INDEX[6] =
+        {
+            { 2, 1, 1 }, { 0, 1, 1 },
+            { 1, 2, 1 }, { 1, 0, 1 },
+            { 1, 1, 2 }, { 1, 1, 0 }
+        };
+        Vec3i neiIndex = ROT_DIR_TO_NEI_INDEX[int(rotDir)];
+        if(!isFaceVisible(neiIndex.x, neiIndex.y, neiIndex.z, -rotDir))
+            return;
 
-        Vec4 lightA = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 2, -1, -1);
-        Vec4 lightB = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 2, 1, -1);
-        Vec4 lightC = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 2, 1, 1);
-        Vec4 lightD = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 2, -1, 1);
+        Vec3 position[4];
+        GenerateBoxFaceDynamic(normalDirection, position);
+        position[0] = RotateLocalPosition(orientation, position[0]);
+        position[1] = RotateLocalPosition(orientation, position[1]);
+        position[2] = RotateLocalPosition(orientation, position[2]);
+        position[3] = RotateLocalPosition(orientation, position[3]);
 
-        addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD, textureIndexInEffect_[PositiveX]);
-    }
+        Vec4 light0 = BoxVertexBrightness(neighborBlocks, neighborBrightness, rotDir, position[0]);
+        Vec4 light1 = BoxVertexBrightness(neighborBlocks, neighborBrightness, rotDir, position[1]);
+        Vec4 light2 = BoxVertexBrightness(neighborBlocks, neighborBrightness, rotDir, position[2]);
+        Vec4 light3 = BoxVertexBrightness(neighborBlocks, neighborBrightness, rotDir, position[3]);
+        
+        addFace(positionBase + position[0],
+                positionBase + position[1],
+                positionBase + position[2],
+                positionBase + position[3],
+                light0, light1, light2, light3, textureIndexInEffect_[int(normalDirection)]);
+    };
 
-    // -x
-    if(isFaceVisible(0, 1, 1, PositiveX))
-    {
-        Vec3 posA = positionBase + Vec3(0, 0, 1);
-        Vec3 posB = positionBase + Vec3(0, 1, 1);
-        Vec3 posC = positionBase + Vec3(0, 1, 0);
-        Vec3 posD = positionBase + Vec3(0, 0, 0);
-
-        Vec4 lightA = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 0, -1, 1);
-        Vec4 lightB = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 0, 1, 1);
-        Vec4 lightC = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 0, 1, -1);
-        Vec4 lightD = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 0, -1, -1);
-
-        addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD, textureIndexInEffect_[NegativeX]);
-    }
-
-    // +y
-    if(isFaceVisible(1, 2, 1, NegativeY))
-    {
-        Vec3 posA = positionBase + Vec3(0, 1, 0);
-        Vec3 posB = positionBase + Vec3(0, 1, 1);
-        Vec3 posC = positionBase + Vec3(1, 1, 1);
-        Vec3 posD = positionBase + Vec3(1, 1, 0);
-
-        Vec4 lightA = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, -1, 2, -1);
-        Vec4 lightB = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, -1, 2, 1);
-        Vec4 lightC = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, 1, 2, 1);
-        Vec4 lightD = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, 1, 2, -1);
-
-        addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD, textureIndexInEffect_[PositiveY]);
-    }
-
-    // -y
-    if(isFaceVisible(1, 0, 1, PositiveY))
-    {
-        Vec3 posA = positionBase + Vec3(1, 0, 0);
-        Vec3 posB = positionBase + Vec3(1, 0, 1);
-        Vec3 posC = positionBase + Vec3(0, 0, 1);
-        Vec3 posD = positionBase + Vec3(0, 0, 0);
-
-        Vec4 lightA = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, 1, 0, -1);
-        Vec4 lightB = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, 1, 0, 1);
-        Vec4 lightC = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, -1, 0, 1);
-        Vec4 lightD = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, -1, 0, -1);
-
-        addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD, textureIndexInEffect_[NegativeY]);
-    }
-
-    // +z
-    if(isFaceVisible(1, 1, 2, NegativeZ))
-    {
-        Vec3 posA = positionBase + Vec3(1, 0, 1);
-        Vec3 posB = positionBase + Vec3(1, 1, 1);
-        Vec3 posC = positionBase + Vec3(0, 1, 1);
-        Vec3 posD = positionBase + Vec3(0, 0, 1);
-
-        Vec4 lightA = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, 1, -1, 2);
-        Vec4 lightB = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, 1, 1, 2);
-        Vec4 lightC = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, -1, 1, 2);
-        Vec4 lightD = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, -1, -1, 2);
-
-        addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD, textureIndexInEffect_[PositiveZ]);
-    }
-
-    // -z
-    if(isFaceVisible(1, 1, 0, PositiveZ))
-    {
-        Vec3 posA = positionBase + Vec3(0, 0, 0);
-        Vec3 posB = positionBase + Vec3(0, 1, 0);
-        Vec3 posC = positionBase + Vec3(1, 1, 0);
-        Vec3 posD = positionBase + Vec3(1, 0, 0);
-
-        Vec4 lightA = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, -1, -1, 0);
-        Vec4 lightB = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, -1, 1, 0);
-        Vec4 lightC = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, 1, 1, 0);
-        Vec4 lightD = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, 1, -1, 0);
-
-        addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD, textureIndexInEffect_[NegativeZ]);
-    }
+    generateFace(PositiveX);
+    generateFace(NegativeX);
+    generateFace(PositiveY);
+    generateFace(NegativeY);
+    generateFace(PositiveZ);
+    generateFace(NegativeZ);
 }
 
 VRPG_WORLD_END

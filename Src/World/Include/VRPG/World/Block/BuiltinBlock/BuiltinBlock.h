@@ -10,6 +10,7 @@ enum class BuiltinBlockType
     Stone,
     Soil,
     Lawn,
+    Log,
     GlowStone,
     Leaf,
     WhiteGlass,

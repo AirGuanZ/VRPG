@@ -128,6 +128,6 @@ inline Vec4 ComputeVertexBrightness(const BlockBrightness &a, const BlockBrightn
         BlockBrightnessToFloat(d));
 }
 
-constexpr float SIDE_VERTEX_BRIGHTNESS_RATIO = 0.9f;
+constexpr float SIDE_VERTEX_BRIGHTNESS_RATIO = 0.8f;
 
 VRPG_WORLD_END

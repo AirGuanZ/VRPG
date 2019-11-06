@@ -161,6 +161,26 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
 		info_[int(BuiltinBlockType::Lawn)].desc = lawnDesc;
 	}
 
+	{
+        prepareDiffuseSolidTextureSpace(3);
+        int topIndex = diffuseSolidEffectGenerator.AddTexture(LoadSolidTextureFrom("Asset/World/Texture/BuiltinBlock/LogTop.png").raw_data());
+        int sideIndex = diffuseSolidEffectGenerator.AddTexture(LoadSolidTextureFrom("Asset/World/Texture/BuiltinBlock/LogSide.png").raw_data());
+        int bottomIndex = diffuseSolidEffectGenerator.AddTexture(LoadSolidTextureFrom("Asset/World/Texture/BuiltinBlock/LogBottom.png").raw_data());
+
+        int textureIndices[6];
+        textureIndices[PositiveX] = sideIndex;
+        textureIndices[NegativeX] = sideIndex;
+        textureIndices[PositiveZ] = sideIndex;
+        textureIndices[NegativeZ] = sideIndex;
+        textureIndices[PositiveY] = topIndex;
+        textureIndices[NegativeY] = bottomIndex;
+
+        auto logDesc = std::make_shared<DiffuseSolidBoxDescription>(
+            "log", diffuseSolidEffect, textureIndices, BLOCK_BRIGHTNESS_MIN);
+        descMgr.RegisterBlockDescription(logDesc);
+        info_[int(BuiltinBlockType::Log)].desc = logDesc;
+	}
+
     {
         prepareDiffuseSolidTextureSpace(1);
         int textureIndex = diffuseSolidEffectGenerator.AddTexture(LoadSolidTextureFrom("Asset/World/Texture/BuiltinBlock/GlowStone.png").raw_data());

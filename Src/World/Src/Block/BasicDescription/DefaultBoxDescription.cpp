@@ -1,6 +1,6 @@
 #include <VRPG/World/Block/BasicDescription/DefaultBoxDescription.h>
 #include <VRPG/World/Block/BasicEffect/DefaultBlockEffect.h>
-#include <VRPG/World/Utility/BoxVertexBrightness.h>
+#include <VRPG/World/Utility/BoxModel.h>
 
 VRPG_WORLD_BEGIN
 
