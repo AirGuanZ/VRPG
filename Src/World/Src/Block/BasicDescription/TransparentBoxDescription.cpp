@@ -1,5 +1,5 @@
 #include <VRPG/World/Block/BasicDescription/TransparentBoxDescription.h>
-#include <VRPG/World/Utility/BoxVertexBrightness.h>
+#include <VRPG/World/Utility/BoxModel.h>
 
 VRPG_WORLD_BEGIN
 
