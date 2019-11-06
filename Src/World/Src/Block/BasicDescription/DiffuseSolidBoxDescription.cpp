@@ -93,9 +93,6 @@ void DiffuseSolidBoxDescription::AddBlockModel(
         builder->AddIndexedTriangle(vertexCount + 1, vertexCount + 2, vertexCount + 4);
         builder->AddIndexedTriangle(vertexCount + 2, vertexCount + 3, vertexCount + 4);
         builder->AddIndexedTriangle(vertexCount + 3, vertexCount + 0, vertexCount + 4);
-
-        //builder->AddIndexedTriangle(vertexCount + 0, vertexCount + 1, vertexCount + 2);
-        //builder->AddIndexedTriangle(vertexCount + 0, vertexCount + 2, vertexCount + 3);
     };
 
     // +x

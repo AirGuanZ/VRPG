@@ -13,6 +13,7 @@
 #include <VRPG/World/Block/BlockDescription.h>
 #include <VRPG/World/Block/BlockEffect.h>
 #include <VRPG/World/Land/FlatLandGenerator.h>
+#include <VRPG/World/Misc/Crosshair.h>
 #include <VRPG/World/Utility/ScalarHistory.h>
 
 void Run()
@@ -69,6 +70,14 @@ void Run()
     bool isLBPressed = false;
     bool isLBDown    = false;
 
+    Immediate2D imm2D;
+    imm2D.SetFramebufferSize({ window.GetClientSizeX(), window.GetClientSizeY() });
+    WindowResizeHandler windowResizeHandler([&](const WindowResizeEvent &e)
+    {
+        imm2D.SetFramebufferSize({ e.newClientWidth, e.newClientHeight });
+    });
+    Crosshair crosshair;
+
     while(!window.GetCloseFlag())
     {
         float deltaT = fps.elasped_microseconds() / 1000.0f;
@@ -102,13 +111,14 @@ void Run()
         isLBDown = !isLBPressed && mouse->IsMouseButtonPressed(MouseButton::Left);
         isLBPressed = mouse->IsMouseButtonPressed(MouseButton::Left);
 
-        if(isLBDown)
+        Vec3i pickedBlockPosition;
+        BlockID pickedBlockID = BLOCK_ID_VOID;
+        if(chunkMgr.FindClosestIntersectedBlock(camera.GetPosition(), camera.GetDirection(), 8.0f, &pickedBlockPosition))
         {
-            Vec3i pickedBlock;
-            if(chunkMgr.FindClosestIntersectedBlock(camera.GetPosition(), camera.GetDirection(), 8.0f, &pickedBlock))
-            {
-                chunkMgr.SetBlockID(pickedBlock, BLOCK_ID_VOID, {});
-            }
+            if(isLBDown)
+                chunkMgr.SetBlockID(pickedBlockPosition, BLOCK_ID_VOID, {});
+            else
+                pickedBlockID = chunkMgr.GetBlockID(pickedBlockPosition);
         }
 
         bool needToGenerateRenderer = false;
@@ -139,6 +149,9 @@ void Run()
 
             auto camDir = camera.GetDirection();
             ImGui::Text("dir: %f, %f, %f", camDir.x, camDir.y, camDir.z);
+
+            auto pickedBlockDesc = BlockDescriptionManager::GetInstance().GetBlockDescription(pickedBlockID);
+            ImGui::Text("picked: %s", pickedBlockDesc->GetName());
         }
         ImGui::End();
 
@@ -147,6 +160,8 @@ void Run()
         window.ClearDefaultDepthStencil();
 
         renderer->Render({ &camera, Vec3(1) });
+
+        crosshair.Draw(imm2D);
 
         window.ImGuiRender();
         window.SwapBuffers();

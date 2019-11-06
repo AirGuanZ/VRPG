@@ -20,8 +20,8 @@ public:
         UINT cpuAccessFlag;
         if(dynamic)
         {
-            usage = D3D11_USAGE_DYNAMIC;
-            cpuAccessFlag = D3D11_CPU_ACCESS_WRITE;
+            usage = D3D11_USAGE_DEFAULT;
+            cpuAccessFlag = 0;
         }
         else
         {
@@ -56,16 +56,9 @@ public:
         vertexCount_ = 0;
     }
 
-    void SetValue(size_t start, size_t count, const Vertex *data)
+    void SetValue(const Vertex *data)
     {
-        D3D11_BOX box;
-        box.left   = UINT(start * sizeof(Vertex));
-        box.right  = box.left + UINT(count * sizeof(Vertex));
-        box.top    = 0;
-        box.bottom = 1;
-        box.front  = 0;
-        box.back   = 1;
-        gDeviceContext->UpdateSubresource(obj_.Get(), 0, &box, data, 0, 0);
+        gDeviceContext->UpdateSubresource(obj_.Get(), 0, nullptr, data, 0, 0);
     }
 
     UINT GetVertexCount() const noexcept

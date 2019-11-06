@@ -674,13 +674,13 @@ namespace Impl
             [[fallthrough]];
         case WM_SYSKEYDOWN:
             win->_raw_key_down(uint32_t(wParam));
-            break;
+            return 0;
         case WM_KEYUP:
             win->_key_up(VK2KeyCode(int(wParam)));
             [[fallthrough]];
         case WM_SYSKEYUP:
             win->_raw_key_up(uint32_t(wParam));
-            break;
+            return 0;
         case WM_CHAR:
             if(wParam > 0 && wParam < 0x10000)
                 win->_char_input(uint32_t(wParam));

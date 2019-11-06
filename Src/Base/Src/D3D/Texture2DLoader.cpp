@@ -1,6 +1,6 @@
 #include <agz/utility/string.h>
 
-#include <VRPG/Base/D3D/Texture2DLoader.h>
+#include <VRPG/Base/D3D/Texture/Texture2DLoader.h>
 
 #include <DirectXTK/WICTextureLoader.h>
 

@@ -13,13 +13,13 @@ FlatLandGenerator::FlatLandGenerator(int landHeight) noexcept
 void FlatLandGenerator::Generate(const ChunkPosition &position, ChunkBlockData *blockData)
 {
 	auto &builtinBlocks = BuiltinBlockTypeManager::GetInstance();
-	BlockID stoneID      = builtinBlocks.GetDesc(BuiltinBlockType::Stone).desc->GetBlockID();
-	BlockID soilID       = builtinBlocks.GetDesc(BuiltinBlockType::Soil).desc ->GetBlockID();
-	BlockID lawnID       = builtinBlocks.GetDesc(BuiltinBlockType::Lawn).desc ->GetBlockID();
-    BlockID glowStoneID  = builtinBlocks.GetDesc(BuiltinBlockType::GlowStone).desc->GetBlockID();
-    BlockID leafID       = builtinBlocks.GetDesc(BuiltinBlockType::Leaf).desc->GetBlockID();
+	BlockID stoneID      = builtinBlocks.GetDesc(BuiltinBlockType::Stone)     .desc->GetBlockID();
+	BlockID soilID       = builtinBlocks.GetDesc(BuiltinBlockType::Soil)      .desc ->GetBlockID();
+	BlockID lawnID       = builtinBlocks.GetDesc(BuiltinBlockType::Lawn)      .desc ->GetBlockID();
+    BlockID glowStoneID  = builtinBlocks.GetDesc(BuiltinBlockType::GlowStone) .desc->GetBlockID();
+    BlockID leafID       = builtinBlocks.GetDesc(BuiltinBlockType::Leaf)      .desc->GetBlockID();
     BlockID whiteGlassID = builtinBlocks.GetDesc(BuiltinBlockType::WhiteGlass).desc->GetBlockID();
-    BlockID redGlassID   = builtinBlocks.GetDesc(BuiltinBlockType::RedGlass).desc->GetBlockID();
+    BlockID redGlassID   = builtinBlocks.GetDesc(BuiltinBlockType::RedGlass)  .desc->GetBlockID();
 
     for(int x = 0; x < CHUNK_SIZE_X; ++x)
     {
