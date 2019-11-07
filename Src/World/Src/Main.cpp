@@ -41,11 +41,11 @@ void Run()
 	});
 
     ChunkManagerParams params = {};
-    params.loadDistance          = 6;
-    params.backgroundPoolSize    = 200;
+    params.loadDistance          = 10;
+    params.backgroundPoolSize    = 20;
     params.backgroundThreadCount = 1;
-    params.renderDistance        = 5;
-    params.unloadDistance        = 8;
+    params.renderDistance        = 9;
+    params.unloadDistance        = 12;
     ChunkManager chunkMgr(params, std::make_unique<FlatLandGenerator>(20));
 
     DefaultCamera camera;

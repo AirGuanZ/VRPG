@@ -5,67 +5,8 @@
 
 VRPG_WORLD_BEGIN
 
-inline Vec4 BoxVertexBrightness_X(
-    const BlockDescription *description[3][3][3],
-    const BlockBrightness brightness[3][3][3],
-    int x, int y, int z)
-{
-    if(description[x][y + 1][1]->IsFullOpaque() && description[x][1][z + 1]->IsFullOpaque())
-    {
-        return SIDE_VERTEX_BRIGHTNESS_RATIO * ComputeVertexBrightness(
-            brightness[x][1    ][1    ],
-            brightness[x][1 + y][1    ],
-            brightness[x][1    ][1 + z]);
-    }
-    return SIDE_VERTEX_BRIGHTNESS_RATIO * ComputeVertexBrightness(
-        brightness[x][1    ][1    ],
-        brightness[x][1 + y][1    ],
-        brightness[x][1    ][1 + z],
-        brightness[x][1 + y][1 + z]);
-}
-
-inline Vec4 BoxVertexBrightness_Y(
-    const BlockDescription *description[3][3][3],
-    const BlockBrightness brightness[3][3][3],
-    int x, int y, int z)
-{
-    float ratio = y > 1 ? 1.0f : SIDE_VERTEX_BRIGHTNESS_RATIO;
-    if(description[x + 1][y][1]->IsFullOpaque() && description[1][y][z + 1]->IsFullOpaque())
-    {
-        return ratio * ComputeVertexBrightness(
-            brightness[1    ][y][1    ],
-            brightness[1 + x][y][1    ],
-            brightness[1    ][y][1 + z]);
-    }
-    return ratio * ComputeVertexBrightness(
-        brightness[1    ][y][1    ],
-        brightness[1 + x][y][1    ],
-        brightness[1    ][y][1 + z],
-        brightness[1 + x][y][1 + z]);
-}
-
-inline Vec4 BoxVertexBrightness_Z(
-    const BlockDescription *description[3][3][3],
-    const BlockBrightness brightness[3][3][3],
-    int x, int y, int z)
-{
-    if(description[x + 1][1][z]->IsFullOpaque() && description[1][y + 1][z]->IsFullOpaque())
-    {
-        return SIDE_VERTEX_BRIGHTNESS_RATIO * ComputeVertexBrightness(
-            brightness[1    ][1    ][z],
-            brightness[1 + x][1    ][z],
-            brightness[1    ][1 + y][z]);
-    }
-    return SIDE_VERTEX_BRIGHTNESS_RATIO * ComputeVertexBrightness(
-        brightness[1    ][1    ][z],
-        brightness[1 + x][1    ][z],
-        brightness[1    ][1 + y][z],
-        brightness[1 + x][1 + y][z]);
-}
-
 inline Vec4 BoxVertexBrightness(
-    const BlockDescription *desc[3][3][3],
-    const BlockBrightness brightness[3][3][3],
+    const BlockNeighborhood blocks,
     Direction vertexNormal,
     const Vec3 &localVertexPosition) noexcept
 {
@@ -98,12 +39,12 @@ inline Vec4 BoxVertexBrightness(
 
     float brightnessRatio = vertexNormal == PositiveY ? 1 : SIDE_VERTEX_BRIGHTNESS_RATIO;
 
-    if(desc[i1.x][i1.y][i1.z]->IsFullOpaque() && desc[i2.x][i2.y][i2.z]->IsFullOpaque())
+    if(blocks[i1.x][i1.y][i1.z].desc->IsFullOpaque() && blocks[i2.x][i2.y][i2.z].desc->IsFullOpaque())
     {
         return brightnessRatio * ComputeVertexBrightness(
-            brightness[i0.x][i0.y][i0.z],
-            brightness[i1.x][i1.y][i1.z],
-            brightness[i2.x][i2.y][i2.z]);
+            blocks[i0.x][i0.y][i0.z].brightness,
+            blocks[i1.x][i1.y][i1.z].brightness,
+            blocks[i2.x][i2.y][i2.z].brightness);
     }
 
     Vec3i i3;
@@ -112,10 +53,10 @@ inline Vec4 BoxVertexBrightness(
     i3[sideAxis1] = 1 + sideOffset1;
 
     return brightnessRatio * ComputeVertexBrightness(
-        brightness[i0.x][i0.y][i0.z],
-        brightness[i1.x][i1.y][i1.z],
-        brightness[i2.x][i2.y][i2.z],
-        brightness[i3.x][i3.y][i3.z]);
+        blocks[i0.x][i0.y][i0.z].brightness,
+        blocks[i1.x][i1.y][i1.z].brightness,
+        blocks[i2.x][i2.y][i2.z].brightness,
+        blocks[i3.x][i3.y][i3.z].brightness);
 }
 
 template<Direction NormalDirection>

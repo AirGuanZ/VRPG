@@ -7,13 +7,14 @@ TransparentBoxDescription::TransparentBoxDescription(
     std::string name,
     std::shared_ptr<TransparentBlockEffect> effect, int textureIndexInEffect[],
     BlockBrightness attenuation)
-    : textureIndexInEffect_{}
+    : name_(std::move(name)), effect_(std::move(effect)),
+      textureIndexInEffect_{
+          textureIndexInEffect[0], textureIndexInEffect[1], textureIndexInEffect[2],
+          textureIndexInEffect[3], textureIndexInEffect[4], textureIndexInEffect[5]
+      },
+      attenuation_(attenuation)
 {
-    name_ = std::move(name);
-    effect_ = std::move(effect);
-    for(int i = 0; i < 6; ++i)
-        textureIndexInEffect_[i] = textureIndexInEffect[i];
-    attenuation_ = attenuation;
+
 }
 
 const char *TransparentBoxDescription::GetName() const
@@ -54,17 +55,15 @@ BlockBrightness TransparentBoxDescription::InitialBrightness() const noexcept
 void TransparentBoxDescription::AddBlockModel(
     PartialSectionModelBuilderSet &modelBuilders,
     const Vec3i &blockPosition,
-    const BlockDescription *neighborBlocks[3][3][3],
-    const BlockBrightness neighborBrightness[3][3][3],
-    const BlockOrientation neighborOrientations[3][3][3]) const
+    const BlockNeighborhood blocks) const
 {
     auto builder = modelBuilders.GetBuilderByEffect(effect_.get());
     Vec3 positionBase = blockPosition.map([](int i) { return float(i); });
 
     auto isFaceVisible = [&](int neiX, int neiY, int neiZ, Direction neiDir)
     {
-        auto neiDesc = neighborBlocks[neiX][neiY][neiZ];
-        neiDir = neighborOrientations[neiX][neiY][neiZ].OriginToRotated(neiDir);
+        auto neiDesc = blocks[neiX][neiY][neiZ].desc;
+        neiDir = blocks[neiX][neiY][neiZ].orientation.OriginToRotated(neiDir);
         FaceVisibilityProperty neiVis = neiDesc->GetFaceVisibilityProperty(neiDir);
         FaceVisibility vis = IsFaceVisible(FaceVisibilityProperty::Transparent, neiVis);
         return vis == FaceVisibility::Yes || (vis == FaceVisibility::Diff && neiDesc != this);
@@ -95,101 +94,46 @@ void TransparentBoxDescription::AddBlockModel(
         builder->AddFaceIndexRange(posE, startIndex);
     };
 
-    // +x
-    if(isFaceVisible(2, 1, 1, NegativeX))
+    BlockOrientation orientation = blocks[1][1][1].orientation;
+
+    auto generateFace = [&](Direction normalDirection)
     {
-        Vec3 posA = positionBase + Vec3(1, 0, 0);
-        Vec3 posB = positionBase + Vec3(1, 1, 0);
-        Vec3 posC = positionBase + Vec3(1, 1, 1);
-        Vec3 posD = positionBase + Vec3(1, 0, 1);
+        Direction rotDir = orientation.OriginToRotated(normalDirection);;
+        static const Vec3i ROT_DIR_TO_NEI_INDEX[6] =
+        {
+            { 2, 1, 1 }, { 0, 1, 1 },
+            { 1, 2, 1 }, { 1, 0, 1 },
+            { 1, 1, 2 }, { 1, 1, 0 }
+        };
+        Vec3i neiIndex = ROT_DIR_TO_NEI_INDEX[int(rotDir)];
+        if(!isFaceVisible(neiIndex.x, neiIndex.y, neiIndex.z, -rotDir))
+            return;
 
-        Vec4 lightA = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 2, -1, -1);
-        Vec4 lightB = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 2, 1, -1);
-        Vec4 lightC = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 2, 1, 1);
-        Vec4 lightD = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 2, -1, 1);
+        Vec3 position[4];
+        GenerateBoxFaceDynamic(normalDirection, position);
+        position[0] = RotateLocalPosition(orientation, position[0]);
+        position[1] = RotateLocalPosition(orientation, position[1]);
+        position[2] = RotateLocalPosition(orientation, position[2]);
+        position[3] = RotateLocalPosition(orientation, position[3]);
 
-        addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD, textureIndexInEffect_[PositiveX]);
-    }
+        Vec4 light0 = BoxVertexBrightness(blocks, rotDir, position[0]);
+        Vec4 light1 = BoxVertexBrightness(blocks, rotDir, position[1]);
+        Vec4 light2 = BoxVertexBrightness(blocks, rotDir, position[2]);
+        Vec4 light3 = BoxVertexBrightness(blocks, rotDir, position[3]);
+        
+        addFace(positionBase + position[0],
+                positionBase + position[1],
+                positionBase + position[2],
+                positionBase + position[3],
+                light0, light1, light2, light3, textureIndexInEffect_[int(normalDirection)]);
+    };
 
-    // -x
-    if(isFaceVisible(0, 1, 1, PositiveX))
-    {
-        Vec3 posA = positionBase + Vec3(0, 0, 1);
-        Vec3 posB = positionBase + Vec3(0, 1, 1);
-        Vec3 posC = positionBase + Vec3(0, 1, 0);
-        Vec3 posD = positionBase + Vec3(0, 0, 0);
-
-        Vec4 lightA = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 0, -1, 1);
-        Vec4 lightB = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 0, 1, 1);
-        Vec4 lightC = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 0, 1, -1);
-        Vec4 lightD = BoxVertexBrightness_X(neighborBlocks, neighborBrightness, 0, -1, -1);
-
-        addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD, textureIndexInEffect_[NegativeX]);
-    }
-
-    // +y
-    if(isFaceVisible(1, 2, 1, NegativeY))
-    {
-        Vec3 posA = positionBase + Vec3(0, 1, 0);
-        Vec3 posB = positionBase + Vec3(0, 1, 1);
-        Vec3 posC = positionBase + Vec3(1, 1, 1);
-        Vec3 posD = positionBase + Vec3(1, 1, 0);
-
-        Vec4 lightA = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, -1, 2, -1);
-        Vec4 lightB = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, -1, 2, 1);
-        Vec4 lightC = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, 1, 2, 1);
-        Vec4 lightD = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, 1, 2, -1);
-
-        addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD, textureIndexInEffect_[PositiveY]);
-    }
-
-    // -y
-    if(isFaceVisible(1, 0, 1, PositiveY))
-    {
-        Vec3 posA = positionBase + Vec3(1, 0, 0);
-        Vec3 posB = positionBase + Vec3(1, 0, 1);
-        Vec3 posC = positionBase + Vec3(0, 0, 1);
-        Vec3 posD = positionBase + Vec3(0, 0, 0);
-
-        Vec4 lightA = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, 1, 0, -1);
-        Vec4 lightB = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, 1, 0, 1);
-        Vec4 lightC = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, -1, 0, 1);
-        Vec4 lightD = BoxVertexBrightness_Y(neighborBlocks, neighborBrightness, -1, 0, -1);
-
-        addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD, textureIndexInEffect_[NegativeY]);
-    }
-
-    // +z
-    if(isFaceVisible(1, 1, 2, NegativeZ))
-    {
-        Vec3 posA = positionBase + Vec3(1, 0, 1);
-        Vec3 posB = positionBase + Vec3(1, 1, 1);
-        Vec3 posC = positionBase + Vec3(0, 1, 1);
-        Vec3 posD = positionBase + Vec3(0, 0, 1);
-
-        Vec4 lightA = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, 1, -1, 2);
-        Vec4 lightB = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, 1, 1, 2);
-        Vec4 lightC = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, -1, 1, 2);
-        Vec4 lightD = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, -1, -1, 2);
-
-        addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD, textureIndexInEffect_[PositiveZ]);
-    }
-
-    // -z
-    if(isFaceVisible(1, 1, 0, PositiveZ))
-    {
-        Vec3 posA = positionBase + Vec3(0, 0, 0);
-        Vec3 posB = positionBase + Vec3(0, 1, 0);
-        Vec3 posC = positionBase + Vec3(1, 1, 0);
-        Vec3 posD = positionBase + Vec3(1, 0, 0);
-
-        Vec4 lightA = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, -1, -1, 0);
-        Vec4 lightB = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, -1, 1, 0);
-        Vec4 lightC = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, 1, 1, 0);
-        Vec4 lightD = BoxVertexBrightness_Z(neighborBlocks, neighborBrightness, 1, -1, 0);
-
-        addFace(posA, posB, posC, posD, lightA, lightB, lightC, lightD, textureIndexInEffect_[NegativeZ]);
-    }
+    generateFace(PositiveX);
+    generateFace(NegativeX);
+    generateFace(PositiveY);
+    generateFace(NegativeY);
+    generateFace(PositiveZ);
+    generateFace(NegativeZ);
 }
 
 VRPG_WORLD_END

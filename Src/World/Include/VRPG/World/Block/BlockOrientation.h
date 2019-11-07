@@ -11,23 +11,48 @@ VRPG_WORLD_BEGIN
 在旋转过之后，可以用posXFace和posYFace旋转后的朝向来编码该方块的整体朝向
 */
 
-struct BlockOrientation
+class BlockOrientation
 {
     Direction posXFace = PositiveX;
     Direction posYFace = PositiveY;
-    Direction posZFace = PositiveZ;
+
+    uint8_t xy_;
+
+public:
+
+    BlockOrientation() noexcept
+        : BlockOrientation(PositiveX, PositiveY)
+    {
+        
+    }
+
+    BlockOrientation(Direction posX, Direction posY) noexcept
+        : xy_((uint8_t(posX) << 4) | uint8_t(posY))
+    {
+        
+    }
+
+    Direction X() const noexcept
+    {
+        return Direction(xy_ >> 4);
+    }
+
+    Direction Y() const noexcept
+    {
+        return Direction(xy_ & 0x0f);
+    }
+
+    Direction Z() const noexcept
+    {
+        return Cross(X(), Y());
+    }
 
     /**
      * @brief 这真的是一个合法的坐标系吗
      */
     void CheckAssertion() const noexcept
     {
-        assert(Cross(posXFace, posYFace) == posZFace);
-        assert(Cross(posYFace, posZFace) == posXFace);
-        assert(Cross(posZFace, posXFace) == posYFace);
-        assert(Cross(posYFace, posXFace) == -posZFace);
-        assert(Cross(posZFace, posYFace) == -posXFace);
-        assert(Cross(posXFace, posZFace) == -posYFace);
+        assert(posXFace != posYFace);
     }
 
     /**
@@ -38,16 +63,16 @@ struct BlockOrientation
         CheckAssertion();
 
         if(origin == PositiveX)
-            return posXFace;
+            return X();
         if(origin == NegativeX)
-            return -posXFace;
+            return -X();
         if(origin == PositiveY)
-            return posYFace;
+            return Y();
         if(origin == NegativeY)
-            return -posYFace;
+            return -Y();
         if(origin == PositiveZ)
-            return posZFace;
-        return -posZFace;
+            return Z();
+        return -Z();
     }
 
     /**
@@ -57,15 +82,15 @@ struct BlockOrientation
     {
         CheckAssertion();
 
-        if(rotated == posXFace)
+        if(rotated == X())
             return PositiveX;
-        if(rotated == -posXFace)
+        if(rotated == -X())
             return NegativeX;
-        if(rotated == posYFace)
+        if(rotated == Y())
             return PositiveY;
-        if(rotated == -posYFace)
+        if(rotated == -Y())
             return NegativeY;
-        if(rotated == posZFace)
+        if(rotated == Z())
             return PositiveZ;
         return NegativeZ;
     }
@@ -76,7 +101,7 @@ inline Vec3 RotateLocalPosition(const BlockOrientation &rotation, const Vec3 &un
     rotation.CheckAssertion();
     Vec3 ret;
 
-    switch(rotation.posXFace)
+    switch(rotation.X())
     {
     case PositiveX: ret.x = +unrotatedPosition.x; break;
     case PositiveY: ret.y = +unrotatedPosition.x; break;
@@ -86,7 +111,7 @@ inline Vec3 RotateLocalPosition(const BlockOrientation &rotation, const Vec3 &un
     case NegativeZ: ret.z = -unrotatedPosition.x; break;
     }
 
-    switch(rotation.posYFace)
+    switch(rotation.Y())
     {
     case PositiveX: ret.x = +unrotatedPosition.y; break;
     case PositiveY: ret.y = +unrotatedPosition.y; break;
@@ -96,7 +121,7 @@ inline Vec3 RotateLocalPosition(const BlockOrientation &rotation, const Vec3 &un
     case NegativeZ: ret.z = -unrotatedPosition.y; break;
     }
 
-    switch(Cross(rotation.posXFace, rotation.posYFace))
+    switch(rotation.Z())
     {
     case PositiveX: ret.x = +unrotatedPosition.z; break;
     case PositiveY: ret.y = +unrotatedPosition.z; break;

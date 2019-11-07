@@ -48,9 +48,9 @@ void FlatLandGenerator::Generate(const ChunkPosition &position, ChunkBlockData *
             if(x == 15 && z == 15)
                 blockData->SetID({ x, ++height, z }, logID, {});
             if(x == 16 && z == 16)
-                blockData->SetID({ x, ++height, z }, logID, { PositiveY, PositiveZ, PositiveX });
+                blockData->SetID({ x, ++height, z }, logID, { PositiveY, PositiveZ });
             if(x == 17 && z == 17)
-                blockData->SetID({ x, ++height, z }, logID, { PositiveZ, PositiveX, PositiveY });
+                blockData->SetID({ x, ++height, z }, logID, { PositiveZ, PositiveX });
 
             //for(int y = 0; y <= height; ++y)
             //    blockData->SetID({ x, y, z }, 1, {});

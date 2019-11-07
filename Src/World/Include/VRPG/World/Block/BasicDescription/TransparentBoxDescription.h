@@ -31,9 +31,7 @@ public:
     void AddBlockModel(
         PartialSectionModelBuilderSet &modelBuilders,
         const Vec3i &blockPosition,
-        const BlockDescription *neighborBlocks[3][3][3],
-        const BlockBrightness neighborBrightness[3][3][3],
-        const BlockOrientation neighborOrientations[3][3][3]) const override;
+        const BlockNeighborhood blocks) const override;
 
 private:
 

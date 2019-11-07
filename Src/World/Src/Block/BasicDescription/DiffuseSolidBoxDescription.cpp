@@ -7,15 +7,14 @@ DiffuseSolidBoxDescription::DiffuseSolidBoxDescription(
     std::string name,
     std::shared_ptr<const DiffuseSolidBlockEffect> effect, int textureIndexInEffect[],
     BlockBrightness emission)
+    : name_(std::move(name)), effect_(std::move(effect)),
+      textureIndexInEffect_{
+        textureIndexInEffect[0], textureIndexInEffect[1], textureIndexInEffect[2],
+        textureIndexInEffect[3], textureIndexInEffect[4], textureIndexInEffect[5]
+      },
+      isLightSource_(emission != BLOCK_BRIGHTNESS_MIN), emission_(emission)
 {
-    name_ = std::move(name);
 
-    effect_ = std::move(effect);
-    for(int i = 0; i < 6; ++i)
-        textureIndexInEffect_[i] = textureIndexInEffect[i];
-
-    isLightSource_ = emission != BLOCK_BRIGHTNESS_MIN;
-    emission_ = emission;
 }
 
 const char *DiffuseSolidBoxDescription::GetName() const
@@ -56,17 +55,15 @@ BlockBrightness DiffuseSolidBoxDescription::InitialBrightness() const noexcept
 void DiffuseSolidBoxDescription::AddBlockModel(
     PartialSectionModelBuilderSet &modelBuilders,
     const Vec3i &blockPosition,
-    const BlockDescription *neighborBlocks[3][3][3],
-    const BlockBrightness neighborBrightness[3][3][3],
-    const BlockOrientation neighborOrientations[3][3][3]) const
+    const BlockNeighborhood blocks) const
 {
     auto builder = modelBuilders.GetBuilderByEffect(effect_.get());
     Vec3 positionBase = blockPosition.map([](int i) { return float(i); });
 
     auto isFaceVisible = [&](int neiX, int neiY, int neiZ, Direction neiDir)
     {
-        neiDir = neighborOrientations[neiX][neiY][neiZ].OriginToRotated(neiDir);
-        FaceVisibilityProperty neiVis = neighborBlocks[neiX][neiY][neiZ]->GetFaceVisibilityProperty(neiDir);
+        neiDir = blocks[neiX][neiY][neiZ].orientation.OriginToRotated(neiDir);
+        FaceVisibilityProperty neiVis = blocks[neiX][neiY][neiZ].desc->GetFaceVisibilityProperty(neiDir);
         FaceVisibility visibility = IsFaceVisible(FaceVisibilityProperty::Solid, neiVis);
         return visibility == FaceVisibility::Yes;
     };
@@ -93,7 +90,7 @@ void DiffuseSolidBoxDescription::AddBlockModel(
         builder->AddIndexedTriangle(vertexCount + 3, vertexCount + 0, vertexCount + 4);
     };
 
-    BlockOrientation orientation = neighborOrientations[1][1][1];
+    BlockOrientation orientation = blocks[1][1][1].orientation;
 
     auto generateFace = [&](Direction normalDirection)
     {
@@ -115,10 +112,10 @@ void DiffuseSolidBoxDescription::AddBlockModel(
         position[2] = RotateLocalPosition(orientation, position[2]);
         position[3] = RotateLocalPosition(orientation, position[3]);
 
-        Vec4 light0 = BoxVertexBrightness(neighborBlocks, neighborBrightness, rotDir, position[0]);
-        Vec4 light1 = BoxVertexBrightness(neighborBlocks, neighborBrightness, rotDir, position[1]);
-        Vec4 light2 = BoxVertexBrightness(neighborBlocks, neighborBrightness, rotDir, position[2]);
-        Vec4 light3 = BoxVertexBrightness(neighborBlocks, neighborBrightness, rotDir, position[3]);
+        Vec4 light0 = BoxVertexBrightness(blocks, rotDir, position[0]);
+        Vec4 light1 = BoxVertexBrightness(blocks, rotDir, position[1]);
+        Vec4 light2 = BoxVertexBrightness(blocks, rotDir, position[2]);
+        Vec4 light3 = BoxVertexBrightness(blocks, rotDir, position[3]);
         
         addFace(positionBase + position[0],
                 positionBase + position[1],

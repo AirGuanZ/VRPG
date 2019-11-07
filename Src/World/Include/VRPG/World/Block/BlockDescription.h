@@ -11,6 +11,7 @@
 
 VRPG_WORLD_BEGIN
 
+class BlockDescription;
 class PartialSectionModelBuilder;
 class PartialSectionModelBuilderSet;
 
@@ -86,6 +87,39 @@ inline FaceVisibility IsFaceVisible(FaceVisibilityProperty thisFace, FaceVisibil
     return LUT[int(thisFace)][int(neighborFace)];
 }
 
+class BlockExtraDataObject
+{
+public:
+
+    virtual ~BlockExtraDataObject() = default;
+
+    // for agz::misc::uint_ptr_variant
+    virtual std::unique_ptr<BlockExtraDataObject> clone() const = 0;
+};
+
+/**
+ * @brief 方块附加信息
+ *
+ * 不是所有的方块都有附加信息
+ */
+using BlockExtraData = agz::misc::uint_ptr_variant_t<uint16_t, BlockExtraDataObject>;
+
+/**
+ * @brief 描述单个方块实例所需的全部信息
+ */
+struct BlockInstance
+{
+    const BlockDescription *desc      = nullptr;
+    const BlockExtraData   *extraData = nullptr;
+    BlockBrightness         brightness;
+    BlockOrientation        orientation;
+};
+
+/**
+ * @brief 某位置的方块及其周围的邻居方块
+ */
+using BlockNeighborhood = BlockInstance[3][3][3];
+
 /**
  * @brief 表示具有相同类型的block的共有属性
  * 
@@ -142,9 +176,7 @@ public:
     virtual void AddBlockModel(
         PartialSectionModelBuilderSet &modelBuilders,
         const Vec3i &blockPosition,
-        const BlockDescription *neighborBlocks[3][3][3],
-        const BlockBrightness neighborBrightness[3][3][3],
-        const BlockOrientation neighborOrientations[3][3][3]) const = 0;
+        const BlockNeighborhood neighborhood) const = 0;
 
     /**
      * @brief 射线与方块求交测试
@@ -154,6 +186,16 @@ public:
     virtual bool RayIntersect(const Vec3 &start, const Vec3 &invDir, float minT, float maxT) const noexcept
     {
         return RayIntersectStdBox(start, invDir, minT, maxT);
+    }
+
+    virtual bool HasExtraData() const  noexcept
+    {
+        return false;
+    }
+
+    virtual BlockExtraData CreateExtraData() const
+    {
+        return BlockExtraData();
     }
 };
 
@@ -184,9 +226,7 @@ public:
         return false;
     }
 
-    void AddBlockModel(
-        PartialSectionModelBuilderSet&,
-        const Vec3i&, const BlockDescription*[3][3][3], const BlockBrightness[3][3][3], const BlockOrientation[3][3][3]) const override
+    void AddBlockModel(PartialSectionModelBuilderSet&, const Vec3i&, const BlockNeighborhood) const override
     {
         // do nothing
     }
