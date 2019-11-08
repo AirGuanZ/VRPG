@@ -164,6 +164,9 @@ private:
     // 单位是section
     std::unordered_set<Vec3i> sectionsWithDirtyModel_;
 
+    // 哪些方块的光照需要更新
+    std::queue<Vec3i> blocksWithDirtyLight_;
+
     // 目前的中心区块位置
     ChunkPosition centreChunkPosition_;
 

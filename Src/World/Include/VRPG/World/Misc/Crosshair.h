@@ -23,7 +23,8 @@ public:
     {
         Vec2i cen = imm.GetFramebufferSize() / 2;
         blend_.Bind();
-        imm.DrawRectangleP(cen - Vec2i(2), cen + Vec2i(2), Vec4(1));
+        imm.DrawRectangleP({ cen.x - 4, cen.y - 1 }, { cen.x + 4, cen.y + 1 }, Vec4(1));
+        imm.DrawRectangleP({ cen.x - 1, cen.y - 4 }, { cen.x + 1, cen.y + 4 }, Vec4(1));
         blend_.Unbind();
     }
 };

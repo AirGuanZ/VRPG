@@ -78,16 +78,18 @@ public:
     std::vector<std::unique_ptr<Chunk>> GetAllLoadingResults();
 
     /**
-     * @brief 添加一个加载完成的区块数据
-     */
-    std::unique_ptr<Chunk> LoadChunk(const ChunkPosition &position);
-
-    /**
      * @brief 尝试设置缓存池中指定位置的方块的id，返回true当且仅当池子中包含该方块的数据
      */
     void SetChunkBlockDataInPool(int blockX, int blockY, int blockZ, BlockID id, BlockOrientation orientation);
 	
 private:
+
+    /**
+     * 新加载一份区块数据
+     *
+     * 注意返回的数据绝不会是从池子里拷贝得到的，池子里的数据只能用来计算光照
+     */
+    std::unique_ptr<Chunk> LoadChunk(const ChunkPosition &position);
 
     void LoadChunkBlockData(const ChunkPosition &position, ChunkBlockData *blockData);
     

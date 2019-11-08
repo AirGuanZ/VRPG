@@ -107,9 +107,6 @@ void ChunkManager::SetBlockID(const Vec3i &globalBlock, BlockID id, BlockOrienta
 
     chunk->SetID(blkPos, id, orientation);
 
-    std::queue<Vec3i> blocksWithDirtyLight; // 哪些方块的光照需要重新计算
-    blocksWithDirtyLight.push(globalBlock);
-
     // 更新height map
 
     int oldHeight = chunk->GetHeight(blkPos.x, blkPos.z);
@@ -119,7 +116,7 @@ void ChunkManager::SetBlockID(const Vec3i &globalBlock, BlockID id, BlockOrienta
 
         chunk->SetHeight(blkPos.x, blkPos.z, blkPos.y);
         for(int i = oldHeight; i < globalBlock.y; ++i)
-            blocksWithDirtyLight.push({ globalBlock.x, i, globalBlock .z});
+            blocksWithDirtyLight_.push({ globalBlock.x, i, globalBlock .z});
     }
     else if(globalBlock .y == oldHeight && id == BLOCK_ID_VOID)
     {
@@ -131,19 +128,16 @@ void ChunkManager::SetBlockID(const Vec3i &globalBlock, BlockID id, BlockOrienta
 
         chunk->SetHeight(blkPos.x, blkPos.z, newHeight);
         for(int i = newHeight; i <= globalBlock.y; ++i)
-            blocksWithDirtyLight.push({ globalBlock.x, i, globalBlock .z });
+            blocksWithDirtyLight_.push({ globalBlock.x, i, globalBlock .z });
     }
 
     // 将消息告知loader pool
 
     loader_->SetChunkBlockDataInPool(globalBlock.x, globalBlock.y, globalBlock.z, id, orientation);
 
-    // 更新光照
+    // 更新光照和section model
 
-    UpdateLight(blocksWithDirtyLight);
-
-    // 更新section model
-
+    blocksWithDirtyLight_.push(globalBlock);
     MakeNeighborSectionsDirty(globalBlock);
 }
 
@@ -174,9 +168,11 @@ bool ChunkManager::FindClosestIntersectedBlock(
     Vec3 invDir = d.map([](float c) { return 1 / c; });
 
     constexpr float STEP = 0.04f;
-    for(float t = 0; t <= maxDistance; t += STEP)
+    float t = 0;
+    while(t <= maxDistance)
     {
         Vec3 p = o + t * d;
+        t += STEP;
         Vec3i blockPosition = p.map([](float c) { return int(std::floor(c)); });
         if(blockPosition == lastBlockPosition)
             continue;
@@ -219,6 +215,8 @@ bool ChunkManager::UpdateChunkData()
 
         log_->trace("receive chunk({}, {}) from loader", position.x, position.z);
     }
+
+    UpdateLight(blocksWithDirtyLight_);
     return ret;
 }
 
@@ -284,10 +282,17 @@ Chunk *ChunkManager::EnsureChunkExists(int chunkX, int chunkZ)
 {
     if(auto it = chunks_.find({ chunkX, chunkZ }); it != chunks_.end())
         return it->second.get();
-    auto newChunk = loader_->LoadChunk({ chunkX, chunkZ });
-    auto ret = newChunk.get();
-    chunks_[{ chunkX, chunkZ }] = std::move(newChunk);
-    return ret;
+
+    loader_->AddLoadingTask({ chunkX, chunkZ });
+    for(;;)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        UpdateChunkData();
+
+        auto it = chunks_.find({ chunkX, chunkZ });
+        if(it != chunks_.end())
+            return it->second.get();
+    }
 }
 
 bool ChunkManager::ShouldDestroy(const ChunkPosition &position) const noexcept

@@ -107,6 +107,11 @@ void ChunkLoader::AddLoadingResult(std::unique_ptr<Chunk> &&loadedChunk)
     loadingResults_->push(std::move(loadedChunk));
 }
 
+void ChunkLoader::SetChunkBlockDataInPool(int globalBlockX, int globalBlockY, int globalBlockZ, BlockID id, BlockOrientation orientation)
+{
+    blockDataPool_->ModifyBlockIDInPool({ globalBlockX, globalBlockY, globalBlockZ }, id, orientation);
+}
+
 std::unique_ptr<Chunk> ChunkLoader::LoadChunk(const ChunkPosition &position)
 {
     // 生成/加载方块数据
@@ -163,11 +168,6 @@ std::unique_ptr<Chunk> ChunkLoader::LoadChunk(const ChunkPosition &position)
     }
 
     return chunk;
-}
-
-void ChunkLoader::SetChunkBlockDataInPool(int globalBlockX, int globalBlockY, int globalBlockZ, BlockID id, BlockOrientation orientation)
-{
-    blockDataPool_->ModifyBlockIDInPool({ globalBlockX, globalBlockY, globalBlockZ }, id, orientation);
 }
 
 void ChunkLoader::LoadChunkBlockData(const ChunkPosition &position, ChunkBlockData *blockData)
