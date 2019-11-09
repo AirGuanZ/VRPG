@@ -64,7 +64,7 @@ void DiffuseHollowBoxDescription::AddBlockModel(
 
     auto isFaceVisible = [&](int neiX, int neiY, int neiZ, Direction neiDir)
     {
-        neiDir = blocks[neiX][neiY][neiZ].orientation.OriginToRotated(neiDir);
+        neiDir = blocks[neiX][neiY][neiZ].orientation.RotatedToOrigin(neiDir);
         FaceVisibilityProperty neiVis = blocks[neiX][neiY][neiZ].desc->GetFaceVisibilityProperty(neiDir);
         FaceVisibility visibility = IsFaceVisible(FaceVisibilityProperty::Hollow, neiVis);
         return visibility == FaceVisibility::Yes || (visibility == FaceVisibility::Pos && !IsPositive(neiDir));

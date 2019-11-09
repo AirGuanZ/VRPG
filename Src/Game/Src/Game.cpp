@@ -11,6 +11,7 @@ Game::Game(Base::Window *window)
 {
     assert(window);
     lbState_ = MouseButtonStateTracker(Base::MouseButton::Left);
+    rbState_ = MouseButtonStateTracker(Base::MouseButton::Right);
 }
 
 void Game::Run()
@@ -44,6 +45,7 @@ void Game::Run()
         window_->ImGuiNewFrame();
 
         lbState_.Update(mouse_);
+        rbState_.Update(mouse_);
 
         if(keyboard_->IsKeyPressed(Base::KEY_ESCAPE) || window_->GetCloseFlag())
             exitMainloop_ = true;
@@ -65,6 +67,8 @@ void Game::Run()
         ChunkTick();
 
         Render();
+
+        fpsCounter_.frame_end();
     }
 
     spdlog::info("exit mainloop");
@@ -118,11 +122,25 @@ void Game::PlayerTick(float deltaT)
 
     camera_->Update(cameraInput, deltaT);
 
-    Vec3i pickedBlockPosition;
-    if(chunkManager_->FindClosestIntersectedBlock(camera_->GetPosition(), camera_->GetDirection(), 8.0f, &pickedBlockPosition))
+    Vec3i pickedBlockPosition; Direction pickedFace = PositiveX;
+    if(chunkManager_->FindClosestIntersectedBlock(camera_->GetPosition(), camera_->GetDirection(), 8.0f, &pickedBlockPosition, &pickedFace))
     {
         if(lbState_.IsDown())
             chunkManager_->SetBlockID(pickedBlockPosition, BLOCK_ID_VOID, {});
+        else if(rbState_.IsDown())
+        {
+            Vec3i newBlockPosition = pickedBlockPosition;
+            switch(pickedFace)
+            {
+            case PositiveX: newBlockPosition.x += 1; break;
+            case NegativeX: newBlockPosition.x -= 1; break;
+            case PositiveY: newBlockPosition.y += 1; break;
+            case NegativeY: newBlockPosition.y -= 1; break;
+            case PositiveZ: newBlockPosition.z += 1; break;
+            case NegativeZ: newBlockPosition.z -= 1; break;
+            }
+            chunkManager_->SetBlockID(newBlockPosition, 2, {});
+        }
     }
 }
 

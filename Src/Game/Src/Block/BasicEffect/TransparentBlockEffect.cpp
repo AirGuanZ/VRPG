@@ -132,10 +132,10 @@ void TransparentBlockEffect::Initialize()
     uniforms_ = shader_.CreateUniformManager();
     
     inputLayout_ = InputLayoutBuilder
-        ("POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT,    ByteOffset(&Vertex::position))
-        ("TEXCOORD",   0, DXGI_FORMAT_R32G32_FLOAT,       ByteOffset(&Vertex::texCoord))
-        ("TEXINDEX",   0, DXGI_FORMAT_R32_UINT,           ByteOffset(&Vertex::texIndex))
-        ("BRIGHTNESS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, ByteOffset(&Vertex::brightness))
+        ("POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT,    offsetof(Vertex, position))
+        ("TEXCOORD",   0, DXGI_FORMAT_R32G32_FLOAT,       offsetof(Vertex, texCoord))
+        ("TEXINDEX",   0, DXGI_FORMAT_R32_UINT,           offsetof(Vertex, texIndex))
+        ("BRIGHTNESS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, offsetof(Vertex, brightness))
         .Build(shader_.GetVertexShaderByteCode());
 
     vsTransform_.Initialize(true, nullptr);

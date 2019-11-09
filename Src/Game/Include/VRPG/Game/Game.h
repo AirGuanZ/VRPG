@@ -39,6 +39,7 @@ private:
     Base::MouseEventManager    *mouse_;
 
     MouseButtonStateTracker lbState_;
+    MouseButtonStateTracker rbState_;
 
     std::unique_ptr<Immediate2D> imm2D_;
     std::unique_ptr<Crosshair> crosshairPainter_;

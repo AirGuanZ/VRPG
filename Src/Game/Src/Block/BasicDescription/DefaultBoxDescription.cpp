@@ -71,7 +71,7 @@ void DefaultBlockDescription::AddBlockModel(
 
     auto isFaceVisible = [&](int neiX, int neiY, int neiZ, Direction neiDir)
     {
-        neiDir = neighborhood[neiX][neiY][neiZ].orientation.OriginToRotated(neiDir);
+        neiDir = neighborhood[neiX][neiY][neiZ].orientation.RotatedToOrigin(neiDir);
         FaceVisibilityProperty neiVis = neighborhood[neiX][neiY][neiZ].desc->GetFaceVisibilityProperty(neiDir);
         FaceVisibility visibility = IsFaceVisible(FaceVisibilityProperty::Solid, neiVis);
         return visibility == FaceVisibility::Yes;

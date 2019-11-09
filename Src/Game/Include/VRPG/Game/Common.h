@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <stdexcept>
 
 #include <spdlog/spdlog.h>
@@ -36,8 +37,6 @@ using Base::D3D::ShaderResourceView;
 using Base::D3D::UniformManager;
 using Base::D3D::VertexBuffer;
 
-using Base::ByteOffset;
-
 using Vec2 = Base::Vec2;
 using Vec3 = Base::Vec3;
 using Vec4 = Base::Vec4;
@@ -51,6 +50,8 @@ using Vec4b = Base::Vec4b;
 
 using Mat4 = Base::Mat4;
 using Trans4 = Base::Trans4;
+
+using StdClock = std::chrono::high_resolution_clock;
 
 class VRPGWorldException : public std::runtime_error
 {

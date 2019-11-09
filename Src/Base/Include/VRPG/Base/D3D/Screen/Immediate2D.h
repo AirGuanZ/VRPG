@@ -148,8 +148,8 @@ inline Immediate2D::DrawTexture::DrawTexture()
     uniforms.GetConstantBufferSlot<SS_PS>("AlphaTest")->SetBuffer(psAlphaTest);
 
     inputLayout = InputLayoutBuilder
-        ("POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, ByteOffset(&Vertex::position))
-        ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, ByteOffset(&Vertex::texCoord))
+        ("POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, offsetof(Vertex, position))
+        ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, offsetof(Vertex, texCoord))
         .Build(shader.GetVertexShaderByteCode());
 
     vertexBuffer.Initialize(6, true, nullptr);
@@ -169,8 +169,8 @@ inline Immediate2D::DrawRectangle::DrawRectangle()
         throw VRPGBaseException("failed to initialize stages for Immediate2D.drawRectangle.shader");
 
     inputLayout = InputLayoutBuilder
-        ("POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, ByteOffset(&Vertex::position))
-        ("COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, ByteOffset(&Vertex::color))
+        ("POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, offsetof(Vertex, position))
+        ("COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, offsetof(Vertex, color))
         .Build(shader.GetVertexShaderByteCode());
 
     vertexBuffer.Initialize(6, true, nullptr);

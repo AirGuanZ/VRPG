@@ -69,11 +69,36 @@ public:
     void SetBlockID(const Vec3i &globalBlock, BlockID id, BlockOrientation orientation);
 
     /**
+     * @brief 设置某个位置的block id与extra data
+     *
+     * 这会触发光照传播计算和渲染数据更新，必要时还会阻塞地加载该位置的区块
+     *
+     * 调用方需保证此方块id一定有extra data
+     */
+    void SetBlockID(const Vec3i &globalBlock, BlockID id, BlockOrientation orientation, BlockExtraData extraData);
+
+    /**
      * @brief 取得某个位置的block id
      *
      * 必要时会阻塞地加载该位置的区块
      */
     BlockID GetBlockID(const Vec3i &globalBlock);
+
+    /**
+     * @brief 取得某个位置的block instance
+     *
+     * 必要时会阻塞地加载该位置的区块
+     */
+    BlockInstance GetBlock(const Vec3i &globalBlock);
+
+    /**
+     * @brief 取得某个位置的block extra data
+     *
+     * 必要时会阻塞地加载该位置的区块
+     *
+     * 调用方需保证此处方块一定有extra data
+     */
+    BlockExtraData *GetExtraData(const Vec3i &globalBlock);
 
     /**
      * @brief 取得某个位置的block brightness
@@ -90,8 +115,9 @@ public:
      * d必须是归一化的，maxDistance需>0
      *
      * （可选）输出被选中的方块位置
+     * （可选）输出被选中的面的法线方向
      */
-    bool FindClosestIntersectedBlock(const Vec3 &o, const Vec3 &d, float maxDistance, Vec3i *pickedBlock = nullptr,
+    bool FindClosestIntersectedBlock(const Vec3 &o, const Vec3 &d, float maxDistance, Vec3i *pickedBlock = nullptr, Direction *pickedFace = nullptr,
         const std::function<bool(const BlockDescription *)> &blockFilter = [](const BlockDescription *) { return true; });
 
     /**

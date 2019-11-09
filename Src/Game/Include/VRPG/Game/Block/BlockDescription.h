@@ -121,6 +121,11 @@ struct BlockInstance
 using BlockNeighborhood = BlockInstance[3][3][3];
 
 /**
+ * @brief 液体方块附加值
+ */
+using LiquidHeight = uint8_t;
+
+/**
  * @brief 表示具有相同类型的block的共有属性
  * 
  *  对每个block id值，都有唯一的block description与之对应
@@ -182,17 +187,25 @@ public:
      * @brief 射线与方块求交测试
      *
      * 输入为参数化线段 o + t * d (t \in [minT, maxT])，射线位于方块的局部坐标系中（即假设方块位于[0, 1]^3）
+     *
+     * （可选）输出与射线首先相交的面的法线
      */
-    virtual bool RayIntersect(const Vec3 &start, const Vec3 &invDir, float minT, float maxT) const noexcept
+    virtual bool RayIntersect(const Vec3 &start, const Vec3 &dir, float minT, float maxT, Direction *pickedFace = nullptr) const noexcept
     {
-        return RayIntersectStdBox(start, invDir, minT, maxT);
+        return RayIntersectStdBox(start, dir, minT, maxT, pickedFace);
     }
 
+    /**
+     * @brief 是否需携带额外数据
+     */
     virtual bool HasExtraData() const  noexcept
     {
         return false;
     }
 
+    /**
+     * @brief 创建新额外数据
+     */
     virtual BlockExtraData CreateExtraData() const
     {
         return BlockExtraData();
@@ -246,7 +259,7 @@ public:
         return { 0, 0, 0, 0 };
     }
 
-    bool RayIntersect(const Vec3 &start, const Vec3 &invDir, float minT, float maxT) const noexcept override
+    bool RayIntersect(const Vec3 &start, const Vec3 &invDir, float minT, float maxT, Direction *pickedFace) const noexcept override
     {
         return false;
     }
@@ -290,6 +303,11 @@ public:
         name2Desc_[std::string(desc->GetName())] = desc;
         blockDescriptions_.push_back(std::move(desc));
         return id;
+    }
+
+    BlockID GetBlockDescriptionCount() const noexcept
+    {
+        return BlockID(blockDescriptions_.size());
     }
 
     const BlockDescription *GetBlockDescription(BlockID id) const noexcept

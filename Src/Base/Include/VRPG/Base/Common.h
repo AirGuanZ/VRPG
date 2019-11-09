@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <stdexcept>
 
 #include <agz/utility/math.h>
@@ -54,12 +55,6 @@ void ReleaseCOMObjects(T0 &&ptr0, T1 &&ptr1, Ts&&...ptrs)
 {
     ReleaseCOMObjects(std::forward<T0>(ptr0));
     ReleaseCOMObjects(std::forward<T1>(ptr1), std::forward<Ts>(ptrs)...);
-}
-
-template<typename C, typename M>
-UINT ByteOffset(M C::* memPtr) noexcept
-{
-    return UINT(agz::byte_offset(memPtr));
 }
 
 inline ID3D11Device        *gDevice        = nullptr;

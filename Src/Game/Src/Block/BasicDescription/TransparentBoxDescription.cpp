@@ -63,7 +63,7 @@ void TransparentBoxDescription::AddBlockModel(
     auto isFaceVisible = [&](int neiX, int neiY, int neiZ, Direction neiDir)
     {
         auto neiDesc = blocks[neiX][neiY][neiZ].desc;
-        neiDir = blocks[neiX][neiY][neiZ].orientation.OriginToRotated(neiDir);
+        neiDir = blocks[neiX][neiY][neiZ].orientation.RotatedToOrigin(neiDir);
         FaceVisibilityProperty neiVis = neiDesc->GetFaceVisibilityProperty(neiDir);
         FaceVisibility vis = IsFaceVisible(FaceVisibilityProperty::Transparent, neiVis);
         return vis == FaceVisibility::Yes || (vis == FaceVisibility::Diff && neiDesc != this);
@@ -80,10 +80,10 @@ void TransparentBoxDescription::AddBlockModel(
         VertexIndex vertexCount = VertexIndex(builder->GetVertexCount());
         VertexIndex startIndex = VertexIndex(builder->GetIndexCount());
 
-        builder->AddVertex({ posA, Vec2(0, 1),       textureIndexInEffect, lhtA });
-        builder->AddVertex({ posB, Vec2(0, 0),       textureIndexInEffect, lhtB });
-        builder->AddVertex({ posC, Vec2(1, 0),       textureIndexInEffect, lhtC });
-        builder->AddVertex({ posD, Vec2(1, 1),       textureIndexInEffect, lhtD });
+        builder->AddVertex({ posA, BOX_FACE_TEXCOORD[0], textureIndexInEffect, lhtA });
+        builder->AddVertex({ posB, BOX_FACE_TEXCOORD[1], textureIndexInEffect, lhtB });
+        builder->AddVertex({ posC, BOX_FACE_TEXCOORD[2], textureIndexInEffect, lhtC });
+        builder->AddVertex({ posD, BOX_FACE_TEXCOORD[3], textureIndexInEffect, lhtD });
         builder->AddVertex({ posE, Vec2(0.5f, 0.5f), textureIndexInEffect, lhtE });
 
         builder->AddIndexedTriangle(vertexCount + 0, vertexCount + 1, vertexCount + 4);

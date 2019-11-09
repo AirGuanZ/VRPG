@@ -98,24 +98,22 @@ public:
         heightMap_[blockInChunkX][blockInChunkZ] = height;
     }
 
-    const BlockExtraData &GetExtraData(const Vec3i &blockInChunk) const
+    const BlockExtraData *GetExtraData(const Vec3i &blockInChunk) const
     {
         assert(0 <= blockInChunk.x && blockInChunk.x < CHUNK_SIZE_X);
         assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
         assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
         auto it = extraData_.find(blockInChunk);
-        assert(it != extraData_.end());
-        return it->second;
+        return it != extraData_.end() ? &it->second : nullptr;
     }
 
-    BlockExtraData &GetExtraData(const Vec3i &blockInChunk)
+    BlockExtraData *GetExtraData(const Vec3i &blockInChunk)
     {
         assert(0 <= blockInChunk.x && blockInChunk.x < CHUNK_SIZE_X);
         assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
         assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
         auto it = extraData_.find(blockInChunk);
-        assert(it != extraData_.end());
-        return it->second;
+        return it != extraData_.end() ? &it->second : nullptr;
     }
 };
 
@@ -211,12 +209,12 @@ public:
         block_.SetHeight(blockInChunkX, blockInChunkZ, height);
     }
 
-    const BlockExtraData &GetExtraData(const Vec3i &blockInChunk) const
+    const BlockExtraData *GetExtraData(const Vec3i &blockInChunk) const
     {
         return block_.GetExtraData(blockInChunk);
     }
 
-    BlockExtraData &GetExtraData(const Vec3i &blockInChunk)
+    BlockExtraData *GetExtraData(const Vec3i &blockInChunk)
     {
         return block_.GetExtraData(blockInChunk);
     }
@@ -228,7 +226,7 @@ public:
         assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
         BlockInstance ret;
         ret.desc        = BlockDescriptionManager::GetInstance().GetBlockDescription(block_.GetID(blockInChunk));
-        ret.extraData   = ret.desc->HasExtraData() ? &block_.GetExtraData(blockInChunk) : nullptr;
+        ret.extraData   = ret.desc->HasExtraData() ? block_.GetExtraData(blockInChunk) : nullptr;
         ret.brightness  = brightness_(blockInChunk);
         ret.orientation = block_.GetOrientation(blockInChunk);
         return ret;

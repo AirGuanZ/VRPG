@@ -118,7 +118,7 @@ void ChunkManager::SetBlockID(const Vec3i &globalBlock, BlockID id, BlockOrienta
         for(int i = oldHeight; i < globalBlock.y; ++i)
             blocksWithDirtyLight_.push({ globalBlock.x, i, globalBlock .z});
     }
-    else if(globalBlock .y == oldHeight && id == BLOCK_ID_VOID)
+    else if(globalBlock.y == oldHeight && id == BLOCK_ID_VOID)
     {
         // 最大高度下降了
 
@@ -141,6 +141,14 @@ void ChunkManager::SetBlockID(const Vec3i &globalBlock, BlockID id, BlockOrienta
     MakeNeighborSectionsDirty(globalBlock);
 }
 
+void ChunkManager::SetBlockID(const Vec3i &globalBlock, uint16_t id, BlockOrientation orientation, BlockExtraData extraData)
+{
+    if(globalBlock.y < 0 || globalBlock.y >= CHUNK_SIZE_Y)
+        return;
+    SetBlockID(globalBlock, id, orientation);
+    *GetExtraData(globalBlock) = std::move(extraData);
+}
+
 BlockID ChunkManager::GetBlockID(const Vec3i &globalBlock)
 {
     if(globalBlock.y < 0 || globalBlock.y >= CHUNK_SIZE_Y)
@@ -148,6 +156,22 @@ BlockID ChunkManager::GetBlockID(const Vec3i &globalBlock)
     auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk(globalBlock);
     auto chunk = EnsureChunkExists(ckPos.x, ckPos.z);
     return chunk->GetID(blkPos);
+}
+
+BlockInstance ChunkManager::GetBlock(const Vec3i &globalBlock)
+{
+    if(globalBlock.y < 0 || globalBlock.y >= CHUNK_SIZE_Y)
+        return BlockInstance{ nullptr, nullptr, BLOCK_BRIGHTNESS_MIN, BlockOrientation() };
+    auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk(globalBlock);
+    auto chunk = EnsureChunkExists(ckPos.x, ckPos.z);
+    return chunk->GetBlock(blkPos);
+}
+
+BlockExtraData *ChunkManager::GetExtraData(const Vec3i &globalBlock)
+{
+    auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk(globalBlock);
+    auto chunk = EnsureChunkExists(ckPos.x, ckPos.z);
+    return chunk->GetExtraData(blkPos);
 }
 
 BlockBrightness ChunkManager::GetBlockBrightness(const Vec3i &globalBlock)
@@ -160,15 +184,15 @@ BlockBrightness ChunkManager::GetBlockBrightness(const Vec3i &globalBlock)
 }
 
 bool ChunkManager::FindClosestIntersectedBlock(
-    const Vec3 &o, const Vec3 &d, float maxDistance, Vec3i *pickedBlock,
+    const Vec3 &o, const Vec3 &d, float maxDistance, Vec3i *pickedBlock, Direction *pickedFace,
     const std::function<bool(const BlockDescription*)> &blockFilter)
 {
     auto &blockDescMgr = BlockDescriptionManager::GetInstance();
     Vec3i lastBlockPosition = Vec3i(std::numeric_limits<Vec3i::elem_t>::lowest());
-    Vec3 invDir = d.map([](float c) { return 1 / c; });
 
-    constexpr float STEP = 0.04f;
+    constexpr float STEP = 0.01f;
     float t = 0;
+
     while(t <= maxDistance)
     {
         Vec3 p = o + t * d;
@@ -176,6 +200,7 @@ bool ChunkManager::FindClosestIntersectedBlock(
         Vec3i blockPosition = p.map([](float c) { return int(std::floor(c)); });
         if(blockPosition == lastBlockPosition)
             continue;
+        lastBlockPosition = blockPosition;
 
         BlockID id = GetBlockID(blockPosition);
         if(id == BLOCK_ID_VOID)
@@ -189,7 +214,7 @@ bool ChunkManager::FindClosestIntersectedBlock(
             o.z - blockPosition.z
         };
 
-        if(desc->RayIntersect(localStart, invDir, 0, maxDistance) && blockFilter(desc))
+        if(desc->RayIntersect(localStart, d, 0, maxDistance, pickedFace) && blockFilter(desc))
         {
             if(pickedBlock)
                 *pickedBlock = blockPosition;
