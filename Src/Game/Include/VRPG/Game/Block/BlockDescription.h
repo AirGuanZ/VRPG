@@ -132,28 +132,45 @@ using LiquidHeight = uint8_t;
  */
 class BlockDescription
 {
+    friend class BlockDescriptionManager;
+
     BlockID blockID_ = 0;
-
-public:
-
-    virtual ~BlockDescription() = default;
 
     void SetBlockID(BlockID id) noexcept
     {
         blockID_ = id;
     }
 
+public:
+
+    virtual ~BlockDescription() = default;
+
+    /**
+     * @brief 取得block id，此id通常由block description manager分配
+     */
     BlockID GetBlockID() const noexcept
     {
         return blockID_;
     }
 
+    /**
+     * @brief 取得block name
+     */
     virtual const char *GetName() const = 0;
 
+    /**
+     * @brief 取得该方块指定面的可见性类型
+     */
     virtual FaceVisibilityProperty GetFaceVisibilityProperty(Direction direction) const noexcept = 0;
 
+    /**
+     * @brief 该方块是否是一个完全不可见的方块
+     */
     virtual bool IsVisible() const noexcept = 0;
 
+    /**
+     * @brief 该方块是否是一个完全遮光的box
+     */
     virtual bool IsFullOpaque() const noexcept = 0;
 
     /**
@@ -190,7 +207,8 @@ public:
      *
      * （可选）输出与射线首先相交的面的法线
      */
-    virtual bool RayIntersect(const Vec3 &start, const Vec3 &dir, float minT, float maxT, Direction *pickedFace = nullptr) const noexcept
+    virtual bool RayIntersect(
+        const Vec3 &start, const Vec3 &dir, float minT, float maxT, Direction *pickedFace = nullptr) const noexcept
     {
         return RayIntersectStdBox(start, dir, minT, maxT, pickedFace);
     }

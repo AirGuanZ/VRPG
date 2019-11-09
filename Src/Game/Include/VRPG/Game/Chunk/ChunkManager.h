@@ -65,6 +65,8 @@ public:
      * @brief 设置某个位置的block id
      *
      * 这会触发光照传播计算和渲染数据更新，必要时还会阻塞地加载该位置的区块
+     *
+     * ChunkManager会自动维护相关的光照计算和模型更新
      */
     void SetBlockID(const Vec3i &globalBlock, BlockID id, BlockOrientation orientation);
 
@@ -74,6 +76,8 @@ public:
      * 这会触发光照传播计算和渲染数据更新，必要时还会阻塞地加载该位置的区块
      *
      * 调用方需保证此方块id一定有extra data
+     *
+     * ChunkManager会自动维护相关的光照计算和模型更新
      */
     void SetBlockID(const Vec3i &globalBlock, BlockID id, BlockOrientation orientation, BlockExtraData extraData);
 
@@ -85,18 +89,11 @@ public:
     BlockID GetBlockID(const Vec3i &globalBlock);
 
     /**
-     * @brief 取得某个位置的block instance
-     *
-     * 必要时会阻塞地加载该位置的区块
-     */
-    BlockInstance GetBlock(const Vec3i &globalBlock);
-
-    /**
      * @brief 取得某个位置的block extra data
      *
      * 必要时会阻塞地加载该位置的区块
      *
-     * 调用方需保证此处方块一定有extra data
+     * 此处方块唔extra data时返回nullptr
      */
     BlockExtraData *GetExtraData(const Vec3i &globalBlock);
 
@@ -106,6 +103,13 @@ public:
      * 必要时会阻塞地加载该位置的区块
      */
     BlockBrightness GetBlockBrightness(const Vec3i &globalBlock);
+
+    /**
+     * @brief 取得某个位置的block instance
+     *
+     * 必要时会阻塞地加载该位置的区块
+     */
+    BlockInstance GetBlock(const Vec3i &globalBlock);
 
     /**
      * @brief 射线与方块求交测试

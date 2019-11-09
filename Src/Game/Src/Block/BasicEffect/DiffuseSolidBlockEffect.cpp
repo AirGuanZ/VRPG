@@ -122,7 +122,7 @@ void DiffuseSolidBlockEffectGenerator::InitializeEffect(DiffuseSolidBlockEffect 
     if(!srv)
         throw VRPGWorldException("failed to create shader resource view of texture2d array of for diffuse solid block effect");
 
-	effect.Initialize(commonProperties_, ShaderResourceView(srv), generatedEffectCount_++);
+    effect.Initialize(commonProperties_, ShaderResourceView(srv), generatedEffectCount_++);
 }
 
 void DiffuseSolidBlockEffect::Initialize(

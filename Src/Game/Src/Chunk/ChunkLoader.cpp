@@ -43,7 +43,7 @@ void ChunkLoader::Initialize(int threadCount, int poolSize, std::unique_ptr<Land
 
 bool ChunkLoader::IsAvailable() const noexcept
 {
-	return !threads_.empty();
+    return !threads_.empty();
 }
 
 void ChunkLoader::Destroy()

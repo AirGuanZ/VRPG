@@ -75,29 +75,6 @@ public:
         return heightMap_[blockInChunkX][blockInChunkZ];
     }
 
-    void SetID(const Vec3i &blockInChunk, BlockID id, BlockOrientation orientation) noexcept
-    {
-        assert(0 <= blockInChunk.x && blockInChunk.x < CHUNK_SIZE_X);
-        assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
-        assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
-
-        auto desc = BlockDescriptionManager::GetInstance().GetBlockDescription(id);
-        if(desc->HasExtraData())
-            extraData_[blockInChunk] = desc->CreateExtraData();
-        else
-            extraData_.erase(blockInChunk);
-
-        blockID_[blockInChunk.x][blockInChunk.z][blockInChunk.y] = id;
-        orientations_[blockInChunk.x][blockInChunk.z][blockInChunk.y] = orientation;
-    }
-
-    void SetHeight(int blockInChunkX, int blockInChunkZ, int height) noexcept
-    {
-        assert(0 <= blockInChunkX && blockInChunkX < CHUNK_SIZE_X);
-        assert(0 <= blockInChunkZ && blockInChunkZ < CHUNK_SIZE_Z);
-        heightMap_[blockInChunkX][blockInChunkZ] = height;
-    }
-
     const BlockExtraData *GetExtraData(const Vec3i &blockInChunk) const
     {
         assert(0 <= blockInChunk.x && blockInChunk.x < CHUNK_SIZE_X);
@@ -114,6 +91,45 @@ public:
         assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
         auto it = extraData_.find(blockInChunk);
         return it != extraData_.end() ? &it->second : nullptr;
+    }
+
+    void SetID(const Vec3i &blockInChunk, BlockID id, BlockOrientation orientation) noexcept
+    {
+        assert(0 <= blockInChunk.x && blockInChunk.x < CHUNK_SIZE_X);
+        assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
+        assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
+
+        auto desc = BlockDescriptionManager::GetInstance().GetBlockDescription(id);
+        if(desc->HasExtraData())
+            extraData_[blockInChunk] = desc->CreateExtraData();
+        else
+            extraData_.erase(blockInChunk);
+
+        blockID_[blockInChunk.x][blockInChunk.z][blockInChunk.y] = id;
+        orientations_[blockInChunk.x][blockInChunk.z][blockInChunk.y] = orientation;
+    }
+
+    void SetID(const Vec3i &blockInChunk, BlockID id, BlockOrientation orientation, BlockExtraData extraData) noexcept
+    {
+        assert(0 <= blockInChunk.x && blockInChunk.x < CHUNK_SIZE_X);
+        assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
+        assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
+
+        auto desc = BlockDescriptionManager::GetInstance().GetBlockDescription(id);
+        if(desc->HasExtraData())
+            extraData_[blockInChunk] = std::move(extraData);
+        else
+            extraData_.erase(blockInChunk);
+
+        blockID_[blockInChunk.x][blockInChunk.z][blockInChunk.y] = id;
+        orientations_[blockInChunk.x][blockInChunk.z][blockInChunk.y] = orientation;
+    }
+
+    void SetHeight(int blockInChunkX, int blockInChunkZ, int height) noexcept
+    {
+        assert(0 <= blockInChunkX && blockInChunkX < CHUNK_SIZE_X);
+        assert(0 <= blockInChunkZ && blockInChunkZ < CHUNK_SIZE_Z);
+        heightMap_[blockInChunkX][blockInChunkZ] = height;
     }
 };
 
@@ -148,18 +164,12 @@ class Chunk
     ChunkBrightnessData brightness_;
     ChunkModel model_;
 
-    bool isDirtySinceLoaded_;
-
 public:
 
-    Chunk() noexcept
-        : isDirtySinceLoaded_(false)
-    {
-        
-    }
+    Chunk() = default;
 
     explicit Chunk(const ChunkPosition &chunkPosition) noexcept
-        : chunkPosition_(chunkPosition), isDirtySinceLoaded_(false)
+        : chunkPosition_(chunkPosition)
     {
         
     }
@@ -184,29 +194,14 @@ public:
         return block_.GetOrientation(blockInChunk);
     }
 
-    void SetID(const Vec3i &blockInChunk, BlockID id, BlockOrientation orientation) noexcept
-    {
-        block_.SetID(blockInChunk, id, orientation);
-    }
-
     BlockBrightness GetBrightness(const Vec3i &blockInChunk) const noexcept
     {
         return brightness_(blockInChunk);
     }
 
-    void SetBrightness(const Vec3i &blockInChunk, BlockBrightness brightness) noexcept
-    {
-        brightness_(blockInChunk) = brightness;
-    }
-
     int GetHeight(int blockInChunkX, int blockInChunkZ) const noexcept
     {
         return block_.GetHeight(blockInChunkX, blockInChunkZ);
-    }
-
-    void SetHeight(int blockInChunkX, int blockInChunkZ, int height) noexcept
-    {
-        block_.SetHeight(blockInChunkX, blockInChunkZ, height);
     }
 
     const BlockExtraData *GetExtraData(const Vec3i &blockInChunk) const
@@ -225,26 +220,36 @@ public:
         assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
         assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
         BlockInstance ret;
-        ret.desc        = BlockDescriptionManager::GetInstance().GetBlockDescription(block_.GetID(blockInChunk));
-        ret.extraData   = ret.desc->HasExtraData() ? block_.GetExtraData(blockInChunk) : nullptr;
-        ret.brightness  = brightness_(blockInChunk);
+        ret.desc = BlockDescriptionManager::GetInstance().GetBlockDescription(block_.GetID(blockInChunk));
+        ret.extraData = ret.desc->HasExtraData() ? block_.GetExtraData(blockInChunk) : nullptr;
+        ret.brightness = brightness_(blockInChunk);
         ret.orientation = block_.GetOrientation(blockInChunk);
         return ret;
+    }
+
+    void SetID(const Vec3i &blockInChunk, BlockID id, BlockOrientation orientation) noexcept
+    {
+        block_.SetID(blockInChunk, id, orientation);
+    }
+
+    void SetID(const Vec3i &blockInChunk, BlockID id, BlockOrientation orientation, BlockExtraData extraData) noexcept
+    {
+        block_.SetID(blockInChunk, id, orientation, std::move(extraData));
+    }
+
+    void SetBrightness(const Vec3i &blockInChunk, BlockBrightness brightness) noexcept
+    {
+        brightness_(blockInChunk) = brightness;
+    }
+
+    void SetHeight(int blockInChunkX, int blockInChunkZ, int height) noexcept
+    {
+        block_.SetHeight(blockInChunkX, blockInChunkZ, height);
     }
 
     const ChunkModel &GetChunkModel() const noexcept
     {
         return model_;
-    }
-
-    bool IsDirtySinceLoaded() const noexcept
-    {
-        return isDirtySinceLoaded_;
-    }
-
-    void SetDirtySinceLoaded() noexcept
-    {
-        isDirtySinceLoaded_ = true;
     }
 
     ChunkBlockData &GetBlockData() noexcept

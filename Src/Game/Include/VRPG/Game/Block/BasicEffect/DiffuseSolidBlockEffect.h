@@ -75,11 +75,11 @@ public:
      * 返回新添加的texture data在texture array中的下标
      */
     int AddTexture(const Vec4 *data);
-	
-	/**
-	 * @brief 初始化给定的effect
- 	 */
-	void InitializeEffect(DiffuseSolidBlockEffect &effect);
+    
+    /**
+     * @brief 初始化给定的effect
+      */
+    void InitializeEffect(DiffuseSolidBlockEffect &effect);
 
 private:
 
@@ -101,9 +101,9 @@ public:
 
     using Builder = NativePartialSectionModelBuilder<DiffuseSolidBlockEffect>;
 
-	void Initialize(
-		std::shared_ptr<Generator::CommonProperties> commonProperties,
-		ShaderResourceView textureArray, int semanticsIndex);
+    void Initialize(
+        std::shared_ptr<Generator::CommonProperties> commonProperties,
+        ShaderResourceView textureArray, int semanticsIndex);
 
     const char *GetName() const override;
 

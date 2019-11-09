@@ -158,15 +158,6 @@ BlockID ChunkManager::GetBlockID(const Vec3i &globalBlock)
     return chunk->GetID(blkPos);
 }
 
-BlockInstance ChunkManager::GetBlock(const Vec3i &globalBlock)
-{
-    if(globalBlock.y < 0 || globalBlock.y >= CHUNK_SIZE_Y)
-        return BlockInstance{ nullptr, nullptr, BLOCK_BRIGHTNESS_MIN, BlockOrientation() };
-    auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk(globalBlock);
-    auto chunk = EnsureChunkExists(ckPos.x, ckPos.z);
-    return chunk->GetBlock(blkPos);
-}
-
 BlockExtraData *ChunkManager::GetExtraData(const Vec3i &globalBlock)
 {
     auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk(globalBlock);
@@ -181,6 +172,15 @@ BlockBrightness ChunkManager::GetBlockBrightness(const Vec3i &globalBlock)
     auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk(globalBlock);
     auto chunk = EnsureChunkExists(ckPos.x, ckPos.z);
     return chunk->GetBrightness(blkPos);
+}
+
+BlockInstance ChunkManager::GetBlock(const Vec3i &globalBlock)
+{
+    if(globalBlock.y < 0 || globalBlock.y >= CHUNK_SIZE_Y)
+        return BlockInstance{ nullptr, nullptr, BLOCK_BRIGHTNESS_MIN, BlockOrientation() };
+    auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk(globalBlock);
+    auto chunk = EnsureChunkExists(ckPos.x, ckPos.z);
+    return chunk->GetBlock(blkPos);
 }
 
 bool ChunkManager::FindClosestIntersectedBlock(

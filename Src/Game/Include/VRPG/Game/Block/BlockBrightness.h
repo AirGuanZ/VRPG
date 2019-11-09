@@ -128,6 +128,10 @@ inline Vec4 ComputeVertexBrightness(const BlockBrightness &a, const BlockBrightn
         BlockBrightnessToFloat(d));
 }
 
+/**
+ * 侧面和地面的方块比顶面的方块看上去暗一些，
+ * 这里给出其显示的亮度比值
+ */
 constexpr float SIDE_VERTEX_BRIGHTNESS_RATIO = 0.8f;
 
 VRPG_GAME_END

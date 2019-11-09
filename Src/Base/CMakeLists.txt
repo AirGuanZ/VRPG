@@ -5,10 +5,10 @@ PROJECT(BASE)
 SET(TargetName Base)
 
 FILE(GLOB_RECURSE TARGET_SRC
-		"${PROJECT_SOURCE_DIR}/Src/*.cpp"
-		"${PROJECT_SOURCE_DIR}/Src/*.h"
-		"${PROJECT_SOURCE_DIR}/Include/*.h"
-		"${PROJECT_SOURCE_DIR}/Include/*.inl")
+        "${PROJECT_SOURCE_DIR}/Src/*.cpp"
+        "${PROJECT_SOURCE_DIR}/Src/*.h"
+        "${PROJECT_SOURCE_DIR}/Include/*.h"
+        "${PROJECT_SOURCE_DIR}/Include/*.inl")
 ADD_LIBRARY(${TargetName} STATIC ${TARGET_SRC})
 
 FOREACH(_SRC IN ITEMS ${TARGET_SRC})
@@ -19,10 +19,21 @@ FOREACH(_SRC IN ITEMS ${TARGET_SRC})
     SOURCE_GROUP("${_GRP_PATH}" FILES "${_SRC}")
 ENDFOREACH()
 
-SET(${TargetName}_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/Include ${AGZUtils_INCLUDE_DIRS} ${ImGui_INCLUDE_DIRS} ${directxtk_INCLUDE_DIRS} CACHE STRING "")
-SET(${TargetName}_LIBRARIES ${TargetName} ${ImGui_LIBRARIES} directxtk AGZUtils d3d11.lib dxgi.lib d3dcompiler.lib dxguid.lib CACHE STRING "")
+SET(${TargetName}_INCLUDE_DIRS
+		"${PROJECT_SOURCE_DIR}/Include"
+		"${AGZUtils_INCLUDE_DIRS}"
+		"${ImGui_INCLUDE_DIRS}"
+		"${directxtk_INCLUDE_DIRS}"
+		CACHE STRING "")
+SET(${TargetName}_LIBRARIES
+		${TargetName}
+		${ImGui_LIBRARIES}
+		directxtk
+		AGZUtils
+		d3d11.lib dxgi.lib d3dcompiler.lib dxguid.lib
+		CACHE STRING "")
 
-TARGET_INCLUDE_DIRECTORIES(${TargetName} PRIVATE ${PROJECT_SOURCE_DIR}/Include/)
-TARGET_INCLUDE_DIRECTORIES(${TargetName} PRIVATE ${AGZUtils_INCLUDE_DIRS})
-TARGET_INCLUDE_DIRECTORIES(${TargetName} PRIVATE ${directxtk_INCLUDE_DIRS})
-TARGET_INCLUDE_DIRECTORIES(${TargetName} PRIVATE ${ImGui_INCLUDE_DIRS})
+TARGET_INCLUDE_DIRECTORIES(${TargetName} PRIVATE "${PROJECT_SOURCE_DIR}/Include/")
+TARGET_INCLUDE_DIRECTORIES(${TargetName} PRIVATE "${AGZUtils_INCLUDE_DIRS}")
+TARGET_INCLUDE_DIRECTORIES(${TargetName} PRIVATE "${directxtk_INCLUDE_DIRS}")
+TARGET_INCLUDE_DIRECTORIES(${TargetName} PRIVATE "${ImGui_INCLUDE_DIRS}")

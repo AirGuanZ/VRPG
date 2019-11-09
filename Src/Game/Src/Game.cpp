@@ -120,6 +120,7 @@ void Game::PlayerTick(float deltaT)
     cameraInput.relativeCursorX = float(mouse_->GetRelativeCursorPositionX());
     cameraInput.relativeCursorY = float(mouse_->GetRelativeCursorPositionY());
 
+    camera_->SetWOverH(window_->GetClientAspectRatio());
     camera_->Update(cameraInput, deltaT);
 
     Vec3i pickedBlockPosition; Direction pickedFace = PositiveX;
@@ -181,7 +182,10 @@ void Game::Render()
     ImGui::SetNextWindowPos({ 20, 20 });
     if(ImGui::Begin("debug overlay", nullptr, WIN_FLAG))
     {
-        ImGui::Text("fps: %i\n", fpsCounter_.fps());
+        ImGui::Text("fps: %i", fpsCounter_.fps());
+
+        Vec3 position = camera_->GetPosition();
+        ImGui::Text("position: (%f, %f, %f)", position.x, position.y, position.z);
     }
     ImGui::End();
 

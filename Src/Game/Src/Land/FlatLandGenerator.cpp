@@ -30,7 +30,7 @@ void FlatLandGenerator::Generate(const ChunkPosition &position, ChunkBlockData *
 
             for(int y = 0; y < height - 3; ++y)
                 blockData->SetID({ x, y, z }, stoneID, {});
-			for(int y = (std::max)(height - 3, 0); y < height; ++y)
+            for(int y = (std::max)(height - 3, 0); y < height; ++y)
                 blockData->SetID({ x, y ,z }, soilID, {});
             blockData->SetID({ x, height, z }, lawnID, {});
 
