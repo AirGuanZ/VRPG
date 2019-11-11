@@ -21,6 +21,7 @@ int main()
         desc.clientWidth  = 900;
         desc.clientHeight = 600;
         desc.sampleCount  = 4;
+        //desc.fullscreen = true;
         window.Initialize(desc);
 
         spdlog::info("initialize builtin block manager");

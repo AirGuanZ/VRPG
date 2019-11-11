@@ -164,15 +164,19 @@ void Window::Initialize(const WindowDesc &windowDesc)
 
     // style, rect size and title
 
+    int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+    int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+    int clientWidth = windowDesc.fullscreen ? screenWidth : windowDesc.clientWidth;
+    int clientHeight = windowDesc.fullscreen ? screenHeight : windowDesc.clientHeight;
+
     DWORD dwStyle = 0;
     dwStyle |= WS_POPUPWINDOW | WS_CAPTION | WS_SIZEBOX | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
 
-    RECT winRect = { 0, 0, windowDesc.clientWidth, windowDesc.clientHeight };
+    RECT winRect = { 0, 0, clientWidth, clientHeight };
     if(!AdjustWindowRect(&winRect, dwStyle, FALSE))
         throw VRPGBaseException("failed to adjust window size");
 
-    int screenWidth   = GetSystemMetrics(SM_CXSCREEN);
-    int screenHeight  = GetSystemMetrics(SM_CYSCREEN);
     int realWinWidth  = winRect.right - winRect.left;
     int realWinHeight = winRect.bottom - winRect.top;
     int realWinLeft   = (screenWidth - realWinWidth) / 2;
@@ -218,6 +222,8 @@ void Window::Initialize(const WindowDesc &windowDesc)
     data_->swapChain = D3D::CreateD3D11SwapChain(
         data_->hWindow, data_->clientWidth, data_->clientHeight,
         windowDesc.colorFormat, windowDesc.sampleCount, windowDesc.sampleQuality, device);
+    if(windowDesc.fullscreen)
+        data_->swapChain->SetFullscreenState(TRUE, nullptr);
 
     // render target view
 
@@ -288,6 +294,9 @@ void Window::Destroy()
 
     if(data_->deviceContext)
         data_->deviceContext->ClearState();
+
+    if(data_->swapChain)
+        data_->swapChain->SetFullscreenState(FALSE, nullptr);
     ReleaseCOMObjects(data_->swapChain, data_->deviceContext);
 
 #ifdef AGZ_DEBUG

@@ -16,6 +16,7 @@ struct WindowDesc
 {
     int clientWidth  = 640;
     int clientHeight = 480;
+    bool fullscreen  = false;
     std::wstring windowTitle = L"VRPG Window";
 
     bool vsync = true;

@@ -48,10 +48,11 @@ private:
 
     std::string name_;
     LiquidDescription liquid_;
-    BlockBrightness attenuation_;
 
     std::shared_ptr<const TransparentBlockEffect> effect_;
     int textureIndexInEffect_;
+
+    BlockBrightness attenuation_;
 };
 
 VRPG_GAME_END
