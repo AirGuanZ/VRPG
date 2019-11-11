@@ -14,19 +14,22 @@ class LiquidUpdater : public BlockUpdater
      * 返回true当且仅当发生了反应
      */
     bool ReactWithNeighborhood(
-        const BlockInstance &block, BlockUpdaterManager &updateManager, ChunkManager &chunkManager, StdClock::time_point now);
+        const BlockInstance &block, BlockUpdaterManager &updaterManager, ChunkManager &chunkManager, StdClock::time_point now);
 
     /**
      * @brief 处理某个方块周围流到该方块处的结果
      */
     void FlowFromNeighborhood(
-        const BlockInstance &block, BlockUpdaterManager &updateManager, ChunkManager &chunkManager, StdClock::time_point now);
+        const BlockInstance &block, BlockUpdaterManager &updaterManager, ChunkManager &chunkManager, StdClock::time_point now);
 
 public:
 
     LiquidUpdater(StdClock::time_point expectedUpdatingTime, const Vec3i &blockPos) noexcept;
 
-    void Execute(BlockUpdaterManager &updateManager, ChunkManager &chunkManager, StdClock::time_point now) override;
+    void Execute(BlockUpdaterManager &updaterManager, ChunkManager &chunkManager, StdClock::time_point now) override;
+
+    static void AddUpdaterForNeighborhood(
+        const Vec3i &blockPosition, BlockUpdaterManager &updaterManager, ChunkManager &chunkManager, StdClock::time_point now);
 };
 
 VRPG_GAME_END

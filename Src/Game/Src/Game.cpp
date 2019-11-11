@@ -134,9 +134,7 @@ void Game::PlayerTick(float deltaT)
         {
             chunkManager_->SetBlockID(pickedBlockPosition, BLOCK_ID_VOID, {});
 
-            StdClock::time_point updatingTime = StdClock::now() + std::chrono::duration_cast<StdClock::duration>(std::chrono::milliseconds(500));
-            blockUpdaterManager_->AddUpdater(std::make_unique<LiquidUpdater>(updatingTime, pickedBlockPosition));
-            // FIXME
+            LiquidUpdater::AddUpdaterForNeighborhood(pickedBlockPosition, *blockUpdaterManager_, *chunkManager_, StdClock::now());
         }
         else if(rbState_.IsDown())
         {
@@ -157,15 +155,7 @@ void Game::PlayerTick(float deltaT)
                 BlockID waterID = waterDesc->GetBlockID();
                 chunkManager_->SetBlockID(newBlockPosition, waterID, {}, MakeLiquidExtraData(waterDesc->GetLiquidDescription()->sourceLevel));
 
-                StdClock::time_point updatingTime = StdClock::now() + waterDesc->GetLiquidDescription()->spreadDelay;
-
-                blockUpdaterManager_->AddUpdater(std::make_unique<LiquidUpdater>(updatingTime, newBlockPosition + Vec3i(+1, 0, 0)));
-                blockUpdaterManager_->AddUpdater(std::make_unique<LiquidUpdater>(updatingTime, newBlockPosition + Vec3i(-1, 0, 0)));
-                blockUpdaterManager_->AddUpdater(std::make_unique<LiquidUpdater>(updatingTime, newBlockPosition + Vec3i(0, 0, +1)));
-                blockUpdaterManager_->AddUpdater(std::make_unique<LiquidUpdater>(updatingTime, newBlockPosition + Vec3i(0, 0, -1)));
-                blockUpdaterManager_->AddUpdater(std::make_unique<LiquidUpdater>(updatingTime, newBlockPosition + Vec3i(0, +1, 0)));
-                blockUpdaterManager_->AddUpdater(std::make_unique<LiquidUpdater>(updatingTime, newBlockPosition + Vec3i(0, -1, 0)));
-                // FIXME
+                LiquidUpdater::AddUpdaterForNeighborhood(newBlockPosition, *blockUpdaterManager_, *chunkManager_, StdClock::now());
             }
         }
     }
