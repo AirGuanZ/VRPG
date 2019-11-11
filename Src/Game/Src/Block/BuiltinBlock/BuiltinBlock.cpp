@@ -216,10 +216,13 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
     }
 
     {
+        auto textureData = LoadTransparentTextureFrom("Asset/World/Texture/BuiltinBlock/Water.png");
+        int textureIndex = transparentEffect->AddTexture(agz::texture::texture2d_t<Vec4>(std::move(textureData)));
+
         LiquidDescription waterLiquid;
         waterLiquid.isLiquid = true;
         auto waterDesc = std::make_shared<TransparentLiquidDescription>(
-            "water", waterLiquid, BlockBrightness{ 1, 1, 1, 1 });
+            "water", waterLiquid, transparentEffect, textureIndex, BlockBrightness{ 1, 1, 1, 1 });
         descMgr.RegisterBlockDescription(waterDesc);
         info_[int(BuiltinBlockType::Water)].desc = waterDesc;
     }

@@ -90,11 +90,19 @@ inline Vec4 BlockBrightnessToFloat(BlockBrightness brightness) noexcept
 }
 
 /**
+ * @brief 将单个float block brightness映射为一份vertex brightness
+ */
+inline Vec4 ComputeVertexBrightness(const Vec4 &a) noexcept
+{
+    return 0.002f + 0.998f * a;
+}
+
+/**
  * @brief 将三个float block brightness映射为一份vertex brightness
  */
 inline Vec4 ComputeVertexBrightness(const Vec4 &a, const Vec4 &b, const Vec4 &c) noexcept
 {
-    return 0.002f + 0.998f * 0.333333f * (a + b + c);
+    return ComputeVertexBrightness(0.333333f * (a + b + c));
 }
 
 /**
@@ -102,7 +110,15 @@ inline Vec4 ComputeVertexBrightness(const Vec4 &a, const Vec4 &b, const Vec4 &c)
  */
 inline Vec4 ComputeVertexBrightness(const Vec4 &a, const Vec4 &b, const Vec4 &c, const Vec4 &d) noexcept
 {
-    return 0.002f + 0.998f * 0.25f * (a + b + c + d);
+    return ComputeVertexBrightness(0.25f * (a + b + c + d));
+}
+
+/**
+ * @brief 将一个block brightness映射为一份vertex brightness
+ */
+inline Vec4 ComputeVertexBrightness(const BlockBrightness &a) noexcept
+{
+    return ComputeVertexBrightness(BlockBrightnessToFloat(a));
 }
 
 /**

@@ -99,9 +99,9 @@ void Game::Initialize()
     spdlog::info("initialize chunk manager");
 
     ChunkManagerParams chunkMgrParams;
-    chunkMgrParams.unloadDistance        = 12;
-    chunkMgrParams.loadDistance          = 10;
-    chunkMgrParams.renderDistance        = 9;
+    chunkMgrParams.unloadDistance        = 10;
+    chunkMgrParams.loadDistance          = 8;
+    chunkMgrParams.renderDistance        = 7;
     chunkMgrParams.backgroundPoolSize    = 20;
     chunkMgrParams.backgroundThreadCount = 1;
     chunkManager_ = std::make_unique<ChunkManager>(chunkMgrParams, std::make_unique<FlatLandGenerator>(20));

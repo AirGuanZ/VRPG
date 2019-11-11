@@ -8,7 +8,7 @@ VRPG_GAME_BEGIN
  * @brief 方块的某个面具有怎样的可见性判定性质
  *
  * 实体-实体：    不可见-不可见
- * 实体-半透明：  可见-不可见
+ * 实体-半透明：  可见-可见
  * 实体-镂空：    可见-不可见
  * 实体-非box：   可见-可见
  * 半透明-半透明：同ID则均不可见，否则均可见
@@ -50,7 +50,7 @@ inline FaceVisibility TestFaceVisibility(FaceVisibilityProperty thisFace, FaceVi
             /* solid-nonbox            */ FaceVisibility::Yes
         },
         {
-            /* transparent-solid       */ FaceVisibility::No,
+            /* transparent-solid       */ FaceVisibility::Yes,
             /* transparent-transparent */ FaceVisibility::Diff,
             /* transparent-hollow      */ FaceVisibility::Yes,
             /* transparent-nonbox      */ FaceVisibility::Yes

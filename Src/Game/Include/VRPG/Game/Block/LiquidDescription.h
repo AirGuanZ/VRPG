@@ -51,7 +51,7 @@ public:
 
     // 将液体级别映射为顶点高度，注意不应对液体源调用此方法
     // assert(1 <= level && level <= sourceLevel - 1)
-    virtual float LevelToVertexHeight(LiquidLevel level) const noexcept { return level / (sourceLevel - 1.0f); }
+    virtual float LevelToVertexHeight(LiquidLevel level) const noexcept { return std::pow(level / (sourceLevel - 1.0f), 1.5f); }
 
     // 其上方有不同类型方块的液体源的顶面会比1低一些，此成员函数返回其高度
     virtual float TopSourceHeight() const noexcept { return 0.875f; }

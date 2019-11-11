@@ -19,7 +19,7 @@ inline Vec4 BoxVertexBrightness(
     static const FaceInfo FACE_INFO[] =
     {
         { 2, 0 }, // +x
-        { 0, 0 }, //-x
+        { 0, 0 }, // -x
         { 2, 1 }, // +y
         { 0, 1 }, // -y
         { 2, 2 }, // +z
@@ -61,6 +61,9 @@ inline Vec4 BoxVertexBrightness(
 
 template<Direction NormalDirection>
 void GenerateBoxFace(Vec3 vertices[4]) noexcept;
+
+template<Direction NormalDirection>
+void GenerateBoxFacei(Vec3i vertices[4]) noexcept;
 
 template<>
 inline void GenerateBoxFace<PositiveX>(Vec3 vertices[4]) noexcept
@@ -116,6 +119,60 @@ inline void GenerateBoxFace<NegativeZ>(Vec3 vertices[4]) noexcept
     vertices[3] = { 1, 0, 0 };
 }
 
+template<>
+inline void GenerateBoxFacei<PositiveX>(Vec3i vertices[4]) noexcept
+{
+    vertices[0] = { 1, 0, 0 };
+    vertices[1] = { 1, 1, 0 };
+    vertices[2] = { 1, 1, 1 };
+    vertices[3] = { 1, 0, 1 };
+}
+
+template<>
+inline void GenerateBoxFacei<NegativeX>(Vec3i vertices[4]) noexcept
+{
+    vertices[0] = { 0, 0, 1 };
+    vertices[1] = { 0, 1, 1 };
+    vertices[2] = { 0, 1, 0 };
+    vertices[3] = { 0, 0, 0 };
+}
+
+template<>
+inline void GenerateBoxFacei<PositiveY>(Vec3i vertices[4]) noexcept
+{
+    vertices[0] = { 0, 1, 0 };
+    vertices[1] = { 0, 1, 1 };
+    vertices[2] = { 1, 1, 1 };
+    vertices[3] = { 1, 1, 0 };
+}
+
+template<>
+inline void GenerateBoxFacei<NegativeY>(Vec3i vertices[4]) noexcept
+{
+    vertices[0] = { 1, 0, 0 };
+    vertices[1] = { 1, 0, 1 };
+    vertices[2] = { 0, 0, 1 };
+    vertices[3] = { 0, 0, 0 };
+}
+
+template<>
+inline void GenerateBoxFacei<PositiveZ>(Vec3i vertices[4]) noexcept
+{
+    vertices[0] = { 1, 0, 1 };
+    vertices[1] = { 1, 1, 1 };
+    vertices[2] = { 0, 1, 1 };
+    vertices[3] = { 0, 0, 1 };
+}
+
+template<>
+inline void GenerateBoxFacei<NegativeZ>(Vec3i vertices[4]) noexcept
+{
+    vertices[0] = { 0, 0, 0 };
+    vertices[1] = { 0, 1, 0 };
+    vertices[2] = { 1, 1, 0 };
+    vertices[3] = { 1, 0, 0 };
+}
+
 inline const Vec2 BOX_FACE_TEXCOORD[] =
 {
     { 0, 1 },
@@ -134,6 +191,19 @@ inline void GenerateBoxFaceDynamic(Direction normalDirection, Vec3 position[4]) 
     case NegativeY: GenerateBoxFace<NegativeY>(position); break;
     case PositiveZ: GenerateBoxFace<PositiveZ>(position); break;
     case NegativeZ: GenerateBoxFace<NegativeZ>(position); break;
+    }
+}
+
+inline void GenerateBoxFaceiDynamic(Direction normalDirection, Vec3i position[4]) noexcept
+{
+    switch(normalDirection)
+    {
+    case PositiveX: GenerateBoxFacei<PositiveX>(position); break;
+    case NegativeX: GenerateBoxFacei<NegativeX>(position); break;
+    case PositiveY: GenerateBoxFacei<PositiveY>(position); break;
+    case NegativeY: GenerateBoxFacei<NegativeY>(position); break;
+    case PositiveZ: GenerateBoxFacei<PositiveZ>(position); break;
+    case NegativeZ: GenerateBoxFacei<NegativeZ>(position); break;
     }
 }
 

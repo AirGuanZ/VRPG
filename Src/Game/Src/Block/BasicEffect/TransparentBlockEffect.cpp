@@ -24,7 +24,7 @@ namespace
             VertexBuffer<TransparentBlockEffect::Vertex> vertexBuffer,
             IndexBuffer<VertexIndex> indexBuffer,
             std::vector<VertexIndex> originalIndices,
-            std::vector<TransparentBlockEffect::Builder::FaceIndexRange> blocks) noexcept
+            std::vector<TransparentBlockEffect::Builder::FaceIndexRange> blocks)
             : PartialSectionModel(globalSectionPosition), effect_(effect),
               vertexBuffer_(std::move(vertexBuffer)), originalIndices_(std::move(originalIndices)),
               blocks_(std::move(blocks)), indexBuffer_(std::move(indexBuffer))

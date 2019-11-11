@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <VRPG/Game/Block/BasicEffect/DefaultBlockEffect.h>
+#include <VRPG/Game/Block/BasicEffect/TransparentBlockEffect.h>
 #include <VRPG/Game/Block/BlockDescription.h>
 
 VRPG_GAME_BEGIN
@@ -10,7 +10,9 @@ class TransparentLiquidDescription : public BlockDescription
 public:
 
     TransparentLiquidDescription(
-        std::string name, LiquidDescription liquid, BlockBrightness attenuation);
+        std::string name, LiquidDescription liquid,
+        std::shared_ptr<const TransparentBlockEffect> effect, int textureIndexInEffect,
+        BlockBrightness attenuation);
 
     const char *GetName() const override;
 
@@ -48,7 +50,8 @@ private:
     LiquidDescription liquid_;
     BlockBrightness attenuation_;
 
-    std::shared_ptr<const DefaultBlockEffect> effect_;
+    std::shared_ptr<const TransparentBlockEffect> effect_;
+    int textureIndexInEffect_;
 };
 
 VRPG_GAME_END
