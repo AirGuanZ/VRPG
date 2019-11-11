@@ -1,4 +1,4 @@
-#include <agz/utility/file.h>
+﻿#include <agz/utility/file.h>
 
 #include <VRPG/Game/Block/BasicEffect/DiffuseHollowBlockEffect.h>
 

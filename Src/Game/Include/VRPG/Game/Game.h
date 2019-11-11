@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <agz/utility/time.h>
 
@@ -7,6 +7,8 @@
 #include <VRPG/Game/Chunk/ChunkRenderer.h>
 #include <VRPG/Game/Misc/Crosshair.h>
 #include <VRPG/Game/Utility/KeyStateTracker.h>
+#include <VRPG/Game/World/BlockUpdater.h>
+#include <VRPG/Game/World/BlockUpdater/LiquidUpdater.h>
 
 VRPG_GAME_BEGIN
 
@@ -47,6 +49,8 @@ private:
     std::unique_ptr<DefaultCamera> camera_;
     std::unique_ptr<ChunkRenderer> chunkRenderer_;
     std::unique_ptr<ChunkManager> chunkManager_;
+
+    std::unique_ptr<BlockUpdaterManager> blockUpdaterManager_;
 
     us worldTickInterval_;
 

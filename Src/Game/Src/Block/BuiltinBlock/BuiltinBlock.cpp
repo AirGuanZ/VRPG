@@ -1,10 +1,9 @@
-#include <agz/utility/image.h>
+﻿#include <agz/utility/image.h>
 
-#include <VRPG/Game/Block/BasicDescription/DefaultBoxDescription.h>
 #include <VRPG/Game/Block/BasicDescription/DiffuseHollowBoxDescription.h>
 #include <VRPG/Game/Block/BasicDescription/DiffuseSolidBoxDescription.h>
 #include <VRPG/Game/Block/BasicDescription/TransparentBoxDescription.h>
-#include <VRPG/Game/Block/BasicEffect/DefaultBlockEffect.h>
+#include <VRPG/Game/Block/BasicDescription/TransparentLiquidDescription.h>
 #include <VRPG/Game/Block/BasicEffect/DiffuseHollowBlockEffect.h>
 #include <VRPG/Game/Block/BasicEffect/DiffuseSolidBlockEffect.h>
 #include <VRPG/Game/Block/BasicEffect/TransparentBlockEffect.h>
@@ -42,7 +41,7 @@ namespace
         // 计算非透明像素的平均颜色
 
         int count = 0; Vec3 sum;
-        original.map([&](const Vec4 &c)
+        (void)original.map([&](const Vec4 &c)
         {
             if(c.w > 0.5f)
             {
@@ -80,15 +79,6 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
 {
     auto &descMgr = BlockDescriptionManager::GetInstance();
     auto &effectMgr = BlockEffectManager::GetInstance();
-    
-    {
-        auto defaultEffect = std::make_shared<DefaultBlockEffect>();
-        effectMgr.RegisterBlockEffect(defaultEffect);
-        
-        auto defaultDesc = std::make_shared<DefaultBlockDescription>(defaultEffect);
-        descMgr.RegisterBlockDescription(defaultDesc);
-        info_[int(BuiltinBlockType::Default)].desc = defaultDesc;
-    }
 
     DiffuseHollowBlockEffectGenerator diffuseHollowBlockEffectGenerator(32, 64);
     auto diffuseHollowEffect = std::make_shared<DiffuseHollowBlockEffect>();
@@ -223,6 +213,15 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
             "red glass", transparentEffect, textureIndices, BlockBrightness{ 1, 1, 1, 1 });
         descMgr.RegisterBlockDescription(whiteGlassDesc);
         info_[int(BuiltinBlockType::RedGlass)].desc = whiteGlassDesc;
+    }
+
+    {
+        LiquidDescription waterLiquid;
+        waterLiquid.isLiquid = true;
+        auto waterDesc = std::make_shared<TransparentLiquidDescription>(
+            "water", waterLiquid, BlockBrightness{ 1, 1, 1, 1 });
+        descMgr.RegisterBlockDescription(waterDesc);
+        info_[int(BuiltinBlockType::Water)].desc = waterDesc;
     }
 
     if(!diffuseHollowBlockEffectGenerator.IsEmpty())

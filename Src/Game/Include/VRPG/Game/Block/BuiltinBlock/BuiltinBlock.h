@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <VRPG/Game/Block/BlockDescription.h>
 
@@ -6,15 +6,19 @@ VRPG_GAME_BEGIN
 
 enum class BuiltinBlockType
 {
-    Default,
     Stone,
     Soil,
     Lawn,
     Log,
+
     GlowStone,
+
     Leaf,
+
     WhiteGlass,
     RedGlass,
+
+    Water,
 
     TypeCount
 };

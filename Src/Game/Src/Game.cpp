@@ -1,5 +1,6 @@
-#include <ImGui/imgui.h>
+﻿#include <ImGui/imgui.h>
 
+#include <VRPG/Game/Block/BuiltinBlock/BuiltinBlock.h>
 #include <VRPG/Game/Land/FlatLandGenerator.h>
 #include <VRPG/Game/Game.h>
 
@@ -88,6 +89,7 @@ void Game::Initialize()
     camera_->SetViewSpeed(0.003f);
     camera_->SetWOverH(window_->GetClientAspectRatio());
     camera_->SetPosition({ 0, 30, 0 });
+    camera_->SetFOVy(70);
     camera_->SetClipDistance(0.1f, 1000.0f);
 
     spdlog::info("initialize chunk renderer");
@@ -103,6 +105,8 @@ void Game::Initialize()
     chunkMgrParams.backgroundPoolSize    = 20;
     chunkMgrParams.backgroundThreadCount = 1;
     chunkManager_ = std::make_unique<ChunkManager>(chunkMgrParams, std::make_unique<FlatLandGenerator>(20));
+
+    blockUpdaterManager_ = std::make_unique<BlockUpdaterManager>(chunkManager_.get());
 
     worldTickInterval_ = us(50 * 1000);
 }
@@ -127,7 +131,13 @@ void Game::PlayerTick(float deltaT)
     if(chunkManager_->FindClosestIntersectedBlock(camera_->GetPosition(), camera_->GetDirection(), 8.0f, &pickedBlockPosition, &pickedFace))
     {
         if(lbState_.IsDown())
+        {
             chunkManager_->SetBlockID(pickedBlockPosition, BLOCK_ID_VOID, {});
+
+            StdClock::time_point updatingTime = StdClock::now() + std::chrono::duration_cast<StdClock::duration>(std::chrono::milliseconds(500));
+            blockUpdaterManager_->AddUpdater(std::make_unique<LiquidUpdater>(updatingTime, pickedBlockPosition));
+            // FIXME
+        }
         else if(rbState_.IsDown())
         {
             Vec3i newBlockPosition = pickedBlockPosition;
@@ -140,14 +150,30 @@ void Game::PlayerTick(float deltaT)
             case PositiveZ: newBlockPosition.z += 1; break;
             case NegativeZ: newBlockPosition.z -= 1; break;
             }
-            chunkManager_->SetBlockID(newBlockPosition, 2, {});
+
+            if(chunkManager_->GetBlockDesc(newBlockPosition)->IsReplacable())
+            {
+                auto waterDesc = BuiltinBlockTypeManager::GetInstance().GetDesc(BuiltinBlockType::Water).desc;
+                BlockID waterID = waterDesc->GetBlockID();
+                chunkManager_->SetBlockID(newBlockPosition, waterID, {}, MakeLiquidExtraData(waterDesc->GetLiquidDescription()->sourceLevel));
+
+                StdClock::time_point updatingTime = StdClock::now() + waterDesc->GetLiquidDescription()->spreadDelay;
+
+                blockUpdaterManager_->AddUpdater(std::make_unique<LiquidUpdater>(updatingTime, newBlockPosition + Vec3i(+1, 0, 0)));
+                blockUpdaterManager_->AddUpdater(std::make_unique<LiquidUpdater>(updatingTime, newBlockPosition + Vec3i(-1, 0, 0)));
+                blockUpdaterManager_->AddUpdater(std::make_unique<LiquidUpdater>(updatingTime, newBlockPosition + Vec3i(0, 0, +1)));
+                blockUpdaterManager_->AddUpdater(std::make_unique<LiquidUpdater>(updatingTime, newBlockPosition + Vec3i(0, 0, -1)));
+                blockUpdaterManager_->AddUpdater(std::make_unique<LiquidUpdater>(updatingTime, newBlockPosition + Vec3i(0, +1, 0)));
+                blockUpdaterManager_->AddUpdater(std::make_unique<LiquidUpdater>(updatingTime, newBlockPosition + Vec3i(0, -1, 0)));
+                // FIXME
+            }
         }
     }
 }
 
 void Game::WorldTick()
 {
-
+    blockUpdaterManager_->Execute(StdClock::now());
 }
 
 void Game::ChunkTick()
@@ -178,7 +204,7 @@ void Game::Render()
         ImGuiWindowFlags_NoSavedSettings |
         ImGuiWindowFlags_NoFocusOnAppearing |
         ImGuiWindowFlags_NoNav;
-    ImGui::SetNextWindowBgAlpha(0.2f);
+    ImGui::SetNextWindowBgAlpha(0.3f);
     ImGui::SetNextWindowPos({ 20, 20 });
     if(ImGui::Begin("debug overlay", nullptr, WIN_FLAG))
     {
@@ -203,6 +229,9 @@ void Game::Render()
 
 void Game::Destroy()
 {
+    spdlog::info("destroy block updater manager");
+    blockUpdaterManager_.reset();
+
     spdlog::info("destroy immediate2D && crosshairPainter");
     imm2D_.reset();
     crosshairPainter_.reset();

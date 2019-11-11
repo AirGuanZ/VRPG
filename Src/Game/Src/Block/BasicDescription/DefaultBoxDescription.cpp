@@ -1,4 +1,4 @@
-#include <VRPG/Game/Block/BasicDescription/DefaultBoxDescription.h>
+﻿#include <VRPG/Game/Block/BasicDescription/DefaultBoxDescription.h>
 #include <VRPG/Game/Block/BasicEffect/DefaultBlockEffect.h>
 #include <VRPG/Game/Utility/BoxModel.h>
 
@@ -73,7 +73,7 @@ void DefaultBlockDescription::AddBlockModel(
     {
         neiDir = neighborhood[neiX][neiY][neiZ].orientation.RotatedToOrigin(neiDir);
         FaceVisibilityProperty neiVis = neighborhood[neiX][neiY][neiZ].desc->GetFaceVisibilityProperty(neiDir);
-        FaceVisibility visibility = IsFaceVisible(FaceVisibilityProperty::Solid, neiVis);
+        FaceVisibility visibility = TestFaceVisibility(FaceVisibilityProperty::Solid, neiVis);
         return visibility == FaceVisibility::Yes;
     };
 

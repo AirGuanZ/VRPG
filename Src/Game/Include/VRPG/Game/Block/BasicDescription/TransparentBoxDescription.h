@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <VRPG/Game/Block/BasicEffect/TransparentBlockEffect.h>
 #include <VRPG/Game/Block/BlockDescription.h>

@@ -1,4 +1,4 @@
-#include <VRPG/Game/Block/BlockDescription.h>
+﻿#include <VRPG/Game/Block/BlockDescription.h>
 #include <VRPG/Game/Block/BuiltinBlock/BuiltinBlock.h>
 #include <VRPG/Game/Land/FlatLandGenerator.h>
 

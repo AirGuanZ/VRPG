@@ -1,4 +1,4 @@
-#include <VRPG/Game/Block/BasicDescription/DiffuseHollowBoxDescription.h>
+﻿#include <VRPG/Game/Block/BasicDescription/DiffuseHollowBoxDescription.h>
 #include <VRPG/Game/Utility/BoxModel.h>
 
 VRPG_GAME_BEGIN
@@ -66,7 +66,7 @@ void DiffuseHollowBoxDescription::AddBlockModel(
     {
         neiDir = blocks[neiX][neiY][neiZ].orientation.RotatedToOrigin(neiDir);
         FaceVisibilityProperty neiVis = blocks[neiX][neiY][neiZ].desc->GetFaceVisibilityProperty(neiDir);
-        FaceVisibility visibility = IsFaceVisible(FaceVisibilityProperty::Hollow, neiVis);
+        FaceVisibility visibility = TestFaceVisibility(FaceVisibilityProperty::Hollow, neiVis);
         return visibility == FaceVisibility::Yes || (visibility == FaceVisibility::Pos && !IsPositive(neiDir));
     };
     

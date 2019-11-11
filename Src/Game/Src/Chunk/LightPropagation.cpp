@@ -1,4 +1,4 @@
-#include <deque>
+﻿#include <deque>
 #include <queue>
 
 #include <VRPG/Game/Chunk/LightPropagation.h>

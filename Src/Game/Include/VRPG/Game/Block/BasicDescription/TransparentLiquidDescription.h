@@ -1,24 +1,24 @@
 ﻿#pragma once
 
-#include <VRPG/Game/Block/BasicEffect/DiffuseSolidBlockEffect.h>
+#include <VRPG/Game/Block/BasicEffect/DefaultBlockEffect.h>
 #include <VRPG/Game/Block/BlockDescription.h>
 
 VRPG_GAME_BEGIN
 
-class DiffuseSolidBoxDescription : public BlockDescription
+class TransparentLiquidDescription : public BlockDescription
 {
 public:
 
-    DiffuseSolidBoxDescription(
-        std::string name,
-        std::shared_ptr<const DiffuseSolidBlockEffect> effect, int textureIndexInEffect[],
-        BlockBrightness emission);
+    TransparentLiquidDescription(
+        std::string name, LiquidDescription liquid, BlockBrightness attenuation);
 
     const char *GetName() const override;
 
     FaceVisibilityProperty GetFaceVisibilityProperty(Direction direction) const noexcept override;
 
     bool IsVisible() const noexcept override;
+
+    bool IsReplacable() const noexcept override;
 
     bool IsFullOpaque() const noexcept override;
 
@@ -33,15 +33,22 @@ public:
         const Vec3i &blockPosition,
         const BlockNeighborhood blocks) const override;
 
+    bool RayIntersect(
+        const Vec3 &start, const Vec3 &dir, float minT, float maxT, Direction *pickedFace) const noexcept override;
+
+    bool HasExtraData() const noexcept override;
+
+    BlockExtraData CreateExtraData() const override;
+
+    const LiquidDescription *GetLiquidDescription() const noexcept override;
+
 private:
 
     std::string name_;
+    LiquidDescription liquid_;
+    BlockBrightness attenuation_;
 
-    std::shared_ptr<const DiffuseSolidBlockEffect> effect_;
-    int textureIndexInEffect_[6];
-
-    bool isLightSource_;
-    BlockBrightness emission_;
+    std::shared_ptr<const DefaultBlockEffect> effect_;
 };
 
 VRPG_GAME_END

@@ -1,4 +1,4 @@
-#include <VRPG/Game/Camera/DefaultCamera.h>
+﻿#include <VRPG/Game/Camera/DefaultCamera.h>
 
 VRPG_GAME_BEGIN
 

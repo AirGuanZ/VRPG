@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <VRPG/Game/Block/BlockBrightness.h>
 #include <VRPG/Game/Block/BlockDescription.h>
@@ -18,119 +18,29 @@ public:
 
     ChunkBlockData() = default;
 
-    ChunkBlockData(const ChunkBlockData &copyFrom)
-    {
-        std::memcpy(blockID_,      copyFrom.blockID_,      sizeof(blockID_));
-        std::memcpy(orientations_, copyFrom.orientations_, sizeof(orientations_));
-        std::memcpy(heightMap_,    copyFrom.heightMap_,    sizeof(heightMap_));
-        extraData_ = copyFrom.extraData_;
-    }
+    ChunkBlockData(const ChunkBlockData &copyFrom);
 
-    ChunkBlockData &operator=(const ChunkBlockData &copyFrom)
-    {
-        std::memcpy(blockID_,      copyFrom.blockID_,      sizeof(blockID_));
-        std::memcpy(orientations_, copyFrom.orientations_, sizeof(orientations_));
-        std::memcpy(heightMap_,    copyFrom.heightMap_,    sizeof(heightMap_));
-        extraData_ = copyFrom.extraData_;
-        return *this;
-    }
+    ChunkBlockData &operator=(const ChunkBlockData &copyFrom);
 
-    ChunkBlockData(ChunkBlockData &&moveFrom) noexcept
-    {
-        std::memcpy(blockID_,      moveFrom.blockID_,      sizeof(blockID_));
-        std::memcpy(orientations_, moveFrom.orientations_, sizeof(orientations_));
-        std::memcpy(heightMap_,    moveFrom.heightMap_,    sizeof(heightMap_));
-        extraData_ = std::move(moveFrom.extraData_);
-    }
+    ChunkBlockData(ChunkBlockData &&moveFrom) noexcept;
 
-    ChunkBlockData &operator=(ChunkBlockData &&moveFrom) noexcept
-    {
-        std::memcpy(blockID_,      moveFrom.blockID_,      sizeof(blockID_));
-        std::memcpy(orientations_, moveFrom.orientations_, sizeof(orientations_));
-        std::memcpy(heightMap_,    moveFrom.heightMap_,    sizeof(heightMap_));
-        extraData_ = std::move(moveFrom.extraData_);
-        return *this;
-    }
+    ChunkBlockData &operator=(ChunkBlockData &&moveFrom) noexcept;
 
-    BlockID GetID(const Vec3i &blockInChunk) const noexcept
-    {
-        assert(0 <= blockInChunk.x && blockInChunk.x < CHUNK_SIZE_X);
-        assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
-        assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
-        return blockID_[blockInChunk.x][blockInChunk.z][blockInChunk.y];
-    }
+    BlockID GetID(const Vec3i &blockInChunk) const noexcept;
 
-    BlockOrientation GetOrientation(const Vec3i &blockInChunk) const noexcept
-    {
-        assert(0 <= blockInChunk.x && blockInChunk.x < CHUNK_SIZE_X);
-        assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
-        assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
-        return orientations_[blockInChunk.x][blockInChunk.z][blockInChunk.y];
-    }
+    BlockOrientation GetOrientation(const Vec3i &blockInChunk) const noexcept;
 
-    int GetHeight(int blockInChunkX, int blockInChunkZ) const noexcept
-    {
-        assert(0 <= blockInChunkX && blockInChunkX < CHUNK_SIZE_X);
-        assert(0 <= blockInChunkZ && blockInChunkZ < CHUNK_SIZE_Z);
-        return heightMap_[blockInChunkX][blockInChunkZ];
-    }
+    int GetHeight(int blockInChunkX, int blockInChunkZ) const noexcept;
 
-    const BlockExtraData *GetExtraData(const Vec3i &blockInChunk) const
-    {
-        assert(0 <= blockInChunk.x && blockInChunk.x < CHUNK_SIZE_X);
-        assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
-        assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
-        auto it = extraData_.find(blockInChunk);
-        return it != extraData_.end() ? &it->second : nullptr;
-    }
+    const BlockExtraData *GetExtraData(const Vec3i &blockInChunk) const;
 
-    BlockExtraData *GetExtraData(const Vec3i &blockInChunk)
-    {
-        assert(0 <= blockInChunk.x && blockInChunk.x < CHUNK_SIZE_X);
-        assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
-        assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
-        auto it = extraData_.find(blockInChunk);
-        return it != extraData_.end() ? &it->second : nullptr;
-    }
+    BlockExtraData *GetExtraData(const Vec3i &blockInChunk);
 
-    void SetID(const Vec3i &blockInChunk, BlockID id, BlockOrientation orientation) noexcept
-    {
-        assert(0 <= blockInChunk.x && blockInChunk.x < CHUNK_SIZE_X);
-        assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
-        assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
+    void SetID(const Vec3i &blockInChunk, BlockID id, BlockOrientation orientation) noexcept;
 
-        auto desc = BlockDescriptionManager::GetInstance().GetBlockDescription(id);
-        if(desc->HasExtraData())
-            extraData_[blockInChunk] = desc->CreateExtraData();
-        else
-            extraData_.erase(blockInChunk);
+    void SetID(const Vec3i &blockInChunk, BlockID id, BlockOrientation orientation, BlockExtraData extraData) noexcept;
 
-        blockID_[blockInChunk.x][blockInChunk.z][blockInChunk.y] = id;
-        orientations_[blockInChunk.x][blockInChunk.z][blockInChunk.y] = orientation;
-    }
-
-    void SetID(const Vec3i &blockInChunk, BlockID id, BlockOrientation orientation, BlockExtraData extraData) noexcept
-    {
-        assert(0 <= blockInChunk.x && blockInChunk.x < CHUNK_SIZE_X);
-        assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
-        assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
-
-        auto desc = BlockDescriptionManager::GetInstance().GetBlockDescription(id);
-        if(desc->HasExtraData())
-            extraData_[blockInChunk] = std::move(extraData);
-        else
-            extraData_.erase(blockInChunk);
-
-        blockID_[blockInChunk.x][blockInChunk.z][blockInChunk.y] = id;
-        orientations_[blockInChunk.x][blockInChunk.z][blockInChunk.y] = orientation;
-    }
-
-    void SetHeight(int blockInChunkX, int blockInChunkZ, int height) noexcept
-    {
-        assert(0 <= blockInChunkX && blockInChunkX < CHUNK_SIZE_X);
-        assert(0 <= blockInChunkZ && blockInChunkZ < CHUNK_SIZE_Z);
-        heightMap_[blockInChunkX][blockInChunkZ] = height;
-    }
+    void SetHeight(int blockInChunkX, int blockInChunkZ, int height) noexcept;
 };
 
 class ChunkBrightnessData
@@ -139,21 +49,9 @@ class ChunkBrightnessData
 
 public:
 
-    BlockBrightness &operator()(const Vec3i &blockInChunk) noexcept
-    {
-        assert(0 <= blockInChunk.x && blockInChunk.x < CHUNK_SIZE_X);
-        assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
-        assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
-        return implBlockBrightness_[blockInChunk.x][blockInChunk.z][blockInChunk.y];
-    }
+    BlockBrightness GetBrightness(const Vec3i &blockInChunk) const noexcept;
 
-    BlockBrightness operator()(const Vec3i &blockInChunk) const noexcept
-    {
-        assert(0 <= blockInChunk.x && blockInChunk.x < CHUNK_SIZE_X);
-        assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
-        assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
-        return implBlockBrightness_[blockInChunk.x][blockInChunk.z][blockInChunk.y];
-    }
+    void SetBrightness(const Vec3i &blockInChunk, BlockBrightness brightness) noexcept;
 };
 
 class Chunk
@@ -168,96 +66,41 @@ public:
 
     Chunk() = default;
 
-    explicit Chunk(const ChunkPosition &chunkPosition) noexcept
-        : chunkPosition_(chunkPosition)
-    {
-        
-    }
+    explicit Chunk(const ChunkPosition &chunkPosition) noexcept;
 
-    void SetPosition(const ChunkPosition &position) noexcept
-    {
-        chunkPosition_ = position;
-    }
+    void SetPosition(const ChunkPosition &position) noexcept;
 
-    const ChunkPosition &GetPosition() const noexcept
-    {
-        return chunkPosition_;
-    }
+    const ChunkPosition &GetPosition() const noexcept;
 
-    BlockID GetID(const Vec3i &blockInChunk) const noexcept
-    {
-        return block_.GetID(blockInChunk);
-    }
+    BlockID GetID(const Vec3i &blockInChunk) const noexcept;
 
-    BlockOrientation GetOrientation(const Vec3i &blockInChunk) const noexcept
-    {
-        return block_.GetOrientation(blockInChunk);
-    }
+    BlockOrientation GetOrientation(const Vec3i &blockInChunk) const noexcept;
 
-    BlockBrightness GetBrightness(const Vec3i &blockInChunk) const noexcept
-    {
-        return brightness_(blockInChunk);
-    }
+    BlockBrightness GetBrightness(const Vec3i &blockInChunk) const noexcept;
 
-    int GetHeight(int blockInChunkX, int blockInChunkZ) const noexcept
-    {
-        return block_.GetHeight(blockInChunkX, blockInChunkZ);
-    }
+    int GetHeight(int blockInChunkX, int blockInChunkZ) const noexcept;
 
-    const BlockExtraData *GetExtraData(const Vec3i &blockInChunk) const
-    {
-        return block_.GetExtraData(blockInChunk);
-    }
+    const BlockExtraData *GetExtraData(const Vec3i &blockInChunk) const;
 
-    BlockExtraData *GetExtraData(const Vec3i &blockInChunk)
-    {
-        return block_.GetExtraData(blockInChunk);
-    }
+    BlockExtraData *GetExtraData(const Vec3i &blockInChunk);
 
-    BlockInstance GetBlock(const Vec3i &blockInChunk) const
-    {
-        assert(0 <= blockInChunk.x && blockInChunk.x < CHUNK_SIZE_X);
-        assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
-        assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
-        BlockInstance ret;
-        ret.desc = BlockDescriptionManager::GetInstance().GetBlockDescription(block_.GetID(blockInChunk));
-        ret.extraData = ret.desc->HasExtraData() ? block_.GetExtraData(blockInChunk) : nullptr;
-        ret.brightness = brightness_(blockInChunk);
-        ret.orientation = block_.GetOrientation(blockInChunk);
-        return ret;
-    }
+    BlockInstance GetBlock(const Vec3i &blockInChunk) const;
 
-    void SetID(const Vec3i &blockInChunk, BlockID id, BlockOrientation orientation) noexcept
-    {
-        block_.SetID(blockInChunk, id, orientation);
-    }
+    void SetID(const Vec3i &blockInChunk, BlockID id, BlockOrientation orientation) noexcept;
 
-    void SetID(const Vec3i &blockInChunk, BlockID id, BlockOrientation orientation, BlockExtraData extraData) noexcept
-    {
-        block_.SetID(blockInChunk, id, orientation, std::move(extraData));
-    }
+    void SetID(const Vec3i &blockInChunk, BlockID id, BlockOrientation orientation, BlockExtraData extraData) noexcept;
 
-    void SetBrightness(const Vec3i &blockInChunk, BlockBrightness brightness) noexcept
-    {
-        brightness_(blockInChunk) = brightness;
-    }
+    void SetBrightness(const Vec3i &blockInChunk, BlockBrightness brightness) noexcept;
 
-    void SetHeight(int blockInChunkX, int blockInChunkZ, int height) noexcept
-    {
-        block_.SetHeight(blockInChunkX, blockInChunkZ, height);
-    }
+    void SetHeight(int blockInChunkX, int blockInChunkZ, int height) noexcept;
 
-    const ChunkModel &GetChunkModel() const noexcept
-    {
-        return model_;
-    }
+    const ChunkModel &GetChunkModel() const noexcept;
 
-    ChunkBlockData &GetBlockData() noexcept
-    {
-        return block_;
-    }
+    ChunkBlockData &GetBlockData() noexcept;
 
     void RegenerateSectionModel(const Vec3i &sectionInChunk, const Chunk *neighboringChunks[3][3]);
 };
 
 VRPG_GAME_END
+
+#include "./Impl/Chunk.inl"

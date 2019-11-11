@@ -1,4 +1,4 @@
-#include <VRPG/Game/Block/BlockEffect.h>
+﻿#include <VRPG/Game/Block/BlockEffect.h>
 #include <VRPG/Game/Chunk/Chunk.h>
 
 VRPG_GAME_BEGIN

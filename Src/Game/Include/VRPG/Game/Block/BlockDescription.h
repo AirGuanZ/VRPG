@@ -1,129 +1,17 @@
-#pragma once
+﻿#pragma once
 
 #include <cassert>
 #include <memory>
 #include <vector>
 
 #include <VRPG/Base/Singleton.h>
-#include <VRPG/Game/Block/BlockBrightness.h>
-#include <VRPG/Game/Block/BlockOrientation.h>
-#include <VRPG/Game/Utility/RayBoxIntersect.h>
+#include <VRPG/Game/Block/BlockInstance.h>
+#include <VRPG/Game/Block/BlockVisibility.h>
+#include <VRPG/Game/Block/LiquidDescription.h>
 
 VRPG_GAME_BEGIN
 
-class BlockDescription;
-class PartialSectionModelBuilder;
 class PartialSectionModelBuilderSet;
-
-/**
- * @brief 用于表示单个Block的类型
- */
-using BlockID = uint16_t;
-
-/**
- * @brief 方块的某个面具有怎样的可见性判定性质
- *
- * 实体-实体：不可见-不可见
- * 实体-半透明：可见-不可见
- * 实体-镂空：可见-不可见
- * 实体-非box：可见-可见
- * 半透明-半透明：同ID则均不可见，否则均可见
- * 半透明-镂空：可见-可见
- * 半透明-非box：可见-可见
- * 镂空-镂空：根据方向选择其中一个可见，另一个不可见
- * 镂空-非box：可见-可见
- * 非box-非box：可见-可见
- */
-enum class FaceVisibilityProperty
-{
-    Solid       = 0, // 实体，如石头，泥土
-    Transparent = 1, // 半透明，如液体底面
-    Hollow      = 2, // 镂空，如树叶
-    Nonbox      = 3  // 非box类，如围栏
-};
-
-/**
- * @brief 方块某个面的可见性
- */
-enum class FaceVisibility
-{
-    Yes,  // 该面可见
-    No,   // 该面不可见
-    Pos,  // 该面法线为+x/+y/+z时可见，否则不可见
-    Diff  // 该面和相邻面ID不同时可见，否则不可见
-};
-
-/**
- * @brief 测试一个面是否会被与它相邻的面挡住
- */
-inline FaceVisibility IsFaceVisible(FaceVisibilityProperty thisFace, FaceVisibilityProperty neighborFace) noexcept
-{
-    static const FaceVisibility LUT[4][4] = {
-        {
-            /* solid-solid             */ FaceVisibility::No,
-            /* solid-transparent       */ FaceVisibility::Yes,
-            /* solid-hollow            */ FaceVisibility::Yes,
-            /* solid-nonbox            */ FaceVisibility::Yes
-        },
-        {
-            /* transparent-solid       */ FaceVisibility::No,
-            /* transparent-transparent */ FaceVisibility::Diff,
-            /* transparent-hollow      */ FaceVisibility::Yes,
-            /* transparent-nonbox      */ FaceVisibility::Yes
-        },
-        {
-            /* hollow-solid            */ FaceVisibility::No,
-            /* hollow-transparent      */ FaceVisibility::Yes,
-            /* hollow-hollow           */ FaceVisibility::Pos,
-            /* hollow-nonbox           */ FaceVisibility::Yes
-        },
-        {
-            /* nonbox-solid            */ FaceVisibility::Yes,
-            /* nonbox-transparent      */ FaceVisibility::Yes,
-            /* nonbox-hollow           */ FaceVisibility::Yes,
-            /* nonbox-nonbox           */ FaceVisibility::Yes
-        }
-    };
-    return LUT[int(thisFace)][int(neighborFace)];
-}
-
-class BlockExtraDataObject
-{
-public:
-
-    virtual ~BlockExtraDataObject() = default;
-
-    // for agz::misc::uint_ptr_variant
-    virtual std::unique_ptr<BlockExtraDataObject> clone() const = 0;
-};
-
-/**
- * @brief 方块附加信息
- *
- * 不是所有的方块都有附加信息
- */
-using BlockExtraData = agz::misc::uint_ptr_variant_t<uint16_t, BlockExtraDataObject>;
-
-/**
- * @brief 描述单个方块实例所需的全部信息
- */
-struct BlockInstance
-{
-    const BlockDescription *desc      = nullptr;
-    const BlockExtraData   *extraData = nullptr;
-    BlockBrightness         brightness;
-    BlockOrientation        orientation;
-};
-
-/**
- * @brief 某位置的方块及其周围的邻居方块
- */
-using BlockNeighborhood = BlockInstance[3][3][3];
-
-/**
- * @brief 液体方块附加值
- */
-using LiquidHeight = uint8_t;
 
 /**
  * @brief 表示具有相同类型的block的共有属性
@@ -136,10 +24,7 @@ class BlockDescription
 
     BlockID blockID_ = 0;
 
-    void SetBlockID(BlockID id) noexcept
-    {
-        blockID_ = id;
-    }
+    void SetBlockID(BlockID id) noexcept { blockID_ = id; }
 
 public:
 
@@ -148,10 +33,7 @@ public:
     /**
      * @brief 取得block id，此id通常由block description manager分配
      */
-    BlockID GetBlockID() const noexcept
-    {
-        return blockID_;
-    }
+    BlockID GetBlockID() const noexcept { return blockID_; }
 
     /**
      * @brief 取得block name
@@ -162,6 +44,13 @@ public:
      * @brief 取得该方块指定面的可见性类型
      */
     virtual FaceVisibilityProperty GetFaceVisibilityProperty(Direction direction) const noexcept = 0;
+
+    /**
+     * @brief 是否是一个可替代的方块
+     *
+     * 如空气、水等
+     */
+    virtual bool IsReplacable() const noexcept { return IsVoid() || IsLiquid(); }
 
     /**
      * @brief 该方块是否是一个完全不可见的方块
@@ -198,7 +87,7 @@ public:
     virtual void AddBlockModel(
         PartialSectionModelBuilderSet &modelBuilders,
         const Vec3i &blockPosition,
-        const BlockNeighborhood neighborhood) const = 0;
+        const BlockNeighborhood blocks) const = 0;
 
     /**
      * @brief 射线与方块求交测试
@@ -208,85 +97,33 @@ public:
      * （可选）输出与射线首先相交的面的法线
      */
     virtual bool RayIntersect(
-        const Vec3 &start, const Vec3 &dir, float minT, float maxT, Direction *pickedFace = nullptr) const noexcept
-    {
-        return RayIntersectStdBox(start, dir, minT, maxT, pickedFace);
-    }
+        const Vec3 &start, const Vec3 &dir, float minT, float maxT, Direction *pickedFace = nullptr) const noexcept;
 
     /**
      * @brief 是否需携带额外数据
      */
-    virtual bool HasExtraData() const  noexcept
-    {
-        return false;
-    }
+    virtual bool HasExtraData() const  noexcept;
 
     /**
      * @brief 创建新额外数据
      */
-    virtual BlockExtraData CreateExtraData() const
-    {
-        return BlockExtraData();
-    }
+    virtual BlockExtraData CreateExtraData() const;
+
+    /**
+     * @brief 取得液体属性
+     */
+    virtual const LiquidDescription *GetLiquidDescription() const noexcept;
+
+    /**
+     * @brief 是否是液体
+     */
+    bool IsLiquid() const noexcept { return GetLiquidDescription()->isLiquid; }
+
+    /**
+     * @brief 是否是void
+     */
+    bool IsVoid() const noexcept { return blockID_ == BLOCK_ID_VOID; }
 };
-
-/**
- * @brief 空方块
- */
-class VoidBlockDescription : public BlockDescription
-{
-public:
-
-    const char *GetName() const override
-    {
-        return "void";
-    }
-
-    FaceVisibilityProperty GetFaceVisibilityProperty(Direction direction) const noexcept override
-    {
-        return FaceVisibilityProperty::Nonbox;
-    }
-
-    bool IsVisible() const noexcept override
-    {
-        return false;
-    }
-
-    bool IsFullOpaque() const noexcept override
-    {
-        return false;
-    }
-
-    void AddBlockModel(PartialSectionModelBuilderSet&, const Vec3i&, const BlockNeighborhood) const override
-    {
-        // do nothing
-    }
-
-    bool IsLightSource() const noexcept override
-    {
-        return false;
-    }
-
-    BlockBrightness LightAttenuation() const noexcept override
-    {
-        return { 1, 1, 1, 1 };
-    }
-
-    BlockBrightness InitialBrightness() const noexcept override
-    {
-        return { 0, 0, 0, 0 };
-    }
-
-    bool RayIntersect(const Vec3 &start, const Vec3 &invDir, float minT, float maxT, Direction *pickedFace) const noexcept override
-    {
-        return false;
-    }
-};
-
-/**
- * @brief 空方块拥有固定的ID值
- */
-constexpr BlockID BLOCK_ID_VOID = 0;
 
 class BlockDescriptionManager : public Base::Singleton<BlockDescriptionManager>
 {
@@ -296,32 +133,11 @@ class BlockDescriptionManager : public Base::Singleton<BlockDescriptionManager>
 
 public:
 
-    BlockDescriptionManager()
-    {
-        auto voidDesc = std::make_shared<VoidBlockDescription>();
-        RegisterBlockDescription(std::move(voidDesc));
-    }
+    BlockDescriptionManager();
 
-    BlockID RegisterBlockDescription(std::shared_ptr<BlockDescription> desc)
-    {
-        assert(blockDescriptions_.size() < (std::numeric_limits<BlockID>::max)());
+    BlockID RegisterBlockDescription(std::shared_ptr<BlockDescription> desc);
 
-        if(auto it = name2Desc_.find(desc->GetName()); it != name2Desc_.end())
-        {
-            if(it->second != desc)
-                throw VRPGWorldException("repeated block description name: " + std::string(desc->GetName()));
-            return desc->GetBlockID();
-        }
-
-        BlockID id = BlockID(blockDescriptions_.size());
-        desc->SetBlockID(id);
-        spdlog::info("register block description (name = {}, id = {})", desc->GetName(), id);
-
-        rawBlockDescriptions_.push_back(desc.get());
-        name2Desc_[std::string(desc->GetName())] = desc;
-        blockDescriptions_.push_back(std::move(desc));
-        return id;
-    }
+    void Clear();
 
     BlockID GetBlockDescriptionCount() const noexcept
     {
@@ -338,20 +154,6 @@ public:
     {
         auto it = name2Desc_.find(name);
         return it != name2Desc_.end() ? it->second.get() : nullptr;
-    }
-
-    void Clear()
-    {
-        blockDescriptions_.clear();
-        name2Desc_.clear();
-        rawBlockDescriptions_.clear();
-
-        auto voidDesc = std::make_shared<VoidBlockDescription>();
-        voidDesc->SetBlockID(BLOCK_ID_VOID);
-
-        rawBlockDescriptions_.push_back(voidDesc.get());
-        name2Desc_[std::string(voidDesc->GetName())] = voidDesc;
-        blockDescriptions_.push_back(std::move(voidDesc));
     }
 };
 

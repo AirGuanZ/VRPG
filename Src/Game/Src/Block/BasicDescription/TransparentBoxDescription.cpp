@@ -1,4 +1,4 @@
-#include <VRPG/Game/Block/BasicDescription/TransparentBoxDescription.h>
+﻿#include <VRPG/Game/Block/BasicDescription/TransparentBoxDescription.h>
 #include <VRPG/Game/Utility/BoxModel.h>
 
 VRPG_GAME_BEGIN
@@ -65,7 +65,7 @@ void TransparentBoxDescription::AddBlockModel(
         auto neiDesc = blocks[neiX][neiY][neiZ].desc;
         neiDir = blocks[neiX][neiY][neiZ].orientation.RotatedToOrigin(neiDir);
         FaceVisibilityProperty neiVis = neiDesc->GetFaceVisibilityProperty(neiDir);
-        FaceVisibility vis = IsFaceVisible(FaceVisibilityProperty::Transparent, neiVis);
+        FaceVisibility vis = TestFaceVisibility(FaceVisibilityProperty::Transparent, neiVis);
         return vis == FaceVisibility::Yes || (vis == FaceVisibility::Diff && neiDesc != this);
     };
     

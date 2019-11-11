@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <chrono>
 #include <stdexcept>
@@ -70,6 +70,9 @@ enum Direction : uint8_t
     NegativeZ = 5
 };
 
+/**
+ * @brief 取一个方向的反方向
+ */
 inline Direction operator-(Direction origin) noexcept
 {
     static const Direction table[6] =
@@ -79,6 +82,34 @@ inline Direction operator-(Direction origin) noexcept
         NegativeZ, PositiveZ
     };
     return table[int(origin)];
+}
+
+/**
+ * @brief 将方向映射到其对应的方向向量
+ */
+inline const Vec3i DirectionToVectori(Direction dir) noexcept
+{
+    static const Vec3i offset[] =
+    {
+        Vec3i(1, 0, 0), Vec3i(-1, 0, 0),
+        Vec3i(0, 1, 0), Vec3i(0, -1, 0),
+        Vec3i(0, 0, 1), Vec3i(0, 0, -1)
+    };
+    return offset[int(dir)];
+}
+
+/**
+ * @brief 将方向映射到其对应的方向向量
+ */
+inline const Vec3 DirectionToVectorf(Direction dir) noexcept
+{
+    static const Vec3 offset[] =
+    {
+        Vec3(1, 0, 0), Vec3(-1, 0, 0),
+        Vec3(0, 1, 0), Vec3(0, -1, 0),
+        Vec3(0, 0, 1), Vec3(0, 0, -1)
+    };
+    return offset[int(dir)];
 }
 
 inline bool IsPositive(Direction dir) noexcept

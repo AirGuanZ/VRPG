@@ -1,4 +1,4 @@
-#include <VRPG/Game/Block/BasicDescription/DiffuseSolidBoxDescription.h>
+﻿#include <VRPG/Game/Block/BasicDescription/DiffuseSolidBoxDescription.h>
 #include <VRPG/Game/Utility/BoxModel.h>
 
 VRPG_GAME_BEGIN
@@ -64,7 +64,7 @@ void DiffuseSolidBoxDescription::AddBlockModel(
     {
         neiDir = blocks[neiX][neiY][neiZ].orientation.RotatedToOrigin(neiDir);
         FaceVisibilityProperty neiVis = blocks[neiX][neiY][neiZ].desc->GetFaceVisibilityProperty(neiDir);
-        FaceVisibility visibility = IsFaceVisible(FaceVisibilityProperty::Solid, neiVis);
+        FaceVisibility visibility = TestFaceVisibility(FaceVisibilityProperty::Solid, neiVis);
         return visibility == FaceVisibility::Yes;
     };
     

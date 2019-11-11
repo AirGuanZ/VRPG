@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <unordered_map>
 #include <unordered_set>
@@ -87,6 +87,13 @@ public:
      * 必要时会阻塞地加载该位置的区块
      */
     BlockID GetBlockID(const Vec3i &globalBlock);
+
+    /**
+     * @brief 取得某个位置的block desc
+     *
+     * 必要时会阻塞地加载该位置的区块
+     */
+    const BlockDescription *GetBlockDesc(const Vec3i &globalBlock);
 
     /**
      * @brief 取得某个位置的block extra data

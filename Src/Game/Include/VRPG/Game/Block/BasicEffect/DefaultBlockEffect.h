@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <VRPG/Game/Block/BasicEffect/NativePartialSectionModel.h>
 #include <VRPG/Game/Block/BlockEffect.h>

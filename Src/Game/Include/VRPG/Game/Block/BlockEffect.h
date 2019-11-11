@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <cassert>
 #include <memory>
@@ -31,7 +31,11 @@ struct BlockRenderParams
 */
 class BlockEffect
 {
+    friend class BlockEffectManager;
+
     BlockEffectID blockEffectID_ = 0;
+
+    void SetBlockEffectID(BlockEffectID id) noexcept { blockEffectID_ = id; }
 
 public:
 
@@ -41,15 +45,7 @@ public:
 
     virtual bool IsTransparent() const noexcept = 0;
 
-    void SetBlockEffectID(BlockEffectID id) noexcept
-    {
-        blockEffectID_ = id;
-    }
-
-    BlockEffectID GetBlockEffectID() const noexcept
-    {
-        return blockEffectID_;
-    }
+    BlockEffectID GetBlockEffectID() const noexcept { return blockEffectID_; }
 
     virtual void Bind() const = 0;
 
@@ -60,34 +56,24 @@ public:
     virtual void SetRenderParams(const BlockRenderParams &params) const = 0;
 };
 
+/**
+ * @brief default block effect的固定ID
+ */
+constexpr BlockEffectID BLOCK_EFFECT_ID_DEFAULT = 0;
+
 class BlockEffectManager : public Base::Singleton<BlockEffectManager>
 {
-    std::vector<std::shared_ptr<BlockEffect>> blockEffects_;
-    std::map<std::string, std::shared_ptr<BlockEffect>, std::less<>> name2Effect_;
+    std::vector<std::shared_ptr<const BlockEffect>> blockEffects_;
+    std::map<std::string, std::shared_ptr<const BlockEffect>, std::less<>> name2Effect_;
     std::vector<BlockEffect*> rawBlockEffects_;
 
 public:
 
-    BlockEffectID RegisterBlockEffect(std::shared_ptr<BlockEffect> effect)
-    {
-        assert(blockEffects_.size() < (std::numeric_limits<BlockEffectID>::max)());
+    BlockEffectManager();
 
-        if(auto it = name2Effect_.find(effect->GetName()); it != name2Effect_.end())
-        {
-            if(it->second != effect)
-                throw VRPGWorldException("repeated block effect name: " + std::string(effect->GetName()));
-            return effect->GetBlockEffectID();
-        }
+    BlockEffectID RegisterBlockEffect(std::shared_ptr<BlockEffect> effect);
 
-        BlockEffectID id = BlockEffectID(blockEffects_.size());
-        effect->SetBlockEffectID(id);
-        spdlog::info("register block effect (name = {}, id = {})", effect->GetName(), id);
-
-        rawBlockEffects_.push_back(effect.get());
-        name2Effect_[std::string(effect->GetName())] = effect;
-        blockEffects_.push_back(std::move(effect));
-        return id;
-    }
+    void Clear();
 
     size_t GetBlockEffectCount() const noexcept
     {
@@ -96,8 +82,14 @@ public:
 
     const BlockEffect *GetBlockEffect(BlockEffectID id) const noexcept
     {
-        assert(id < BlockEffectID(rawBlockEffects_.size()));
+        assert(id < BlockEffectID(blockEffects_.size()));
         return rawBlockEffects_[id];
+    }
+
+    const std::shared_ptr<const BlockEffect> &GetSharedBlockEffect(BlockEffectID id) const noexcept
+    {
+        assert(id < BlockEffectID(blockEffects_.size()));
+        return blockEffects_[id];
     }
 
     const BlockEffect *GetBlockEffectByName(std::string_view name) const
@@ -106,11 +98,9 @@ public:
         return it != name2Effect_.end() ? it->second.get() : nullptr;
     }
 
-    void Clear()
+    const std::shared_ptr<const BlockEffect> &GetSharedBlockEffectByName(std::string_view name) const
     {
-        blockEffects_.clear();
-        name2Effect_.clear();
-        rawBlockEffects_.clear();
+        return GetSharedBlockEffect(GetBlockEffectByName(name)->GetBlockEffectID());
     }
 };
 
@@ -132,7 +122,7 @@ public:
         builders_.reserve(effectMgr.GetBlockEffectCount());
         for(BlockEffectID i = 0; i < blockEffectCount; ++i)
         {
-            const BlockEffect *effect = effectMgr.GetBlockEffect(i);
+            const BlockEffect *effect = effectMgr.GetSharedBlockEffect(i).get();
             builders_.push_back(effect->CreateModelBuilder(globalSectionModel));
         }
     }

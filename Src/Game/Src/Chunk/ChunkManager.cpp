@@ -1,4 +1,4 @@
-#include <VRPG/Game/Chunk/ChunkManager.h>
+﻿#include <VRPG/Game/Chunk/ChunkManager.h>
 #include <VRPG/Game/Chunk/ChunkRenderer.h>
 
 VRPG_GAME_BEGIN
@@ -156,6 +156,11 @@ BlockID ChunkManager::GetBlockID(const Vec3i &globalBlock)
     auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk(globalBlock);
     auto chunk = EnsureChunkExists(ckPos.x, ckPos.z);
     return chunk->GetID(blkPos);
+}
+
+const BlockDescription *ChunkManager::GetBlockDesc(const Vec3i &globalBlock)
+{
+    return BlockDescriptionManager::GetInstance().GetBlockDescription(GetBlockID(globalBlock));
 }
 
 BlockExtraData *ChunkManager::GetExtraData(const Vec3i &globalBlock)

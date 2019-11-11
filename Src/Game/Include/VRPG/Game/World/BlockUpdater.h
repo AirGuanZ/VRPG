@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <memory>
 #include <queue>
@@ -32,28 +32,22 @@ public:
 
     virtual ~BlockUpdater() = default;
 
+    virtual void Execute(BlockUpdaterManager & updateManager, ChunkManager & chunkManager, StdClock::time_point now) = 0;
+
     StdClock::time_point GetExpectedUpdatingTime() const noexcept
     {
         return expectedUpdatingTime_;
     }
-
-    virtual void Execute(BlockUpdaterManager &updateManager, ChunkManager &chunkManager, StdClock::time_point now) = 0;
 };
 
 class BlockUpdaterManager
 {
     struct BlockUpdateComp
     {
-        bool comp(const BlockUpdater *lhs, const BlockUpdater *rhs) const noexcept
+        bool operator()(const BlockUpdater *lhs, const BlockUpdater *rhs) const noexcept
         {
             assert(lhs && rhs);
             return lhs->GetExpectedUpdatingTime() > rhs->GetExpectedUpdatingTime();
-        }
-
-        bool equiv(const BlockUpdater *lhs, const BlockUpdater *rhs) const noexcept
-        {
-            assert(lhs && rhs);
-            return lhs->GetExpectedUpdatingTime() == rhs->GetExpectedUpdatingTime();
         }
     };
 
