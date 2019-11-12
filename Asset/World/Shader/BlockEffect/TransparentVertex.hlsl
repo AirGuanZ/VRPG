@@ -7,7 +7,7 @@ struct VSInput
 {
     float3 position   : POSITION;
     float2 texCoord   : TEXCOORD;
-    nointerpolation uint   texIndex   : TEXINDEX;
+    uint   texIndex   : TEXINDEX;
     float4 brightness : BRIGHTNESS;
 };
 
@@ -15,8 +15,9 @@ struct VSOutput
 {
     float4 position   : SV_POSITION;
     float2 texCoord   : TEXCOORD;
-    uint   texIndex   : TEXINDEX;
     float4 brightness : BRIGHTNESS;
+	
+    nointerpolation uint texIndex : TEXINDEX;
 };
 
 VSOutput main(VSInput input)

@@ -5,10 +5,38 @@
 
 VRPG_GAME_BEGIN
 
-inline Vec4 BoxVertexBrightness(
-    const BlockNeighborhood blocks,
-    Direction vertexNormal,
-    const Vec3 &localVertexPosition) noexcept
+/**
+ * @brief 计算box型方块特定顶点的亮度
+ *
+ * @param blocks 3x3x3的局部方块数组，其中blocks[1][1][1]为目标顶点所在的方块
+ * @param vertexNormal 目标顶点的法线方向
+ * @param localVertexPosition 目标定点在方块内的相对位置，一般来说在[0, 1]^3中
+ */
+inline Vec4 BoxVertexBrightness(const BlockNeighborhood blocks, Direction vertexNormal, const Vec3 &localVertexPosition) noexcept;
+
+/**
+ * @brief 取得box型方块上具有指定法线的面的顶点位置，要求法线方向在编译时已知
+ */
+template<Direction NormalDirection>
+void GenerateBoxFace(Vec3 vertices[4]) noexcept;
+
+/**
+ * @brief 取得box型方块上具有指定法线的面的顶点位置，其坐标以整数（0或1）表示，要求法线方向在编译时已知
+ */
+template<Direction NormalDirection>
+void GenerateBoxFacei(Vec3i vertices[4]) noexcept;
+
+/**
+ * @brief 取得box型方块上具有指定法线的面的顶点位置
+ */
+inline void GenerateBoxFaceDynamic(Direction normalDirection, Vec3 position[4]) noexcept;
+
+/**
+ * @brief 取得box型方块上具有指定法线的面的顶点位置，其坐标以整数（0或1）表示
+ */
+inline void GenerateBoxFaceiDynamic(Direction normalDirection, Vec3i position[4]) noexcept;
+
+inline Vec4 BoxVertexBrightness(const BlockNeighborhood blocks, Direction vertexNormal, const Vec3 &localVertexPosition) noexcept
 {
     struct FaceInfo
     {
@@ -33,9 +61,9 @@ inline Vec4 BoxVertexBrightness(
     int sideOffset1 = localVertexPosition[sideAxis1] > 0 ? 1 : -1;
 
     Vec3i i0, i1, i2;
-    i0[normalAxis] = faceIndex, i0[sideAxis0] = 1,               i0[sideAxis1] = 1;
+    i0[normalAxis] = faceIndex, i0[sideAxis0] = 1, i0[sideAxis1] = 1;
     i1[normalAxis] = faceIndex, i1[sideAxis0] = 1 + sideOffset0, i1[sideAxis1] = 1;
-    i2[normalAxis] = faceIndex, i2[sideAxis0] = 1,               i2[sideAxis1] = 1 + sideOffset1;
+    i2[normalAxis] = faceIndex, i2[sideAxis0] = 1, i2[sideAxis1] = 1 + sideOffset1;
 
     float brightnessRatio = vertexNormal == PositiveY ? 1 : SIDE_VERTEX_BRIGHTNESS_RATIO;
 
@@ -58,12 +86,6 @@ inline Vec4 BoxVertexBrightness(
         blocks[i2.x][i2.y][i2.z].brightness,
         blocks[i3.x][i3.y][i3.z].brightness);
 }
-
-template<Direction NormalDirection>
-void GenerateBoxFace(Vec3 vertices[4]) noexcept;
-
-template<Direction NormalDirection>
-void GenerateBoxFacei(Vec3i vertices[4]) noexcept;
 
 template<>
 inline void GenerateBoxFace<PositiveX>(Vec3 vertices[4]) noexcept

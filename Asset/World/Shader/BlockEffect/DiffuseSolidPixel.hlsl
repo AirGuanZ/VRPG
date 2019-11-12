@@ -17,8 +17,8 @@ Texture2DArray<float4> DiffuseTexture;
 float4 main(PSInput input) : SV_TARGET
 {
     float4 texel = DiffuseTexture.Sample(DiffuseSampler, float3(input.texCoord, input.texIndex));
-    float3 light = saturate(input.brightness.rgb + input.brightness.a * skylight);
+    float3 light = input.brightness.rgb + input.brightness.a * skylight;
     float3 linear_color = texel.rgb;
-    float3 linear_result = linear_color * light;
+    float3 linear_result = saturate(linear_color * light);
     return float4(pow(linear_result, 1 / 2.2), 1);
 }

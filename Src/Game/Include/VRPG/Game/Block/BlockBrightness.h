@@ -67,14 +67,14 @@ inline BlockBrightness operator-(const BlockBrightness &lhs, const BlockBrightne
 
 constexpr BlockBrightness BLOCK_BRIGHTNESS_MIN = { 0, 0, 0, 0 };
 constexpr BlockBrightness BLOCK_BRIGHTNESS_MAX = { 255, 255, 255, 255 };
-constexpr BlockBrightness BLOCK_BRIGHTNESS_SKY = { 0, 0, 0, 15 };
+constexpr BlockBrightness BLOCK_BRIGHTNESS_SKY = { 0, 0, 0, 30 };
 
 /**
  * @brief 将block brightness的单个分量映射到[0, 1]的范围内
  */
 inline float BlockBrightnessToFloat(uint8_t brightness) noexcept
 {
-    return std::pow((std::min)(brightness, uint8_t(15)) / 15.0f, 2.2f);
+    return std::pow((std::min)(brightness, uint8_t(30)) / 30.0f, 2.2f);
 }
 
 /**
@@ -95,6 +95,14 @@ inline Vec4 BlockBrightnessToFloat(BlockBrightness brightness) noexcept
 inline Vec4 ComputeVertexBrightness(const Vec4 &a) noexcept
 {
     return 0.002f + 0.998f * a;
+}
+
+/**
+ * @brief 将两个float block brightness映射为一份vertex brightness
+ */
+inline Vec4 ComputeVertexBrightness(const Vec4 &a, const Vec4 &b) noexcept
+{
+    return ComputeVertexBrightness(0.5f * (a + b));
 }
 
 /**
@@ -119,6 +127,16 @@ inline Vec4 ComputeVertexBrightness(const Vec4 &a, const Vec4 &b, const Vec4 &c,
 inline Vec4 ComputeVertexBrightness(const BlockBrightness &a) noexcept
 {
     return ComputeVertexBrightness(BlockBrightnessToFloat(a));
+}
+
+/**
+ * @brief 将两个block brightness映射为一份vertex brightness
+ */
+inline Vec4 ComputeVertexBrightness(const BlockBrightness &a, const BlockBrightness &b) noexcept
+{
+    return ComputeVertexBrightness(
+        BlockBrightnessToFloat(a),
+        BlockBrightnessToFloat(b));
 }
 
 /**

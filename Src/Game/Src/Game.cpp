@@ -2,6 +2,7 @@
 
 #include <VRPG/Game/Block/BuiltinBlock/BuiltinBlock.h>
 #include <VRPG/Game/Land/FlatLandGenerator.h>
+#include <VRPG/Game/World/BlockUpdater/LiquidUpdater.h>
 #include <VRPG/Game/Game.h>
 
 VRPG_GAME_BEGIN

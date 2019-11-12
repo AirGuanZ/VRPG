@@ -72,20 +72,21 @@ void TransparentLiquidDescription::AddBlockModel(
         return vis == FaceVisibility::Yes || (vis == FaceVisibility::Diff && this != neiDesc);
     };
 
-    auto addFace = [&, blockLight = ComputeVertexBrightness(blocks[1][1][1].brightness)](
-        const Vec3 &posA, const Vec3 &posB, const Vec3 &posC, const Vec3 &posD)
+    auto addFace = [&](
+        const Vec3 &posA, const Vec3 &posB, const Vec3 &posC, const Vec3 &posD,
+        const Vec4 &lhtA, const Vec4 &lhtB, const Vec4 &lhtC, const Vec4 &lhtD)
     {
         Vec3 posE = 0.25f * (posA + posB + posC + posD);
+        Vec4 lhtE = 0.25f * (lhtA + lhtB + lhtC + lhtD);
 
         VertexIndex vertexCount = VertexIndex(builder->GetVertexCount());
         VertexIndex startIndex = VertexIndex(builder->GetIndexCount());
 
-        // IMPROVE: 没有针对透明液体做光照平滑
-        builder->AddVertex({ positionBase + posA, Vec2(0.5f), uint32_t(textureIndexInEffect_), blockLight });
-        builder->AddVertex({ positionBase + posB, Vec2(0.5f), uint32_t(textureIndexInEffect_), blockLight });
-        builder->AddVertex({ positionBase + posC, Vec2(0.5f), uint32_t(textureIndexInEffect_), blockLight });
-        builder->AddVertex({ positionBase + posD, Vec2(0.5f), uint32_t(textureIndexInEffect_), blockLight });
-        builder->AddVertex({ positionBase + posE, Vec2(0.5f), uint32_t(textureIndexInEffect_), blockLight });
+        builder->AddVertex({ positionBase + posA, Vec2(0.5f), uint32_t(textureIndexInEffect_), lhtA });
+        builder->AddVertex({ positionBase + posB, Vec2(0.5f), uint32_t(textureIndexInEffect_), lhtB });
+        builder->AddVertex({ positionBase + posC, Vec2(0.5f), uint32_t(textureIndexInEffect_), lhtC });
+        builder->AddVertex({ positionBase + posD, Vec2(0.5f), uint32_t(textureIndexInEffect_), lhtD });
+        builder->AddVertex({ positionBase + posE, Vec2(0.5f), uint32_t(textureIndexInEffect_), lhtE });
 
         builder->AddIndexedTriangle(vertexCount + 0, vertexCount + 1, vertexCount + 4);
         builder->AddIndexedTriangle(vertexCount + 1, vertexCount + 2, vertexCount + 4);
@@ -127,7 +128,7 @@ void TransparentLiquidDescription::AddBlockModel(
             }
         }
 
-        auto synVertexHeight = [&](int dx, int dz) -> float
+        auto synthesisVertexHeight = [&](int dx, int dz) -> float
         {
             if(!isThisSource && !isUpSame && blocks[1 + dx][1][1].desc->IsVoid() && blocks[1][1][1 + dz].desc->IsVoid())
                 return 0;
@@ -135,27 +136,64 @@ void TransparentLiquidDescription::AddBlockModel(
                               (std::max)(blockHeights[1 + dx][1], blockHeights[1][1 + dz]));
         };
 
-        vertexHeights[0][0] = synVertexHeight(-1, -1);
-        vertexHeights[0][1] = synVertexHeight(-1, +1);
-        vertexHeights[1][0] = synVertexHeight(+1, -1);
-        vertexHeights[1][1] = synVertexHeight(+1, +1);
-        
-        /*vertexHeights[0][0] = (std::max)(
-            (std::max)(blockHeights[1][1], blockHeights[1][0]),
-            (std::max)(blockHeights[0][1], blockHeights[0][0]));
-        
-        vertexHeights[0][1] = (std::max)(
-            (std::max)(blockHeights[0][1], blockHeights[0][2]),
-            (std::max)(blockHeights[1][1], blockHeights[1][2]));
-        
-        vertexHeights[1][0] = (std::max)(
-            (std::max)(blockHeights[1][0], blockHeights[1][1]),
-            (std::max)(blockHeights[2][0], blockHeights[2][1]));
-
-        vertexHeights[1][1] = (std::max)(
-            (std::max)(blockHeights[1][1], blockHeights[1][2]),
-            (std::max)(blockHeights[2][1], blockHeights[2][2]));*/
+        vertexHeights[0][0] = synthesisVertexHeight(-1, -1);
+        vertexHeights[0][1] = synthesisVertexHeight(-1, +1);
+        vertexHeights[1][0] = synthesisVertexHeight(+1, -1);
+        vertexHeights[1][1] = synthesisVertexHeight(+1, +1);
     }
+
+    auto vertexBrightness = [&](Direction normalDirection, const Vec3 &pos)
+    {
+        if(pos.y < 0.001f || pos.y > 0.999f)
+            return BoxVertexBrightness(blocks, normalDirection, pos);
+
+        assert(normalDirection != NegativeY);
+        if(normalDirection == PositiveY)
+        {
+            int dx = pos.x > 0.5f ? 1 : -1;
+            int dz = pos.z > 0.5f ? 1 : -1;
+
+            int count = 1;
+            Vec4 sum = BlockBrightnessToFloat(blocks[1][1][1].brightness);
+            if(blocks[1 + dx][1][1].desc == this)
+            {
+                ++count;
+                sum += BlockBrightnessToFloat(blocks[1 + dx][1][1].brightness);
+            }
+            if(blocks[1][1][1 + dz].desc == this)
+            {
+                ++count;
+                sum += BlockBrightnessToFloat(blocks[1][1][1 + dz].brightness);
+            }
+            if(count > 1 && blocks[1 + dx][1][1 + dz].desc == this)
+            {
+                ++count;
+                sum += BlockBrightnessToFloat(blocks[1 + dx][1][1 + dz].brightness);
+            }
+
+            return ComputeVertexBrightness(sum) / float(count);
+
+            /*if(blocks[1 + dx][1][1].desc->IsFullOpaque() && blocks[1][1][1 + dz].desc->IsFullOpaque())
+            {
+                return ComputeVertexBrightness(
+                    blocks[1][1][1].brightness, blocks[1 + dx][1][1].brightness, blocks[1][1][1 + dz].brightness);
+            }
+
+            return ComputeVertexBrightness(
+                blocks[1     ][1][1     ].brightness,
+                blocks[1 + dx][1][1     ].brightness,
+                blocks[1     ][1][1 + dz].brightness,
+                blocks[1 + dx][1][1 + dz].brightness);*/
+        }
+
+        int dx = (normalDirection == PositiveX || normalDirection == NegativeX) ? 0 : (pos.x > 0.5f ? 1 : -1);
+        int dz = (normalDirection == PositiveZ || normalDirection == NegativeZ) ? 0 : (pos.z > 0.5f ? 1 : -1);
+
+        Vec3i b = Vec3i(1) + DirectionToVectori(normalDirection);
+        return (0.5f + 0.5f * SIDE_VERTEX_BRIGHTNESS_RATIO) * ComputeVertexBrightness(
+            blocks[b.x     ][1][b.z     ].brightness,
+            blocks[b.x + dx][1][b.z + dz].brightness);
+    };
 
     auto generateFace = [&](Direction normalDirection)
     {
@@ -169,8 +207,13 @@ void TransparentLiquidDescription::AddBlockModel(
             int xi = pos[i].x, zi = pos[i].z;
             posf[i] = { float(xi), pos[i].y * vertexHeights[xi][zi], float(zi) };
         }
-        
-        addFace(posf[0], posf[1], posf[2], posf[3]);
+
+        Vec4 lhtA = vertexBrightness(normalDirection, posf[0]);
+        Vec4 lhtB = vertexBrightness(normalDirection, posf[1]);
+        Vec4 lhtC = vertexBrightness(normalDirection, posf[2]);
+        Vec4 lhtD = vertexBrightness(normalDirection, posf[3]);
+
+        addFace(posf[0], posf[1], posf[2], posf[3], lhtA, lhtB, lhtC, lhtD);
     };
 
     generateFace(PositiveX);
@@ -179,53 +222,6 @@ void TransparentLiquidDescription::AddBlockModel(
     generateFace(NegativeY);
     generateFace(PositiveZ);
     generateFace(NegativeZ);
-
-    /*float vertexHeight = 1;
-    auto liquid = blocks[1][1][1].desc->GetLiquidDescription();
-    if(liquid->IsSource(*blocks[1][1][1].extraData))
-    {
-        if(blocks[1][2][1].desc != blocks[1][1][1].desc)
-            vertexHeight = liquid->TopSourceHeight();
-    }
-    else
-        vertexHeight = liquid->LevelToVertexHeight(ExtraDataToLiquidLevel(*blocks[1][1][1].extraData));
-
-    auto generateFace = [&](Direction normalDirection)
-    {
-        Direction rotDir = orientation.OriginToRotated(normalDirection);
-        if(!isFaceVisible(rotDir))
-            return;
-
-        Vec3 position[4];
-        GenerateBoxFaceDynamic(normalDirection, position);
-        position[0] = RotateLocalPosition(orientation, position[0]);
-        position[1] = RotateLocalPosition(orientation, position[1]);
-        position[2] = RotateLocalPosition(orientation, position[2]);
-        position[3] = RotateLocalPosition(orientation, position[3]);
-
-        position[0].y *= vertexHeight;
-        position[1].y *= vertexHeight;
-        position[2].y *= vertexHeight;
-        position[3].y *= vertexHeight;
-
-        Vec4 light0 = BoxVertexBrightness(blocks, rotDir, position[0]);
-        Vec4 light1 = BoxVertexBrightness(blocks, rotDir, position[1]);
-        Vec4 light2 = BoxVertexBrightness(blocks, rotDir, position[2]);
-        Vec4 light3 = BoxVertexBrightness(blocks, rotDir, position[3]);
-
-        addFace(positionBase + position[0],
-                positionBase + position[1],
-                positionBase + position[2],
-                positionBase + position[3],
-                light0, light1, light2, light3);
-    };
-
-    generateFace(PositiveX);
-    generateFace(NegativeX);
-    generateFace(PositiveY);
-    generateFace(NegativeY);
-    generateFace(PositiveZ);
-    generateFace(NegativeZ);*/
 }
 
 bool TransparentLiquidDescription::RayIntersect(

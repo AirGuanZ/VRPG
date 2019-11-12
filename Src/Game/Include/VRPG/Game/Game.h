@@ -8,7 +8,6 @@
 #include <VRPG/Game/Misc/Crosshair.h>
 #include <VRPG/Game/Utility/KeyStateTracker.h>
 #include <VRPG/Game/World/BlockUpdater.h>
-#include <VRPG/Game/World/BlockUpdater/LiquidUpdater.h>
 
 VRPG_GAME_BEGIN
 
