@@ -34,7 +34,7 @@ static_assert(sizeof(BlockBrightness) == sizeof(uint32_t));
 static_assert(alignof(BlockBrightness) <= alignof(uint32_t));
 
 /**
- * @brief elementwise max
+ * @brief elemwise max
  */
 inline BlockBrightness Max(const BlockBrightness &lhs, const BlockBrightness &rhs) noexcept
 {
@@ -46,16 +46,25 @@ inline BlockBrightness Max(const BlockBrightness &lhs, const BlockBrightness &rh
     };
 }
 
+/**
+ * @brief elemwise equal
+ */
 inline bool operator==(const BlockBrightness &lhs, const BlockBrightness &rhs) noexcept
 {
     return std::memcmp(&lhs, &rhs, sizeof(BlockBrightness)) == 0;
 }
 
+/**
+ * @brief not elemwise equal
+ */
 inline bool operator!=(const BlockBrightness &lhs, const BlockBrightness &rhs) noexcept
 {
     return !(lhs == rhs);
 }
 
+/**
+ * @brief elemwise max(0, a - b)
+ */
 inline BlockBrightness operator-(const BlockBrightness &lhs, const BlockBrightness &rhs) noexcept
 {
     uint8_t new_r = lhs.r > rhs.r ? (lhs.r - rhs.r) : 0;
@@ -65,8 +74,19 @@ inline BlockBrightness operator-(const BlockBrightness &lhs, const BlockBrightne
     return BlockBrightness{ new_r, new_g, new_b, new_s };
 }
 
+/*
+ * @brief 完全黑暗处的亮度
+ */
 constexpr BlockBrightness BLOCK_BRIGHTNESS_MIN = { 0, 0, 0, 0 };
+
+/**
+ * @brief 数值允许的最大亮度
+ */
 constexpr BlockBrightness BLOCK_BRIGHTNESS_MAX = { 255, 255, 255, 255 };
+
+/**
+ * @brief 天光亮度
+ */
 constexpr BlockBrightness BLOCK_BRIGHTNESS_SKY = { 0, 0, 0, 30 };
 
 /**

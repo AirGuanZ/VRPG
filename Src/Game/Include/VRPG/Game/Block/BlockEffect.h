@@ -12,14 +12,26 @@ VRPG_GAME_BEGIN
 using BlockEffectID = uint16_t;
 
 /**
- * @brief 通用区块渲染参数
+ * @brief 通用区块前向渲染参数
  * 
- * 所有的block effect在渲染时均只接收此参数
+ * 所有的block effect在前向渲染时均只接收此参数
  */
-struct BlockRenderParams
+struct BlockForwardRenderParams
 {
-    const Camera *camera;
+    const Camera *camera = nullptr;
     const Vec3 skyLight;
+
+    float shadowScale = 1;
+    Mat4 shadowViewProj;
+    ComPtr<ID3D11ShaderResourceView> shadowMapSRV;
+};
+
+/**
+ * @brief 通用区块shadow map渲染参数
+ */
+struct BlockShadowRenderParams
+{
+    Mat4 shadowViewProj;
 };
 
 /*
@@ -41,19 +53,65 @@ public:
 
     virtual ~BlockEffect() = default;
 
+    /**
+     * @brief 取得该Effect实例的名字
+     *
+     * 原则上每个BlockEffect实例都有一个独有的名字
+     */
     virtual const char *GetName() const = 0;
 
+    /**
+     * @brief 是否是透明物体
+     *
+     * 透明物体将晚于其他物体渲染，且需要排序
+     */
     virtual bool IsTransparent() const noexcept = 0;
 
+    /**
+     * @brief 取得BlockEffectID
+     *
+     * 此ID由BlockEffectManager自动分配
+     */
     BlockEffectID GetBlockEffectID() const noexcept { return blockEffectID_; }
 
-    virtual void Bind() const = 0;
+    /**
+     * @brief 开始以此effect进行前向渲染
+     */
+    virtual void StartForward() const = 0;
 
-    virtual void Unbind() const = 0;
+    /**
+     * @brief 结束以此effect进行前向渲染
+     */
+    virtual void EndForward() const = 0;
 
+    /**
+     * @brief 开始以此effect进行shadow map渲染
+     *
+     * TODO: 删除默认实现
+     */
+    virtual void StartShadow() const { }
+
+    /**
+     * @brief 结束以此effect进行shadow map渲染
+     */
+    virtual void EndShadow() const { }
+
+    /**
+     * @brief 创建一个空的、用于构建具有此effect的chunk section model的model builder
+     */
     virtual std::unique_ptr<PartialSectionModelBuilder> CreateModelBuilder(const Vec3i &globalSectionPosition) const = 0;
 
-    virtual void SetRenderParams(const BlockRenderParams &params) const = 0;
+    /**
+     * @brief 设置前向渲染参数
+     */
+    virtual void SetForwardRenderParams(const BlockForwardRenderParams &params) const = 0;
+
+    /**
+     * @brief 设置shadow map渲染参数
+     *
+     * TODO: 删除默认实现
+     */
+    virtual void SetShadowRenderParams(const BlockShadowRenderParams &params) const { }
 };
 
 /**

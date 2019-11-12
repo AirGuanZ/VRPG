@@ -37,14 +37,14 @@ bool DefaultBlockEffect::IsTransparent() const noexcept
     return false;
 }
 
-void DefaultBlockEffect::Bind() const
+void DefaultBlockEffect::StartForward() const
 {
     shader_.Bind();
     uniforms_.Bind();
     inputLayout_.Bind();
 }
 
-void DefaultBlockEffect::Unbind() const
+void DefaultBlockEffect::EndForward() const
 {
     inputLayout_.Unbind();
     uniforms_.Unbind();
@@ -56,7 +56,7 @@ std::unique_ptr<PartialSectionModelBuilder> DefaultBlockEffect::CreateModelBuild
     return std::make_unique<Builder>(globalSectionPosition, this);
 }
 
-void DefaultBlockEffect::SetRenderParams(const BlockRenderParams &params) const
+void DefaultBlockEffect::SetForwardRenderParams(const BlockForwardRenderParams &params) const
 {
     vsTransform_.SetValue({ params.camera->GetViewProjectionMatrix() });
     psSky_.SetValue({ params.skyLight, 0 });

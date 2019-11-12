@@ -31,6 +31,11 @@ public:
 
     void Render(const Camera &camera) const override
     {
+        this->RenderShadow();
+    }
+
+    void RenderShadow() const override
+    {
         vertexBuffer_.Bind(0);
         indexBuffer_.Bind();
         RenderState::DrawIndexed(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, indexBuffer_.GetIndexCount());

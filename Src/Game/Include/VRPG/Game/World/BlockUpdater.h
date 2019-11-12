@@ -86,14 +86,18 @@ public:
     /**
      * @brief 执行所有已到时间的更新任务
      */
-    void Execute(StdClock::time_point now = StdClock::now())
+    void Execute(int maxExecutedCount, StdClock::time_point now = StdClock::now())
     {
+        int executed = 0;
         while(!updaterQueue_.empty() && updaterQueue_.top()->GetExpectedUpdatingTime() <= now)
         {
             auto updater = updaterQueue_.top();
             updaterQueue_.pop();
             updater->Execute(*this, *chunkManager_, now);
             delete updater;
+
+            if(++executed >= maxExecutedCount)
+                return;
         }
     }
 };

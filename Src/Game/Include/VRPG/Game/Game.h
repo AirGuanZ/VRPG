@@ -46,6 +46,8 @@ private:
     std::unique_ptr<Crosshair> crosshairPainter_;
 
     std::unique_ptr<DefaultCamera> camera_;
+    std::unique_ptr<Base::ShadowMap> shadowMap_;
+
     std::unique_ptr<ChunkRenderer> chunkRenderer_;
     std::unique_ptr<ChunkManager> chunkManager_;
 

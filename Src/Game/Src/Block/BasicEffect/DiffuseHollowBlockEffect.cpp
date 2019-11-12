@@ -4,39 +4,119 @@
 
 VRPG_GAME_BEGIN
 
-DiffuseHollowBlockEffectGenerator::CommonProperties::CommonProperties()
+void DiffuseHollowBlockEffectGenerator::CommonProperties::InitializeForward()
 {
     std::string vertexShaderSource = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/DiffuseHollowVertex.hlsl");
-    std::string pixelShaderSource  = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/DiffuseHollowPixel.hlsl");
-    shader_.InitializeStage<SS_VS>(vertexShaderSource);
-    shader_.InitializeStage<SS_PS>(pixelShaderSource);
-    if(!shader_.IsAllStagesAvailable())
+    std::string pixelShaderSource = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/DiffuseHollowPixel.hlsl");
+    forwardShader_.InitializeStage<SS_VS>(vertexShaderSource);
+    forwardShader_.InitializeStage<SS_PS>(pixelShaderSource);
+    if(!forwardShader_.IsAllStagesAvailable())
         throw VRPGWorldException("failed to initialize diffuse hollow block effect shader");
 
-    uniforms_ = shader_.CreateUniformManager();
+    forwardUniforms_ = forwardShader_.CreateUniformManager();
 
-    inputLayout_ = InputLayoutBuilder
-        ("POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT,    offsetof(Vertex, position))
-        ("TEXCOORD",   0, DXGI_FORMAT_R32G32_FLOAT,       offsetof(Vertex, texCoord))
-        ("TEXINDEX",   0, DXGI_FORMAT_R32_UINT,           offsetof(Vertex, texIndex))
+    forwardInputLayout_ = InputLayoutBuilder
+    ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, offsetof(Vertex, position))
+        ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, offsetof(Vertex, texCoord))
+        ("TEXINDEX", 0, DXGI_FORMAT_R32_UINT, offsetof(Vertex, texIndex))
         ("BRIGHTNESS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, offsetof(Vertex, brightness))
-        .Build(shader_.GetVertexShaderByteCode());
+        .Build(forwardShader_.GetVertexShaderByteCode());
 
-    vsTransform_.Initialize(true, nullptr);
-    psSky_.Initialize(true, nullptr);
+    forwardVSTransform_.Initialize(true, nullptr);
+    forwardPSSky_.Initialize(true, nullptr);
 
-    uniforms_.GetConstantBufferSlot<SS_VS>("Transform")->SetBuffer(vsTransform_);
-    uniforms_.GetConstantBufferSlot<SS_PS>("Sky")->SetBuffer(psSky_);
+    forwardUniforms_.GetConstantBufferSlot<SS_VS>("Transform")->SetBuffer(forwardVSTransform_);
+    forwardUniforms_.GetConstantBufferSlot<SS_PS>("Sky")->SetBuffer(forwardPSSky_);
 
     Sampler sampler;
     sampler.Initialize(D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR);
-    uniforms_.GetSamplerSlot<SS_PS>("DiffuseSampler")->SetSampler(sampler);
+    forwardUniforms_.GetSamplerSlot<SS_PS>("DiffuseSampler")->SetSampler(sampler);
 
-    diffuseTextureSlot_ = uniforms_.GetShaderResourceSlot<SS_PS>("DiffuseTexture");
-    if(!diffuseTextureSlot_)
+    forwardDiffuseTextureSlot_ = forwardUniforms_.GetShaderResourceSlot<SS_PS>("DiffuseTexture");
+    if(!forwardDiffuseTextureSlot_)
         throw VRPGWorldException("shader resource slot not found in diffuse hollow block effect shader: DiffuseTexture");
 
-    rasterizerState_.Initialize(D3D11_FILL_SOLID, D3D11_CULL_NONE, false);
+    forwardRasterizerState_.Initialize(D3D11_FILL_SOLID, D3D11_CULL_NONE, false);
+}
+
+void DiffuseHollowBlockEffectGenerator::CommonProperties::InitializeShadow()
+{
+    const char *vertexShaderSource = R"___(
+cbuffer Transform
+{
+    float4x4 VP;
+};
+
+struct VSInput
+{
+    float3 position : POSITION;
+    float2 texCoord : TEXCOORD;
+    nointerpolation uint texIndex : TEXINDEX;
+};
+
+struct VSOutput
+{
+    float4 position : SV_POSITION;
+    float2 texCoord : TEXCOORD;
+    nointerpolation uint texIndex : TEXINDEX;
+};
+
+VSOutput main(VSInput input)
+{
+    VSOutput output = (VSOutput)0;
+    output.position = mul(float4(input.position, 1), VP);
+    output.texCoord = input.texCoord;
+    output.texIndex = input.texIndex;
+    return output;
+}
+)___";
+
+    const char *pixelShaderSource = R"___(
+struct PSInput
+{
+    float4 position : SV_POSITION;
+    float2 texCoord : TEXCOORD;
+    nointerpolation uint texIndex : TEXINDEX;
+};
+
+SamplerState DiffuseSampler;
+Texture2DArray<float4> DiffuseTexture;
+
+void main(PSInput input)
+{
+    float texel_a = DiffuseTexture.Sample(DiffuseSampler, float3(input.texCoord, input.texIndex)).a;
+    clip(texel_a - 0.5);
+}
+)___";
+
+    shadowShader_.InitializeStage<SS_VS>(vertexShaderSource);
+    shadowShader_.InitializeStage<SS_PS>(pixelShaderSource);
+    if(!shadowShader_.IsAllStagesAvailable())
+        throw VRPGWorldException("failed to initialize shadow shader for transparent block effect");
+
+    shadowUniforms_ = shadowShader_.CreateUniformManager();
+
+    shadowVSTransform_.Initialize(true, nullptr);
+    shadowUniforms_.GetConstantBufferSlot<SS_VS>("Transform")->SetBuffer(shadowVSTransform_);
+
+    Sampler sampler;
+    sampler.Initialize(D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR);
+    shadowUniforms_.GetSamplerSlot<SS_PS>("DiffuseSampler")->SetSampler(sampler);
+
+    shadowDiffuseTextureSlot_ = shadowUniforms_.GetShaderResourceSlot<SS_PS>("DiffuseTexture");
+
+    shadowInputLayout_ = InputLayoutBuilder
+        ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, offsetof(Vertex, position))
+        ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, offsetof(Vertex, texCoord))
+        ("TEXINDEX", 0, DXGI_FORMAT_R32_UINT, offsetof(Vertex, texIndex))
+        .Build(shadowShader_.GetVertexShaderByteCode());
+}
+
+DiffuseHollowBlockEffectGenerator::CommonProperties::CommonProperties()
+    : forwardDiffuseTextureSlot_(nullptr), shadowDiffuseTextureSlot_(nullptr)
+{
+    InitializeForward();
+    InitializeShadow();
 }
 
 DiffuseHollowBlockEffectGenerator::DiffuseHollowBlockEffectGenerator(int textureSize, int expectedArraySize)
@@ -146,21 +226,39 @@ bool DiffuseHollowBlockEffect::IsTransparent() const noexcept
     return false;
 }
 
-void DiffuseHollowBlockEffect::Bind() const
+void DiffuseHollowBlockEffect::StartForward() const
 {
-    commonProperties_->diffuseTextureSlot_->SetShaderResourceView(textureArray_);
-    commonProperties_->shader_.Bind();
-    commonProperties_->uniforms_.Bind();
-    commonProperties_->inputLayout_.Bind();
-    commonProperties_->rasterizerState_.Bind();
+    commonProperties_->forwardDiffuseTextureSlot_->SetShaderResourceView(textureArray_);
+    commonProperties_->forwardShader_.Bind();
+    commonProperties_->forwardUniforms_.Bind();
+    commonProperties_->forwardInputLayout_.Bind();
+    commonProperties_->forwardRasterizerState_.Bind();
 }
 
-void DiffuseHollowBlockEffect::Unbind() const
+void DiffuseHollowBlockEffect::EndForward() const
 {
-    commonProperties_->rasterizerState_.Unbind();
-    commonProperties_->shader_.Unbind();
-    commonProperties_->uniforms_.Unbind();
-    commonProperties_->inputLayout_.Unbind();
+    commonProperties_->forwardRasterizerState_.Unbind();
+    commonProperties_->forwardShader_.Unbind();
+    commonProperties_->forwardUniforms_.Unbind();
+    commonProperties_->forwardInputLayout_.Unbind();
+}
+
+void DiffuseHollowBlockEffect::StartShadow() const
+{
+    //commonProperties_->shadowMapEffect_.StartShadow();
+    commonProperties_->shadowDiffuseTextureSlot_->SetShaderResourceView(textureArray_);
+    commonProperties_->shadowShader_.Bind();
+    commonProperties_->shadowUniforms_.Bind();
+    commonProperties_->shadowInputLayout_.Bind();
+    commonProperties_->forwardRasterizerState_.Bind();
+}
+
+void DiffuseHollowBlockEffect::EndShadow() const
+{
+    commonProperties_->shadowShader_.Unbind();
+    commonProperties_->shadowUniforms_.Unbind();
+    commonProperties_->shadowInputLayout_.Unbind();
+    commonProperties_->forwardRasterizerState_.Unbind();
 }
 
 std::unique_ptr<PartialSectionModelBuilder> DiffuseHollowBlockEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
@@ -168,10 +266,16 @@ std::unique_ptr<PartialSectionModelBuilder> DiffuseHollowBlockEffect::CreateMode
     return std::make_unique<Builder>(globalSectionPosition, this);
 }
 
-void DiffuseHollowBlockEffect::SetRenderParams(const BlockRenderParams &params) const
+void DiffuseHollowBlockEffect::SetForwardRenderParams(const BlockForwardRenderParams &params) const
 {
-    commonProperties_->vsTransform_.SetValue({ params.camera->GetViewProjectionMatrix() });
-    commonProperties_->psSky_.SetValue({ params.skyLight, 0 });
+    commonProperties_->forwardVSTransform_.SetValue({ params.camera->GetViewProjectionMatrix() });
+    commonProperties_->forwardPSSky_.SetValue({ params.skyLight, 0 });
+}
+
+void DiffuseHollowBlockEffect::SetShadowRenderParams(const BlockShadowRenderParams &params) const
+{
+    //commonProperties_->shadowMapEffect_.SetShadowParames(params);
+    commonProperties_->shadowVSTransform_.SetValue({ params.shadowViewProj });
 }
 
 VRPG_GAME_END

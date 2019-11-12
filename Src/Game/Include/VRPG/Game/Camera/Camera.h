@@ -4,6 +4,12 @@
 
 VRPG_GAME_BEGIN
 
+struct CullingBoundingBox
+{
+    Vec3 low;
+    Vec3 high;
+};
+
 class Camera
 {
 public:
@@ -15,6 +21,8 @@ public:
     virtual Vec3 GetPosition() const noexcept = 0;
 
     virtual Vec3 GetDirection() const noexcept = 0;
+
+    virtual bool IsVisible(const CullingBoundingBox &bbox) const noexcept = 0;
 };
 
 VRPG_GAME_END

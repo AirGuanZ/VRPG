@@ -1,7 +1,5 @@
 ﻿#include <iostream>
 
-#include <agz/utility/time.h>
-
 #include <VRPG/Base/Base.h>
 
 #include <VRPG/Game/Block/BuiltinBlock/BuiltinBlock.h>
@@ -18,10 +16,11 @@ int main()
 
         Window window;
         WindowDesc desc;
-        desc.clientWidth  = 900;
-        desc.clientHeight = 600;
+        desc.clientWidth  = 1024;
+        desc.clientHeight = 768;
         desc.sampleCount  = 4;
         //desc.fullscreen = true;
+        //desc.vsync = false;
         window.Initialize(desc);
 
         spdlog::info("initialize builtin block manager");
@@ -29,7 +28,7 @@ int main()
         AGZ_SCOPE_GUARD({
             spdlog::info("destroy builtin block manager");
             BuiltinBlockTypeManager::GetInstance().Clear();
-            BlockEffectManager::GetInstance().Clear();
+            BlockEffectManager     ::GetInstance().Clear();
             BlockDescriptionManager::GetInstance().Clear();
         });
 

@@ -87,11 +87,15 @@ void Game::Initialize()
 
     camera_ = std::make_unique<DefaultCamera>();
     camera_->SetMoveSpeed(7);
-    camera_->SetViewSpeed(0.003f);
+    camera_->SetViewSpeed(0.002f);
     camera_->SetWOverH(window_->GetClientAspectRatio());
     camera_->SetPosition({ 0, 30, 0 });
     camera_->SetFOVy(70);
     camera_->SetClipDistance(0.1f, 1000.0f);
+
+    spdlog::info("initialize shadow map");
+
+    shadowMap_ = std::make_unique<Base::ShadowMap>(4096, 4096);
 
     spdlog::info("initialize chunk renderer");
 
@@ -164,7 +168,7 @@ void Game::PlayerTick(float deltaT)
 
 void Game::WorldTick()
 {
-    blockUpdaterManager_->Execute(StdClock::now());
+    blockUpdaterManager_->Execute(20, StdClock::now());
 }
 
 void Game::ChunkTick()
@@ -203,14 +207,26 @@ void Game::Render()
 
         Vec3 position = camera_->GetPosition();
         ImGui::Text("position: (%f, %f, %f)", position.x, position.y, position.z);
+
+        Vec3 direction = camera_->GetDirection();
+        ImGui::Text("direction: (%f, %f, %f)", direction.x, direction.y, direction.z);
     }
     ImGui::End();
+
+    shadowMap_->Begin();
+
+    Vec3 cameraPosition = camera_->GetPosition();
+    Mat4 shadowVP = Trans4::look_at(cameraPosition + Vec3(50, 60, 70), cameraPosition, Vec3(0, 1, 0))
+                  * Trans4::orthographic(-40, +40, +40, -40, 50, 200);
+    chunkRenderer_->RenderShadow({ shadowVP });
+
+    shadowMap_->End();
 
     static const Vec4 backgroundColor = Vec4(0.7f, 1, 1, 0).map([](float x) { return std::pow(x, 1 / 2.2f); });
     window_->ClearDefaultRenderTarget(&backgroundColor[0]);
     window_->ClearDefaultDepthStencil();
 
-    chunkRenderer_->Render({ camera_.get(), Vec3(1) });
+    chunkRenderer_->RenderForward({ camera_.get(), Vec3(1), 0.2f, shadowVP, shadowMap_->GetSRV() });
 
     crosshairPainter_->Draw(*imm2D_);
 
@@ -229,6 +245,9 @@ void Game::Destroy()
 
     spdlog::info("destroy camera");
     camera_.reset();
+
+    spdlog::info("destroy shadow map");
+    shadowMap_.reset();
 
     spdlog::info("destroy chunk renderer");
     chunkRenderer_.reset();

@@ -2,7 +2,22 @@
 
 VRPG_GAME_BEGIN
 
-void DefaultCamera::UpdateViewProjectionMatrix() const noexcept
+namespace
+{
+    bool IsNegativeForAllVertices(const Vec4 &f, const CullingBoundingBox &bbox) noexcept
+    {
+        return dot(f, { bbox.low.x,  bbox.low.y,  bbox.low.z,  1 }) < -0.01f &&
+               dot(f, { bbox.low.x,  bbox.low.y,  bbox.high.z, 1 }) < -0.01f &&
+               dot(f, { bbox.low.x,  bbox.high.y, bbox.low.z,  1 }) < -0.01f &&
+               dot(f, { bbox.low.x,  bbox.high.y, bbox.high.z, 1 }) < -0.01f &&
+               dot(f, { bbox.high.x, bbox.low.y,  bbox.low.z,  1 }) < -0.01f &&
+               dot(f, { bbox.high.x, bbox.low.y,  bbox.high.z, 1 }) < -0.01f &&
+               dot(f, { bbox.high.x, bbox.high.y, bbox.low.z,  1 }) < -0.01f &&
+               dot(f, { bbox.high.x, bbox.high.y, bbox.high.z, 1 }) < -0.01f;
+    }
+}
+
+void DefaultCamera::Update() noexcept
 {
     Vec3 direction(
         std::cos(verticalAngle_) * std::cos(horizontalAngle_),
@@ -11,6 +26,12 @@ void DefaultCamera::UpdateViewProjectionMatrix() const noexcept
     Mat4 viewMatrix = Trans4::look_at(position_, position_ + direction, Vec3(0, 1, 0));
     Mat4 projMatrix = Trans4::perspective(FOVYRad_, wOverH_, nearPlane_, farPlane_);
     viewProjectionMatrix_ = viewMatrix * projMatrix;
+
+    cullingF_[0] = viewProjectionMatrix_.get_col(3) - viewProjectionMatrix_.get_col(0);
+    cullingF_[1] = viewProjectionMatrix_.get_col(3) + viewProjectionMatrix_.get_col(0);
+    cullingF_[2] = viewProjectionMatrix_.get_col(3) - viewProjectionMatrix_.get_col(1);
+    cullingF_[3] = viewProjectionMatrix_.get_col(3) + viewProjectionMatrix_.get_col(1);
+    cullingF_[4] = viewProjectionMatrix_.get_col(3);
 }
 
 DefaultCamera::DefaultCamera()
@@ -27,40 +48,39 @@ DefaultCamera::DefaultCamera()
     FOVYRad_ = agz::math::deg2rad(60.0f);
     wOverH_ = 1;
 
-    UpdateViewProjectionMatrix();
-    isMatrixDirty_ = false;
+    Update();
 }
 
 void DefaultCamera::SetPosition(const Vec3 &position) noexcept
 {
     position_ = position;
-    isMatrixDirty_ = true;
+    Update();
 }
 
 void DefaultCamera::SetDirection(float verticalAngle, float horizontalAngle) noexcept
 {
     verticalAngle_ = verticalAngle;
     horizontalAngle_ = horizontalAngle;
-    isMatrixDirty_ = true;
+    Update();
 }
 
 void DefaultCamera::SetFOVy(float degree) noexcept
 {
     FOVYRad_ = agz::math::deg2rad(degree);
-    isMatrixDirty_ = true;
+    Update();
 }
 
 void DefaultCamera::SetWOverH(float wOverH) noexcept
 {
     wOverH_ = wOverH;
-    isMatrixDirty_ = true;
+    Update();
 }
 
 void DefaultCamera::SetClipDistance(float nearPlane, float farPlane) noexcept
 {
     nearPlane_ = nearPlane;
     farPlane_ = farPlane;
-    isMatrixDirty_ = true;
+    Update();
 }
 
 void DefaultCamera::SetMoveSpeed(float unitPerSecond) noexcept
@@ -120,18 +140,22 @@ void DefaultCamera::Update(const Input &input, float deltaT) noexcept
         position_ += moveSpeed_ * direction.normalize() * deltaT / 1000.0f;
     }
 
-    UpdateViewProjectionMatrix();
-    isMatrixDirty_ = false;
+    Update();
+    Update();
 }
 
 Mat4 DefaultCamera::GetViewProjectionMatrix() const
 {
-    if(isMatrixDirty_)
-    {
-        UpdateViewProjectionMatrix();
-        isMatrixDirty_ = false;
-    }
     return viewProjectionMatrix_;
+}
+
+bool DefaultCamera::IsVisible(const CullingBoundingBox &bbox) const noexcept
+{
+    return !IsNegativeForAllVertices(cullingF_[0], bbox) &&
+           !IsNegativeForAllVertices(cullingF_[1], bbox) &&
+           !IsNegativeForAllVertices(cullingF_[2], bbox) &&
+           !IsNegativeForAllVertices(cullingF_[3], bbox) &&
+           !IsNegativeForAllVertices(cullingF_[4], bbox);
 }
 
 VRPG_GAME_END

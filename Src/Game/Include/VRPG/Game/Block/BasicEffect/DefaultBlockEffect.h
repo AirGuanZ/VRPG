@@ -35,13 +35,13 @@ public:
 
     bool IsTransparent() const noexcept override;
 
-    void Bind() const override;
+    void StartForward() const override;
 
-    void Unbind() const override;
+    void EndForward() const override;
 
     std::unique_ptr<PartialSectionModelBuilder> CreateModelBuilder(const Vec3i &globalSectionPosition) const override;
 
-    void SetRenderParams(const BlockRenderParams &params) const override;
+    void SetForwardRenderParams(const BlockForwardRenderParams &params) const override;
 
 private:
 

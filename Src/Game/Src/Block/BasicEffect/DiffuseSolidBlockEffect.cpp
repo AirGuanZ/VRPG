@@ -4,37 +4,58 @@
 
 VRPG_GAME_BEGIN
 
-DiffuseSolidBlockEffectGenerator::CommonProperties::CommonProperties()
+void DiffuseSolidBlockEffectGenerator::CommonProperties::InitializeForward()
 {
     std::string vertexShaderSource = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/DiffuseSolidVertex.hlsl");
     std::string pixelShaderSource  = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/DiffuseSolidPixel.hlsl");
-    shader_.InitializeStage<SS_VS>(vertexShaderSource);
-    shader_.InitializeStage<SS_PS>(pixelShaderSource);
-    if(!shader_.IsAllStagesAvailable())
-        throw VRPGWorldException("failed to initialize diffuse solid block effect shader");
+    forwardShader_.InitializeStage<SS_VS>(vertexShaderSource);
+    forwardShader_.InitializeStage<SS_PS>(pixelShaderSource);
+    if(!forwardShader_.IsAllStagesAvailable())
+        throw VRPGWorldException("failed to initialize diffuse solid block effect shader (forward)");
 
-    uniforms_ = shader_.CreateUniformManager();
+    forwardUniforms_ = forwardShader_.CreateUniformManager();
 
-    inputLayout_ = InputLayoutBuilder
+    forwardInputLayout_ = InputLayoutBuilder
         ("POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT,    offsetof(Vertex, position))
         ("TEXCOORD",   0, DXGI_FORMAT_R32G32_FLOAT,       offsetof(Vertex, texCoord))
         ("TEXINDEX",   0, DXGI_FORMAT_R32_UINT,           offsetof(Vertex, texIndex))
         ("BRIGHTNESS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, offsetof(Vertex, brightness))
-        .Build(shader_.GetVertexShaderByteCode());
+        .Build(forwardShader_.GetVertexShaderByteCode());
 
-    vsTransform_.Initialize(true, nullptr);
-    psSky_.Initialize(true, nullptr);
+    forwardVSTransform_.Initialize(true, nullptr);
+    forwardPSPerFrame_.Initialize(true, nullptr);
 
-    uniforms_.GetConstantBufferSlot<SS_VS>("Transform")->SetBuffer(vsTransform_);
-    uniforms_.GetConstantBufferSlot<SS_PS>("Sky")->SetBuffer(psSky_);
+    forwardUniforms_.GetConstantBufferSlot<SS_VS>("Transform")->SetBuffer(forwardVSTransform_);
+    forwardUniforms_.GetConstantBufferSlot<SS_PS>("PerFrame")->SetBuffer(forwardPSPerFrame_);
 
-    Sampler sampler;
-    sampler.Initialize(D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR);
-    uniforms_.GetSamplerSlot<SS_PS>("DiffuseSampler")->SetSampler(sampler);
+    Sampler diffuseSampler;
+    diffuseSampler.Initialize(D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR);
+    forwardUniforms_.GetSamplerSlot<SS_PS>("DiffuseSampler")->SetSampler(diffuseSampler);
 
-    diffuseTextureSlot_ = uniforms_.GetShaderResourceSlot<SS_PS>("DiffuseTexture");
-    if(!diffuseTextureSlot_)
+    Sampler shadowSampler;
+    const float shadowSamplerBorderColor[] = { 1, 1, 1, 1 };
+    shadowSampler.Initialize(
+        D3D11_FILTER_MIN_MAG_MIP_LINEAR,
+        D3D11_TEXTURE_ADDRESS_BORDER,
+        D3D11_TEXTURE_ADDRESS_BORDER,
+        D3D11_TEXTURE_ADDRESS_BORDER,
+        0, 1, D3D11_COMPARISON_NEVER,
+        shadowSamplerBorderColor);
+    forwardUniforms_.GetSamplerSlot<SS_PS>("ShadowSampler")->SetSampler(shadowSampler);
+
+    forwardDiffuseTextureSlot_ = forwardUniforms_.GetShaderResourceSlot<SS_PS>("DiffuseTexture");
+    if(!forwardDiffuseTextureSlot_)
         throw VRPGWorldException("shader resource slot not found in diffuse solid block effect shader: DiffuseTexture");
+
+    forwardShadowMapSlot_ = forwardUniforms_.GetShaderResourceSlot<SS_PS>("ShadowMap");
+    if(!forwardShadowMapSlot_)
+        throw VRPGWorldException("shader resource slot not found in diffuse solid block effect shader: ShadowMap");
+}
+
+DiffuseSolidBlockEffectGenerator::CommonProperties::CommonProperties()
+    : forwardDiffuseTextureSlot_(nullptr), forwardShadowMapSlot_(nullptr), shadowMap(offsetof(DiffuseSolidBlockEffectGenerator::Vertex, position))
+{
+    InitializeForward();
 }
 
 DiffuseSolidBlockEffectGenerator::DiffuseSolidBlockEffectGenerator(int textureSize, int expectedArraySize)
@@ -144,19 +165,29 @@ bool DiffuseSolidBlockEffect::IsTransparent() const noexcept
     return false;
 }
 
-void DiffuseSolidBlockEffect::Bind() const
+void DiffuseSolidBlockEffect::StartForward() const
 {
-    commonProperties_->diffuseTextureSlot_->SetShaderResourceView(textureArray_);
-    commonProperties_->shader_.Bind();
-    commonProperties_->uniforms_.Bind();
-    commonProperties_->inputLayout_.Bind();
+    commonProperties_->forwardDiffuseTextureSlot_->SetShaderResourceView(textureArray_);
+    commonProperties_->forwardShader_.Bind();
+    commonProperties_->forwardUniforms_.Bind();
+    commonProperties_->forwardInputLayout_.Bind();
 }
 
-void DiffuseSolidBlockEffect::Unbind() const
+void DiffuseSolidBlockEffect::EndForward() const
 {
-    commonProperties_->shader_.Unbind();
-    commonProperties_->uniforms_.Unbind();
-    commonProperties_->inputLayout_.Unbind();
+    commonProperties_->forwardShader_.Unbind();
+    commonProperties_->forwardUniforms_.Unbind();
+    commonProperties_->forwardInputLayout_.Unbind();
+}
+
+void DiffuseSolidBlockEffect::StartShadow() const
+{
+    commonProperties_->shadowMap.StartShadow();
+}
+
+void DiffuseSolidBlockEffect::EndShadow() const
+{
+    commonProperties_->shadowMap.EndShadow();
 }
 
 std::unique_ptr<PartialSectionModelBuilder> DiffuseSolidBlockEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
@@ -164,10 +195,16 @@ std::unique_ptr<PartialSectionModelBuilder> DiffuseSolidBlockEffect::CreateModel
     return std::make_unique<Builder>(globalSectionPosition, this);
 }
 
-void DiffuseSolidBlockEffect::SetRenderParams(const BlockRenderParams &params) const
+void DiffuseSolidBlockEffect::SetForwardRenderParams(const BlockForwardRenderParams &params) const
 {
-    commonProperties_->vsTransform_.SetValue({ params.camera->GetViewProjectionMatrix() });
-    commonProperties_->psSky_.SetValue({ params.skyLight, 0 });
+    commonProperties_->forwardShadowMapSlot_->SetShaderResourceView(params.shadowMapSRV.Get());
+    commonProperties_->forwardVSTransform_.SetValue({ params.shadowViewProj, params.camera->GetViewProjectionMatrix() });
+    commonProperties_->forwardPSPerFrame_.SetValue({ params.skyLight, params.shadowScale });
+}
+
+void DiffuseSolidBlockEffect::SetShadowRenderParams(const BlockShadowRenderParams &params) const
+{
+    commonProperties_->shadowMap.SetShadowParames(params);
 }
 
 VRPG_GAME_END

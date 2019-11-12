@@ -23,10 +23,10 @@ class DefaultCamera : public Camera
     float FOVYRad_;
     float wOverH_;
 
-    mutable bool isMatrixDirty_;
-    mutable Mat4 viewProjectionMatrix_;
+    Mat4 viewProjectionMatrix_;
+    Vec4 cullingF_[5];
 
-    void UpdateViewProjectionMatrix() const noexcept;
+    void Update() noexcept;
 
 public:
 
@@ -66,6 +66,8 @@ public:
     Vec3 GetPosition() const noexcept override;
 
     Vec3 GetDirection() const noexcept override;
+
+    bool IsVisible(const CullingBoundingBox &bbox) const noexcept override;
 };
 
 VRPG_GAME_END

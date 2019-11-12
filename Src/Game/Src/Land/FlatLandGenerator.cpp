@@ -14,8 +14,8 @@ void FlatLandGenerator::Generate(const ChunkPosition &position, ChunkBlockData *
 {
     auto &builtinBlocks = BuiltinBlockTypeManager::GetInstance();
     BlockID stoneID      = builtinBlocks.GetDesc(BuiltinBlockType::Stone)     .desc->GetBlockID();
-    BlockID soilID       = builtinBlocks.GetDesc(BuiltinBlockType::Soil)      .desc ->GetBlockID();
-    BlockID lawnID       = builtinBlocks.GetDesc(BuiltinBlockType::Lawn)      .desc ->GetBlockID();
+    BlockID soilID       = builtinBlocks.GetDesc(BuiltinBlockType::Soil)      .desc->GetBlockID();
+    BlockID lawnID       = builtinBlocks.GetDesc(BuiltinBlockType::Lawn)      .desc->GetBlockID();
     BlockID glowStoneID  = builtinBlocks.GetDesc(BuiltinBlockType::GlowStone) .desc->GetBlockID();
     BlockID leafID       = builtinBlocks.GetDesc(BuiltinBlockType::Leaf)      .desc->GetBlockID();
     BlockID whiteGlassID = builtinBlocks.GetDesc(BuiltinBlockType::WhiteGlass).desc->GetBlockID();

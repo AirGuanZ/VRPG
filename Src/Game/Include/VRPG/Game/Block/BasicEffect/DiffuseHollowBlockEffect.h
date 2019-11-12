@@ -5,6 +5,7 @@
 #include <agz/utility/texture.h>
 
 #include <VRPG/Game/Block/BasicEffect/NativePartialSectionModel.h>
+#include <VRPG/Game/Block/BasicEffect/ShadowMapEffect.h>
 #include <VRPG/Game/Block/BlockEffect.h>
 
 VRPG_GAME_BEGIN
@@ -28,12 +29,17 @@ public:
         Vec4 brightness;
     };
 
-    struct VS_Transform
+    struct Forward_VS_Transform
     {
-        Mat4 WVP;
+        Mat4 VP;
     };
 
-    struct PS_Sky
+    struct Shadow_VS_Transform
+    {
+        Mat4 VP;
+    };
+
+    struct Forward_PS_Sky
     {
         Vec3 skyLight;
         float pad = 0;
@@ -42,21 +48,29 @@ public:
     /**
      * @brief 由多个DiffuseHollowBlockEffect实例所共享的数据
      */
-    struct CommonProperties
+    class CommonProperties
     {
+        void InitializeForward();
+
+        void InitializeShadow();
+
+    public:
+
         CommonProperties();
 
-        Shader<SS_VS, SS_PS> shader_;
-        UniformManager<SS_VS, SS_PS> uniforms_;
+        Shader<SS_VS, SS_PS>                 forwardShader_;
+        UniformManager<SS_VS, SS_PS>         forwardUniforms_;
+        InputLayout                          forwardInputLayout_;
+        ConstantBuffer<Forward_VS_Transform> forwardVSTransform_;
+        ConstantBuffer<Forward_PS_Sky>       forwardPSSky_;
+        ShaderResourceSlot<SS_PS>           *forwardDiffuseTextureSlot_;
+        RasterizerState                      forwardRasterizerState_;
 
-        InputLayout inputLayout_;
-
-        ConstantBuffer<VS_Transform> vsTransform_;
-        ConstantBuffer<PS_Sky> psSky_;
-
-        ShaderResourceSlot<SS_PS> *diffuseTextureSlot_;
-
-        RasterizerState rasterizerState_;
+        Shader<SS_VS, SS_PS>                shadowShader_;
+        UniformManager<SS_VS, SS_PS>        shadowUniforms_;
+        InputLayout                         shadowInputLayout_;
+        ConstantBuffer<Shadow_VS_Transform> shadowVSTransform_;
+        ShaderResourceSlot<SS_PS>          *shadowDiffuseTextureSlot_;
     };
 
     DiffuseHollowBlockEffectGenerator(int textureSize, int expectedArraySize);
@@ -111,13 +125,19 @@ public:
 
     bool IsTransparent() const noexcept override;
 
-    void Bind() const override;
+    void StartForward() const override;
 
-    void Unbind() const override;
+    void EndForward() const override;
+
+    void StartShadow() const override;
+
+    void EndShadow() const override;
 
     std::unique_ptr<PartialSectionModelBuilder> CreateModelBuilder(const Vec3i &globalSectionPosition) const override;
 
-    void SetRenderParams(const BlockRenderParams &params) const override;
+    void SetForwardRenderParams(const BlockForwardRenderParams &params) const override;
+
+    void SetShadowRenderParams(const BlockShadowRenderParams &params) const override;
 
 private:
 

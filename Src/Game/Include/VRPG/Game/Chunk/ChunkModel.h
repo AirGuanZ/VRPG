@@ -45,6 +45,8 @@ public:
 
     virtual void Render(const Camera &camera) const = 0;
 
+    virtual void RenderShadow() const = 0;
+
     virtual const BlockEffect *GetBlockEffect() const noexcept = 0;
 };
 

@@ -3,6 +3,7 @@
 #include <VRPG/Base/D3D/Buffer/ConstantBuffer.h>
 #include <VRPG/Base/D3D/Buffer/IndexBuffer.h>
 #include <VRPG/Base/D3D/Buffer/VertexBuffer.h>
+#include <VRPG/Base/D3D/Misc/ShadowMap.h>
 #include <VRPG/Base/D3D/Screen/Immediate2D.h>
 #include <VRPG/Base/D3D/State/BlendState.h>
 #include <VRPG/Base/D3D/State/DepthStencilState.h>

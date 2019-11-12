@@ -56,6 +56,17 @@ namespace
             vertexBuffer_.Unbind(0);
         }
 
+        void RenderShadow() const override
+        {
+            indexBuffer_.SetValue(originalIndices_.data());
+
+            vertexBuffer_.Bind(0);
+            indexBuffer_.Bind();
+            RenderState::DrawIndexed(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, indexBuffer_.GetIndexCount());
+            indexBuffer_.Unbind();
+            vertexBuffer_.Unbind(0);
+        }
+
         const BlockEffect *GetBlockEffect() const noexcept override
         {
             return effect_;
@@ -222,7 +233,7 @@ bool TransparentBlockEffect::IsTransparent() const noexcept
     return true;
 }
 
-void TransparentBlockEffect::Bind() const
+void TransparentBlockEffect::StartForward() const
 {
     shader_.Bind();
     uniforms_.Bind();
@@ -231,7 +242,7 @@ void TransparentBlockEffect::Bind() const
     depthState_.Bind();
 }
 
-void TransparentBlockEffect::Unbind() const
+void TransparentBlockEffect::EndForward() const
 {
     depthState_.Unbind();
     blendState_.Unbind();
@@ -245,7 +256,7 @@ std::unique_ptr<PartialSectionModelBuilder> TransparentBlockEffect::CreateModelB
     return std::make_unique<Builder>(globalSectionPosition, this);
 }
 
-void TransparentBlockEffect::SetRenderParams(const BlockRenderParams &params) const
+void TransparentBlockEffect::SetForwardRenderParams(const BlockForwardRenderParams &params) const
 {
     vsTransform_.SetValue({ params.camera->GetViewProjectionMatrix() });
     psSky_.SetValue({ params.skyLight, 0 });

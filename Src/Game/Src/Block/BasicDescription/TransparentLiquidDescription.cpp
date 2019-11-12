@@ -74,7 +74,8 @@ void TransparentLiquidDescription::AddBlockModel(
 
     auto addFace = [&](
         const Vec3 &posA, const Vec3 &posB, const Vec3 &posC, const Vec3 &posD,
-        const Vec4 &lhtA, const Vec4 &lhtB, const Vec4 &lhtC, const Vec4 &lhtD)
+        const Vec4 &lhtA, const Vec4 &lhtB, const Vec4 &lhtC, const Vec4 &lhtD,
+        const Vec3 &sortCentre)
     {
         Vec3 posE = 0.25f * (posA + posB + posC + posD);
         Vec4 lhtE = 0.25f * (lhtA + lhtB + lhtC + lhtD);
@@ -93,7 +94,7 @@ void TransparentLiquidDescription::AddBlockModel(
         builder->AddIndexedTriangle(vertexCount + 2, vertexCount + 3, vertexCount + 4);
         builder->AddIndexedTriangle(vertexCount + 3, vertexCount + 0, vertexCount + 4);
 
-        builder->AddFaceIndexRange(positionBase + posE, startIndex);
+        builder->AddFaceIndexRange(positionBase + sortCentre, startIndex);
     };
 
     bool isThisSource = blocks[1][1][1].desc->GetLiquidDescription()->IsSource(*blocks[1][1][1].extraData);
@@ -202,10 +203,13 @@ void TransparentLiquidDescription::AddBlockModel(
 
         Vec3i pos[4]; Vec3 posf[4];
         GenerateBoxFaceiDynamic(normalDirection, pos);
+
+        Vec3 posSum;
         for(int i = 0; i < 4; ++i)
         {
             int xi = pos[i].x, zi = pos[i].z;
             posf[i] = { float(xi), pos[i].y * vertexHeights[xi][zi], float(zi) };
+            posSum += pos[i].map([](int i) { return float(i); });
         }
 
         Vec4 lhtA = vertexBrightness(normalDirection, posf[0]);
@@ -213,7 +217,7 @@ void TransparentLiquidDescription::AddBlockModel(
         Vec4 lhtC = vertexBrightness(normalDirection, posf[2]);
         Vec4 lhtD = vertexBrightness(normalDirection, posf[3]);
 
-        addFace(posf[0], posf[1], posf[2], posf[3], lhtA, lhtB, lhtC, lhtD);
+        addFace(posf[0], posf[1], posf[2], posf[3], lhtA, lhtB, lhtC, lhtD, 0.25f * posSum);
     };
 
     generateFace(PositiveX);
