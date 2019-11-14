@@ -17,13 +17,16 @@ ADD_DEFINITIONS(-D_UNICODE)
 
 ############## submodules
 
-SET(directxtk_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/Lib/DirectXTK/Inc)
-SET(spdlog_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/Lib/spdlog/include)
+SET(directxtk_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/Lib/DirectXTK/Inc")
+SET(spdlog_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/Lib/spdlog/include")
+SET(libconfig_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/Lib/libconfig/lib")
 
 ADD_SUBDIRECTORY(Lib/agz-utils)
 ADD_SUBDIRECTORY(Lib/DirectXTK)
+ADD_SUBDIRECTORY(Lib/libconfig)
 ADD_SUBDIRECTORY(Lib/ImGui)
+
 ADD_SUBDIRECTORY(Src/Base)
 ADD_SUBDIRECTORY(Src/Game)
 
-SET_TARGET_PROPERTIES(AGZUtils ImGui directxtk PROPERTIES FOLDER "ThirdParty")
+SET_TARGET_PROPERTIES(AGZUtils ImGui directxtk libconfig++ PROPERTIES FOLDER "ThirdParty")
