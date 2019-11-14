@@ -119,7 +119,7 @@ int TransparentBlockEffect::AddTexture(agz::texture::texture2d_t<Vec4> textureDa
         textureSize_ = textureData.width();
     else if(textureSize_ != textureData.width())
     {
-        throw VRPGWorldException(
+        throw VRPGGameException(
             "invalid texture data size. expected: " + std::to_string(textureSize_) + 
             ", actual: " + std::to_string(textureData.width()));
     }
@@ -138,7 +138,7 @@ void TransparentBlockEffect::Initialize()
     shader_.InitializeStage<SS_VS>(vertexShaderSource);
     shader_.InitializeStage<SS_PS>(pixelShaderSource);
     if(!shader_.IsAllStagesAvailable())
-        throw VRPGWorldException("failed to initialize transparent box block effect");
+        throw VRPGGameException("failed to initialize transparent box block effect");
 
     uniforms_ = shader_.CreateUniformManager();
     
@@ -150,14 +150,25 @@ void TransparentBlockEffect::Initialize()
         .Build(shader_.GetVertexShaderByteCode());
 
     vsTransform_.Initialize(true, nullptr);
-    psSky_.Initialize(true, nullptr);
+    psPerFrame_.Initialize(true, nullptr);
 
     uniforms_.GetConstantBufferSlot<SS_VS>("Transform")->SetBuffer(vsTransform_);
-    uniforms_.GetConstantBufferSlot<SS_PS>("Sky")->SetBuffer(psSky_);
+    uniforms_.GetConstantBufferSlot<SS_PS>("PerFrame")->SetBuffer(psPerFrame_);
 
-    Sampler sampler;
-    sampler.Initialize(D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR);
-    uniforms_.GetSamplerSlot<SS_PS>("TransparentSampler")->SetSampler(sampler);
+    Sampler transparentSampler;
+    transparentSampler.Initialize(D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR);
+    uniforms_.GetSamplerSlot<SS_PS>("TransparentSampler")->SetSampler(transparentSampler);
+
+    Sampler shadowSampler;
+    const float shadowSamplerBorderColor[] = { 1, 1, 1, 1 };
+    shadowSampler.Initialize(
+        D3D11_FILTER_MIN_MAG_MIP_LINEAR,
+        D3D11_TEXTURE_ADDRESS_BORDER,
+        D3D11_TEXTURE_ADDRESS_BORDER,
+        D3D11_TEXTURE_ADDRESS_BORDER,
+        0, 1, D3D11_COMPARISON_NEVER,
+        shadowSamplerBorderColor);
+    uniforms_.GetSamplerSlot<SS_PS>("ShadowSampler")->SetSampler(shadowSampler);
 
     blendState_ = BlendStateBuilder()
         .Set(0, true,
@@ -203,7 +214,7 @@ void TransparentBlockEffect::Initialize()
 
     ComPtr<ID3D11Texture2D> texture = Base::D3D::CreateTexture2D(texDesc, initDataArr.data());
     if(!texture)
-        throw VRPGWorldException("failed to create texture2d array for transparent block effect");
+        throw VRPGGameException("failed to create texture2d array for transparent block effect");
     
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
     srvDesc.Format                         = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -215,12 +226,14 @@ void TransparentBlockEffect::Initialize()
 
     ComPtr<ID3D11ShaderResourceView> srv = Base::D3D::CreateShaderResourceView(srvDesc, texture.Get());
     if(!srv)
-        throw VRPGWorldException("failed to create shader resource view of texture2d array of for transparent block effect");
+        throw VRPGGameException("failed to create shader resource view of texture2d array of for transparent block effect");
 
     uniforms_.GetShaderResourceSlot<SS_PS>("TransparentTexture")->SetShaderResourceView(ShaderResourceView(srv));
 
     decltype(textureDataArray_) tTexDataArr;
     textureDataArray_.swap(tTexDataArr);
+
+    shadowMapSlot_ = uniforms_.GetShaderResourceSlot<SS_PS>("ShadowMap");
 }
 
 const char *TransparentBlockEffect::GetName() const
@@ -258,8 +271,9 @@ std::unique_ptr<PartialSectionModelBuilder> TransparentBlockEffect::CreateModelB
 
 void TransparentBlockEffect::SetForwardRenderParams(const BlockForwardRenderParams &params) const
 {
-    vsTransform_.SetValue({ params.camera->GetViewProjectionMatrix() });
-    psSky_.SetValue({ params.skyLight, 0 });
+    shadowMapSlot_->SetShaderResourceView(params.shadowMapSRV.Get());
+    vsTransform_.SetValue({ params.shadowViewProj, params.camera->GetViewProjectionMatrix() });
+    psPerFrame_.SetValue({ params.skyLight, params.shadowScale });
 }
 
 VRPG_GAME_END

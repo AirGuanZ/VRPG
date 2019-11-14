@@ -11,7 +11,7 @@ void DiffuseSolidBlockEffectGenerator::CommonProperties::InitializeForward()
     forwardShader_.InitializeStage<SS_VS>(vertexShaderSource);
     forwardShader_.InitializeStage<SS_PS>(pixelShaderSource);
     if(!forwardShader_.IsAllStagesAvailable())
-        throw VRPGWorldException("failed to initialize diffuse solid block effect shader (forward)");
+        throw VRPGGameException("failed to initialize diffuse solid block effect shader (forward)");
 
     forwardUniforms_ = forwardShader_.CreateUniformManager();
 
@@ -45,17 +45,71 @@ void DiffuseSolidBlockEffectGenerator::CommonProperties::InitializeForward()
 
     forwardDiffuseTextureSlot_ = forwardUniforms_.GetShaderResourceSlot<SS_PS>("DiffuseTexture");
     if(!forwardDiffuseTextureSlot_)
-        throw VRPGWorldException("shader resource slot not found in diffuse solid block effect shader: DiffuseTexture");
+        throw VRPGGameException("shader resource slot not found in diffuse solid block effect shader: DiffuseTexture");
 
     forwardShadowMapSlot_ = forwardUniforms_.GetShaderResourceSlot<SS_PS>("ShadowMap");
     if(!forwardShadowMapSlot_)
-        throw VRPGWorldException("shader resource slot not found in diffuse solid block effect shader: ShadowMap");
+        throw VRPGGameException("shader resource slot not found in diffuse solid block effect shader: ShadowMap");
+}
+
+void DiffuseSolidBlockEffectGenerator::CommonProperties::InitializeShadow()
+{
+    const char *vertexShaderSource = R"___(
+cbuffer Transform
+{
+    float4x4 VP;
+};
+
+struct VSInput
+{
+    float3 position : POSITION;
+};
+
+struct VSOutput
+{
+    float4 position : SV_POSITION;
+};
+
+VSOutput main(VSInput input)
+{
+    VSOutput output = (VSOutput)0;
+    output.position = mul(float4(input.position, 1), VP);
+    return output;
+}
+)___";
+
+    const char *pixelShaderSource = R"___(
+struct PSInput
+{
+    float4 position : SV_POSITION;
+};
+
+void main(PSInput input)
+{
+    // do nothing
+}
+)___";
+
+    shadowShader_.InitializeStage<SS_VS>(vertexShaderSource);
+    shadowShader_.InitializeStage<SS_PS>(pixelShaderSource);
+    if(!shadowShader_.IsAllStagesAvailable())
+        throw VRPGGameException("failed to initialize shadow shader for diffuse solid block effect");
+
+    shadowUniforms_ = shadowShader_.CreateUniformManager();
+
+    shadowVSTransform_.Initialize(true, nullptr);
+    shadowUniforms_.GetConstantBufferSlot<SS_VS>("Transform")->SetBuffer(shadowVSTransform_);
+
+    shadowInputLayout_ = InputLayoutBuilder
+        ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, offsetof(Vertex, position))
+        .Build(shadowShader_.GetVertexShaderByteCode());
 }
 
 DiffuseSolidBlockEffectGenerator::CommonProperties::CommonProperties()
-    : forwardDiffuseTextureSlot_(nullptr), forwardShadowMapSlot_(nullptr), shadowMap(offsetof(DiffuseSolidBlockEffectGenerator::Vertex, position))
+    : forwardDiffuseTextureSlot_(nullptr), forwardShadowMapSlot_(nullptr)
 {
     InitializeForward();
+    InitializeShadow();
 }
 
 DiffuseSolidBlockEffectGenerator::DiffuseSolidBlockEffectGenerator(int textureSize, int expectedArraySize)
@@ -129,7 +183,7 @@ void DiffuseSolidBlockEffectGenerator::InitializeEffect(DiffuseSolidBlockEffect 
     
     ComPtr<ID3D11Texture2D> texture = Base::D3D::CreateTexture2D(textureDesc, initDataArr.data());
     if(!texture)
-        throw VRPGWorldException("failed to create texture2d array for diffuse solid block effect");
+        throw VRPGGameException("failed to create texture2d array for diffuse solid block effect");
 
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
     srvDesc.Format                         = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -141,7 +195,7 @@ void DiffuseSolidBlockEffectGenerator::InitializeEffect(DiffuseSolidBlockEffect 
 
     ComPtr<ID3D11ShaderResourceView> srv = Base::D3D::CreateShaderResourceView(srvDesc, texture.Get());
     if(!srv)
-        throw VRPGWorldException("failed to create shader resource view of texture2d array of for diffuse solid block effect");
+        throw VRPGGameException("failed to create shader resource view of texture2d array of for diffuse solid block effect");
 
     effect.Initialize(commonProperties_, ShaderResourceView(srv), generatedEffectCount_++);
 }
@@ -182,12 +236,16 @@ void DiffuseSolidBlockEffect::EndForward() const
 
 void DiffuseSolidBlockEffect::StartShadow() const
 {
-    commonProperties_->shadowMap.StartShadow();
+    commonProperties_->shadowShader_.Bind();
+    commonProperties_->shadowUniforms_.Bind();
+    commonProperties_->shadowInputLayout_.Bind();
 }
 
 void DiffuseSolidBlockEffect::EndShadow() const
 {
-    commonProperties_->shadowMap.EndShadow();
+    commonProperties_->shadowShader_.Unbind();
+    commonProperties_->shadowUniforms_.Unbind();
+    commonProperties_->shadowInputLayout_.Unbind();
 }
 
 std::unique_ptr<PartialSectionModelBuilder> DiffuseSolidBlockEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
@@ -204,7 +262,7 @@ void DiffuseSolidBlockEffect::SetForwardRenderParams(const BlockForwardRenderPar
 
 void DiffuseSolidBlockEffect::SetShadowRenderParams(const BlockShadowRenderParams &params) const
 {
-    commonProperties_->shadowMap.SetShadowParames(params);
+    commonProperties_->shadowVSTransform_.SetValue({ params.shadowViewProj });
 }
 
 VRPG_GAME_END

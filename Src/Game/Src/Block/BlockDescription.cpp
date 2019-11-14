@@ -129,7 +129,7 @@ BlockID BlockDescriptionManager::RegisterBlockDescription(std::shared_ptr<BlockD
     if(auto it = name2Desc_.find(desc->GetName()); it != name2Desc_.end())
     {
         if(it->second != desc)
-            throw VRPGWorldException("repeated block description name: " + std::string(desc->GetName()));
+            throw VRPGGameException("repeated block description name: " + std::string(desc->GetName()));
         return desc->GetBlockID();
     }
 

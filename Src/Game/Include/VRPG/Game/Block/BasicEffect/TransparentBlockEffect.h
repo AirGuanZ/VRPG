@@ -23,13 +23,14 @@ public:
 
     struct VS_Transform
     {
-        Mat4 WVP;
+        Mat4 shadowVP;
+        Mat4 VP;
     };
 
-    struct PS_Sky
+    struct PS_PerFrame
     {
         Vec3 skyLight;
-        float pad = 0;
+        float shadowScale = 1;
     };
 
     class Builder : public PartialSectionModelBuilder
@@ -85,16 +86,15 @@ public:
 
 private:
 
-    Shader<SS_VS, SS_PS> shader_;
-    UniformManager<SS_VS, SS_PS> uniforms_;
-
-    InputLayout inputLayout_;
-
+    Shader<SS_VS, SS_PS>                 shader_;
+    UniformManager<SS_VS, SS_PS>         uniforms_;
+    InputLayout                          inputLayout_;
     mutable ConstantBuffer<VS_Transform> vsTransform_;
-    mutable ConstantBuffer<PS_Sky> psSky_;
+    mutable ConstantBuffer<PS_PerFrame>  psPerFrame_;
+    BlendState                           blendState_;
+    DepthState                           depthState_;
 
-    BlendState blendState_;
-    DepthState depthState_;
+    ShaderResourceSlot<SS_PS> *shadowMapSlot_ = nullptr;
 
     std::vector<agz::texture::texture2d_t<Vec4>> textureDataArray_;
     int textureSize_ = 0;

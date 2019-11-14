@@ -5,7 +5,6 @@
 #include <agz/utility/texture.h>
 
 #include <VRPG/Game/Block/BasicEffect/NativePartialSectionModel.h>
-#include <VRPG/Game/Block/BasicEffect/ShadowMapEffect.h>
 #include <VRPG/Game/Block/BlockEffect.h>
 
 VRPG_GAME_BEGIN
@@ -52,20 +51,24 @@ public:
     class CommonProperties
     {
         void InitializeForward();
+        void InitializeShadow();
 
     public:
 
         CommonProperties();
 
-        Shader<SS_VS, SS_PS> forwardShader_;
-        UniformManager<SS_VS, SS_PS> forwardUniforms_;
-        InputLayout forwardInputLayout_;
+        Shader<SS_VS, SS_PS>                 forwardShader_;
+        UniformManager<SS_VS, SS_PS>         forwardUniforms_;
+        InputLayout                          forwardInputLayout_;
         ConstantBuffer<Forward_VS_Transform> forwardVSTransform_;
-        ConstantBuffer<Forward_PS_PerFrame> forwardPSPerFrame_;
-        ShaderResourceSlot<SS_PS> *forwardDiffuseTextureSlot_;
-        ShaderResourceSlot<SS_PS> *forwardShadowMapSlot_;
+        ConstantBuffer<Forward_PS_PerFrame>  forwardPSPerFrame_;
+        ShaderResourceSlot<SS_PS>           *forwardDiffuseTextureSlot_;
+        ShaderResourceSlot<SS_PS>           *forwardShadowMapSlot_;
 
-        ShadowMapEffect shadowMap;
+        Shader<SS_VS, SS_PS>                shadowShader_;
+        UniformManager<SS_VS, SS_PS>        shadowUniforms_;
+        ConstantBuffer<Shadow_VS_Transform> shadowVSTransform_;
+        InputLayout                         shadowInputLayout_;
     };
 
     DiffuseSolidBlockEffectGenerator(int textureSize, int expectedArraySize);

@@ -1,8 +1,5 @@
 #pragma once
 
-#include <string_view>
-
-#include <agz/utility/misc.h>
 #include <d3d11.h>
 #include <d3dcompiler.h>
 
@@ -29,6 +26,21 @@ namespace Impl
         static const char *DefaultCompileTarget() noexcept
         {
             return "vs_5_0";
+        }
+
+        static ComPtr<ID3D10Blob> CompileShader(
+            std::string_view source, const char *sourceName, const char *target, const char *entry, std::string &errMsg)
+        {
+            ComPtr<ID3D10Blob> ret, err;
+            HRESULT hr = D3DCompile(
+                source.data(), source.size(), sourceName, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+                entry, target, 0, 0, ret.GetAddressOf(), err.GetAddressOf());
+            if(FAILED(hr))
+            {
+                errMsg = (char *)(err->GetBufferPointer());
+                return nullptr;
+            }
+            return ret;
         }
 
         static ComPtr<ID3D10Blob> CompileShader(std::string_view source, const char *target, const char *entry, std::string &errMsg)
@@ -73,6 +85,12 @@ namespace Impl
             return "hs_5_0";
         }
 
+        static ComPtr<ID3D10Blob> CompileShader(
+            std::string_view source, const char *sourceName, const char *target, const char *entry, std::string &errMsg)
+        {
+            return StageSpecificImpl<ShaderStage::VS>::CompileShader(source, sourceName, target, entry, errMsg);
+        }
+
         static ComPtr<ID3D10Blob> CompileShader(std::string_view source, const char *target, const char *entry, std::string &errMsg)
         {
             return StageSpecificImpl<ShaderStage::VS>::CompileShader(source, target, entry, errMsg);
@@ -104,6 +122,12 @@ namespace Impl
         static const char *DefaultCompileTarget() noexcept
         {
             return "ds_5_0";
+        }
+
+        static ComPtr<ID3D10Blob> CompileShader(
+            std::string_view source, const char *sourceName, const char *target, const char *entry, std::string &errMsg)
+        {
+            return StageSpecificImpl<ShaderStage::VS>::CompileShader(source, sourceName, target, entry, errMsg);
         }
 
         static ComPtr<ID3D10Blob> CompileShader(std::string_view source, const char *target, const char *entry, std::string &errMsg)
@@ -138,6 +162,12 @@ namespace Impl
             return "gs_5_0";
         }
 
+        static ComPtr<ID3D10Blob> CompileShader(
+            std::string_view source, const char *sourceName, const char *target, const char *entry, std::string &errMsg)
+        {
+            return StageSpecificImpl<ShaderStage::VS>::CompileShader(source, sourceName, target, entry, errMsg);
+        }
+
         static ComPtr<ID3D10Blob> CompileShader(std::string_view source, const char *target, const char *entry, std::string &errMsg)
         {
             return StageSpecificImpl<ShaderStage::VS>::CompileShader(source, target, entry, errMsg);
@@ -169,6 +199,12 @@ namespace Impl
         static const char *DefaultCompileTarget() noexcept
         {
             return "ps_5_0";
+        }
+
+        static ComPtr<ID3D10Blob> CompileShader(
+            std::string_view source, const char *sourceName, const char *target, const char *entry, std::string &errMsg)
+        {
+            return StageSpecificImpl<ShaderStage::VS>::CompileShader(source, sourceName, target, entry, errMsg);
         }
 
         static ComPtr<ID3D10Blob> CompileShader(std::string_view source, const char *target, const char *entry, std::string &errMsg)
@@ -238,10 +274,23 @@ public:
 
     static constexpr ShaderStage ShaderStageValue = STAGE;
 
-    void Initialize(
-        std::string_view source,
-        const char *entry = "main",
-        const char *target = SpecImpl::DefaultCompileTarget())
+    void Initialize(std::string_view source, const char *sourceName, const char *entry, const char *target)
+    {
+        agz::misc::scope_guard_t initGuard([&] { this->Destroy(); });
+
+        std::string errMsg;
+        byteCode_ = SpecImpl::CompileShader(source, sourceName, target, entry, errMsg);
+        if(!byteCode_)
+            throw VRPGBaseException("failed to compile shader source: " + errMsg);
+
+        shader_ = SpecImpl::CreateShader(byteCode_->GetBufferPointer(), byteCode_->GetBufferSize());
+
+        InitializeRecordTables();
+
+        initGuard.dismiss();
+    }
+
+    void Initialize(std::string_view source, const char *entry, const char *target)
     {
         agz::misc::scope_guard_t initGuard([&] { this->Destroy(); });
 

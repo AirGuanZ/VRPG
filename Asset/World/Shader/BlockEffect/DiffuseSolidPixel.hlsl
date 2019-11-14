@@ -9,8 +9,9 @@ struct PSInput
     float4 position       : SV_POSITION;
     float4 shadowPosition : SHADOWPOSITION;
     float2 texCoord       : TEXCOORD;
-    uint   texIndex       : TEXINDEX;
     float4 brightness     : BRIGHTNESS;
+	
+    nointerpolation uint texIndex : TEXINDEX;
 };
 
 SamplerState DiffuseSampler;

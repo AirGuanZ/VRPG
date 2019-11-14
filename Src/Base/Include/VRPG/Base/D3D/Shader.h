@@ -23,6 +23,28 @@ public:
     template<ShaderStage STAGE>
     void InitializeStage(
         std::string_view source,
+        const std::string &sourceName,
+        const char *entry = "main",
+        const char *target = Stage<STAGE>::SpecImpl::DefaultCompileTarget())
+    {
+        auto &stage = std::get<Stage<STAGE>>(stages_);
+        stage.Initialize(source, sourceName.c_str(), entry, target);
+    }
+
+    template<ShaderStage STAGE>
+    void InitializeStage(
+        std::string_view source,
+        const char *sourceName,
+        const char *entry = "main",
+        const char *target = Stage<STAGE>::SpecImpl::DefaultCompileTarget())
+    {
+        auto &stage = std::get<Stage<STAGE>>(stages_);
+        stage.Initialize(source, sourceName, entry, target);
+    }
+
+    template<ShaderStage STAGE>
+    void InitializeStage(
+        std::string_view source,
         const char *entry = "main",
         const char *target = Stage<STAGE>::SpecImpl::DefaultCompileTarget())
     {

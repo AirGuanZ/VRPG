@@ -5,7 +5,6 @@
 #include <agz/utility/texture.h>
 
 #include <VRPG/Game/Block/BasicEffect/NativePartialSectionModel.h>
-#include <VRPG/Game/Block/BasicEffect/ShadowMapEffect.h>
 #include <VRPG/Game/Block/BlockEffect.h>
 
 VRPG_GAME_BEGIN
@@ -31,18 +30,19 @@ public:
 
     struct Forward_VS_Transform
     {
+        Mat4 shadowVP;
         Mat4 VP;
+    };
+
+    struct Forward_PS_PerFrame
+    {
+        Vec3 skyLight;
+        float shadowScale = 1;
     };
 
     struct Shadow_VS_Transform
     {
         Mat4 VP;
-    };
-
-    struct Forward_PS_Sky
-    {
-        Vec3 skyLight;
-        float pad = 0;
     };
 
     /**
@@ -62,8 +62,9 @@ public:
         UniformManager<SS_VS, SS_PS>         forwardUniforms_;
         InputLayout                          forwardInputLayout_;
         ConstantBuffer<Forward_VS_Transform> forwardVSTransform_;
-        ConstantBuffer<Forward_PS_Sky>       forwardPSSky_;
+        ConstantBuffer<Forward_PS_PerFrame>  forwardPSPerFrame_;
         ShaderResourceSlot<SS_PS>           *forwardDiffuseTextureSlot_;
+        ShaderResourceSlot<SS_PS>           *forwardShadowMapSlot_;
         RasterizerState                      forwardRasterizerState_;
 
         Shader<SS_VS, SS_PS>                shadowShader_;

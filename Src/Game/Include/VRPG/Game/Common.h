@@ -53,7 +53,7 @@ using Trans4 = Base::Trans4;
 
 using StdClock = std::chrono::high_resolution_clock;
 
-class VRPGWorldException : public std::runtime_error
+class VRPGGameException : public std::runtime_error
 {
 public:
 

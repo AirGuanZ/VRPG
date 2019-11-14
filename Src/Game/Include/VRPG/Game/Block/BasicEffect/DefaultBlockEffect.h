@@ -16,12 +16,12 @@ public:
         Vec4 brightness;
     };
 
-    struct VS_Transform
+    struct Forward_VS_Transform
     {
         Mat4 WVP;
     };
 
-    struct PS_Sky
+    struct Forward_PS_Sky
     {
         Vec3 skylight;
         float pad = 0;
@@ -45,13 +45,11 @@ public:
 
 private:
 
-    Shader<SS_VS, SS_PS> shader_;
-    UniformManager<SS_VS, SS_PS> uniforms_;
-
-    InputLayout inputLayout_;
-
-    mutable ConstantBuffer<VS_Transform> vsTransform_;
-    mutable ConstantBuffer<PS_Sky> psSky_;
+    Shader<SS_VS, SS_PS>                         forwardShader_;
+    UniformManager<SS_VS, SS_PS>                 forwardUniforms_;
+    InputLayout                                  forwardInputLayout_;
+    mutable ConstantBuffer<Forward_VS_Transform> forwardVSTransform_;
+    mutable ConstantBuffer<Forward_PS_Sky>       forwardPSSky_;
 };
 
 VRPG_GAME_END

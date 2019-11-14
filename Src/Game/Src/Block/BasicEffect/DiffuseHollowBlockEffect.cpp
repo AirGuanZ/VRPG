@@ -11,7 +11,7 @@ void DiffuseHollowBlockEffectGenerator::CommonProperties::InitializeForward()
     forwardShader_.InitializeStage<SS_VS>(vertexShaderSource);
     forwardShader_.InitializeStage<SS_PS>(pixelShaderSource);
     if(!forwardShader_.IsAllStagesAvailable())
-        throw VRPGWorldException("failed to initialize diffuse hollow block effect shader");
+        throw VRPGGameException("failed to initialize diffuse hollow block effect shader");
 
     forwardUniforms_ = forwardShader_.CreateUniformManager();
 
@@ -23,18 +23,33 @@ void DiffuseHollowBlockEffectGenerator::CommonProperties::InitializeForward()
         .Build(forwardShader_.GetVertexShaderByteCode());
 
     forwardVSTransform_.Initialize(true, nullptr);
-    forwardPSSky_.Initialize(true, nullptr);
+    forwardPSPerFrame_.Initialize(true, nullptr);
 
     forwardUniforms_.GetConstantBufferSlot<SS_VS>("Transform")->SetBuffer(forwardVSTransform_);
-    forwardUniforms_.GetConstantBufferSlot<SS_PS>("Sky")->SetBuffer(forwardPSSky_);
+    forwardUniforms_.GetConstantBufferSlot<SS_PS>("PerFrame")->SetBuffer(forwardPSPerFrame_);
 
-    Sampler sampler;
-    sampler.Initialize(D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR);
-    forwardUniforms_.GetSamplerSlot<SS_PS>("DiffuseSampler")->SetSampler(sampler);
+    Sampler diffuseSampler;
+    diffuseSampler.Initialize(D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR);
+    forwardUniforms_.GetSamplerSlot<SS_PS>("DiffuseSampler")->SetSampler(diffuseSampler);
+
+    Sampler shadowSampler;
+    const float shadowSamplerBorderColor[] = { 1, 1, 1, 1 };
+    shadowSampler.Initialize(
+        D3D11_FILTER_MIN_MAG_MIP_LINEAR,
+        D3D11_TEXTURE_ADDRESS_BORDER,
+        D3D11_TEXTURE_ADDRESS_BORDER,
+        D3D11_TEXTURE_ADDRESS_BORDER,
+        0, 1, D3D11_COMPARISON_NEVER,
+        shadowSamplerBorderColor);
+    forwardUniforms_.GetSamplerSlot<SS_PS>("ShadowSampler")->SetSampler(shadowSampler);
 
     forwardDiffuseTextureSlot_ = forwardUniforms_.GetShaderResourceSlot<SS_PS>("DiffuseTexture");
     if(!forwardDiffuseTextureSlot_)
-        throw VRPGWorldException("shader resource slot not found in diffuse hollow block effect shader: DiffuseTexture");
+        throw VRPGGameException("shader resource slot not found in diffuse hollow block effect shader: DiffuseTexture");
+
+    forwardShadowMapSlot_ = forwardUniforms_.GetShaderResourceSlot<SS_PS>("ShadowMap");
+    if(!forwardShadowMapSlot_)
+        throw VRPGGameException("shader resource slot not found in diffuse hollow block effect shader: ShadowMap");
 
     forwardRasterizerState_.Initialize(D3D11_FILL_SOLID, D3D11_CULL_NONE, false);
 }
@@ -92,7 +107,7 @@ void main(PSInput input)
     shadowShader_.InitializeStage<SS_VS>(vertexShaderSource);
     shadowShader_.InitializeStage<SS_PS>(pixelShaderSource);
     if(!shadowShader_.IsAllStagesAvailable())
-        throw VRPGWorldException("failed to initialize shadow shader for transparent block effect");
+        throw VRPGGameException("failed to initialize shadow shader for transparent block effect");
 
     shadowUniforms_ = shadowShader_.CreateUniformManager();
 
@@ -113,7 +128,8 @@ void main(PSInput input)
 }
 
 DiffuseHollowBlockEffectGenerator::CommonProperties::CommonProperties()
-    : forwardDiffuseTextureSlot_(nullptr), shadowDiffuseTextureSlot_(nullptr)
+    : forwardDiffuseTextureSlot_(nullptr), forwardShadowMapSlot_(nullptr),
+      shadowDiffuseTextureSlot_(nullptr)
 {
     InitializeForward();
     InitializeShadow();
@@ -190,7 +206,7 @@ void DiffuseHollowBlockEffectGenerator::InitializeEffect(DiffuseHollowBlockEffec
 
     ComPtr<ID3D11Texture2D> texture = Base::D3D::CreateTexture2D(textureDesc, initDataArr.data());
     if(!texture)
-        throw VRPGWorldException("failed to create texture2d array for diffuse hollow block effect");
+        throw VRPGGameException("failed to create texture2d array for diffuse hollow block effect");
 
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
     srvDesc.Format                         = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -202,7 +218,7 @@ void DiffuseHollowBlockEffectGenerator::InitializeEffect(DiffuseHollowBlockEffec
 
     ComPtr<ID3D11ShaderResourceView> srv = Base::D3D::CreateShaderResourceView(srvDesc, texture.Get());
     if(!srv)
-        throw VRPGWorldException("failed to create shader resource view of texture2d array of for diffuse hollow block effect");
+        throw VRPGGameException("failed to create shader resource view of texture2d array of for diffuse hollow block effect");
 
     effect.Initialize(commonProperties_, ShaderResourceView(srv), generatedEffectCount_++);
 }
@@ -245,7 +261,6 @@ void DiffuseHollowBlockEffect::EndForward() const
 
 void DiffuseHollowBlockEffect::StartShadow() const
 {
-    //commonProperties_->shadowMapEffect_.StartShadow();
     commonProperties_->shadowDiffuseTextureSlot_->SetShaderResourceView(textureArray_);
     commonProperties_->shadowShader_.Bind();
     commonProperties_->shadowUniforms_.Bind();
@@ -268,13 +283,13 @@ std::unique_ptr<PartialSectionModelBuilder> DiffuseHollowBlockEffect::CreateMode
 
 void DiffuseHollowBlockEffect::SetForwardRenderParams(const BlockForwardRenderParams &params) const
 {
-    commonProperties_->forwardVSTransform_.SetValue({ params.camera->GetViewProjectionMatrix() });
-    commonProperties_->forwardPSSky_.SetValue({ params.skyLight, 0 });
+    commonProperties_->forwardShadowMapSlot_->SetShaderResourceView(params.shadowMapSRV.Get());
+    commonProperties_->forwardVSTransform_.SetValue({ params.shadowViewProj, params.camera->GetViewProjectionMatrix() });
+    commonProperties_->forwardPSPerFrame_.SetValue({ params.skyLight, params.shadowScale });
 }
 
 void DiffuseHollowBlockEffect::SetShadowRenderParams(const BlockShadowRenderParams &params) const
 {
-    //commonProperties_->shadowMapEffect_.SetShadowParames(params);
     commonProperties_->shadowVSTransform_.SetValue({ params.shadowViewProj });
 }
 

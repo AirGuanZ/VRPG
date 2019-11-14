@@ -8,23 +8,23 @@ DefaultBlockEffect::DefaultBlockEffect()
 {
     std::string vertexShaderSource = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/DefaultVertex.hlsl");
     std::string pixelShaderSource  = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/DefaultPixel.hlsl");
-    shader_.InitializeStage<SS_VS>(vertexShaderSource);
-    shader_.InitializeStage<SS_PS>(pixelShaderSource);
-    if(!shader_.IsAllStagesAvailable())
-        throw VRPGWorldException("failed to initialize default block effect shader");
+    forwardShader_.InitializeStage<SS_VS>(vertexShaderSource);
+    forwardShader_.InitializeStage<SS_PS>(pixelShaderSource);
+    if(!forwardShader_.IsAllStagesAvailable())
+        throw VRPGGameException("failed to initialize default block effect shader");
 
-    uniforms_ = shader_.CreateUniformManager();
+    forwardUniforms_ = forwardShader_.CreateUniformManager();
 
-    inputLayout_ = InputLayoutBuilder
+    forwardInputLayout_ = InputLayoutBuilder
         ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, offsetof(Vertex, position))
         ("BRIGHTNESS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, offsetof(Vertex, brightness))
-        .Build(shader_.GetVertexShaderByteCode());
+        .Build(forwardShader_.GetVertexShaderByteCode());
 
-    vsTransform_.Initialize(true, nullptr);
-    uniforms_.GetConstantBufferSlot<SS_VS>("Transform")->SetBuffer(vsTransform_);
+    forwardVSTransform_.Initialize(true, nullptr);
+    forwardUniforms_.GetConstantBufferSlot<SS_VS>("Transform")->SetBuffer(forwardVSTransform_);
 
-    psSky_.Initialize(true, nullptr);
-    uniforms_.GetConstantBufferSlot<SS_PS>("Sky")->SetBuffer(psSky_);
+    forwardPSSky_.Initialize(true, nullptr);
+    forwardUniforms_.GetConstantBufferSlot<SS_PS>("Sky")->SetBuffer(forwardPSSky_);
 }
 
 const char *DefaultBlockEffect::GetName() const
@@ -39,16 +39,16 @@ bool DefaultBlockEffect::IsTransparent() const noexcept
 
 void DefaultBlockEffect::StartForward() const
 {
-    shader_.Bind();
-    uniforms_.Bind();
-    inputLayout_.Bind();
+    forwardShader_.Bind();
+    forwardUniforms_.Bind();
+    forwardInputLayout_.Bind();
 }
 
 void DefaultBlockEffect::EndForward() const
 {
-    inputLayout_.Unbind();
-    uniforms_.Unbind();
-    shader_.Unbind();
+    forwardInputLayout_.Unbind();
+    forwardUniforms_.Unbind();
+    forwardShader_.Unbind();
 }
 
 std::unique_ptr<PartialSectionModelBuilder> DefaultBlockEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
@@ -58,8 +58,8 @@ std::unique_ptr<PartialSectionModelBuilder> DefaultBlockEffect::CreateModelBuild
 
 void DefaultBlockEffect::SetForwardRenderParams(const BlockForwardRenderParams &params) const
 {
-    vsTransform_.SetValue({ params.camera->GetViewProjectionMatrix() });
-    psSky_.SetValue({ params.skyLight, 0 });
+    forwardVSTransform_.SetValue({ params.camera->GetViewProjectionMatrix() });
+    forwardPSSky_.SetValue({ params.skyLight, 0 });
 }
 
 VRPG_GAME_END
