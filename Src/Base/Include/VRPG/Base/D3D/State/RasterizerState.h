@@ -14,7 +14,7 @@ public:
         D3D11_FILL_MODE fillMode,
         D3D11_CULL_MODE cullMode,
         bool frontCounterClockwise,
-        int depthBias              = 0,
+        UINT depthBias              = 0,
         float depthBiasClamp       = 0,
         float slopeScaledDepthBias = 0,
         bool enableDepthClip       = true,
@@ -26,7 +26,7 @@ public:
         desc.FillMode              = fillMode;
         desc.CullMode              = cullMode;
         desc.FrontCounterClockwise = frontCounterClockwise;
-        desc.DepthBias             = UINT(depthBias);
+        desc.DepthBias             = depthBias;
         desc.DepthBiasClamp        = depthBiasClamp;
         desc.SlopeScaledDepthBias  = slopeScaledDepthBias;
         desc.DepthClipEnable       = enableDepthClip;

@@ -5,6 +5,7 @@
 #include <VRPG/Game/Block/BuiltinBlock/BuiltinBlock.h>
 #include <VRPG/Game/Block/BlockDescription.h>
 #include <VRPG/Game/Block/BlockEffect.h>
+#include <VRPG/Game/Config/GlobalConfig.h>
 #include <VRPG/Game/Game.h>
 
 int main()
@@ -13,6 +14,8 @@ int main()
     {
         using namespace VRPG::Base;
         using namespace VRPG::World;
+
+        GlobalGraphicsConfig::GetInstance().LoadFromFile("config.cfg");
 
         Window window;
         WindowDesc desc;
