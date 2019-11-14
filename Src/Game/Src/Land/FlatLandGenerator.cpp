@@ -53,11 +53,11 @@ void FlatLandGenerator::Generate(const ChunkPosition &position, ChunkBlockData *
                 blockData->SetID({ x, ++height, z }, logID, { PositiveZ, PositiveX });
 
             //for(int y = 0; y <= height; ++y)
-            //    blockData->SetID({ x, y, z }, 1, {});
-
-            blockData->SetHeight(x, z, height);
+            //    blockData->SetID({ x, y, z }, BLOCK_ID_DEFAULT, {});
         }
     }
+
+    ComputeHeightMap(blockData);
 }
 
 VRPG_GAME_END
