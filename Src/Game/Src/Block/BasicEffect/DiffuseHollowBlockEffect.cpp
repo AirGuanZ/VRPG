@@ -1,6 +1,7 @@
 ﻿#include <agz/utility/file.h>
 
 #include <VRPG/Game/Block/BasicEffect/DiffuseHollowBlockEffect.h>
+#include <VRPG/Game/Misc/ShadowMappingRasterizerState.h>
 
 VRPG_GAME_BEGIN
 
@@ -16,9 +17,10 @@ void DiffuseHollowBlockEffectGenerator::CommonProperties::InitializeForward()
     forwardUniforms_ = forwardShader_.CreateUniformManager();
 
     forwardInputLayout_ = InputLayoutBuilder
-    ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, offsetof(Vertex, position))
-        ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, offsetof(Vertex, texCoord))
-        ("TEXINDEX", 0, DXGI_FORMAT_R32_UINT, offsetof(Vertex, texIndex))
+        ("POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT,    offsetof(Vertex, position))
+        ("TEXCOORD",   0, DXGI_FORMAT_R32G32_FLOAT,       offsetof(Vertex, texCoord))
+        ("NORMAL",     0, DXGI_FORMAT_R32G32B32_FLOAT,    offsetof(Vertex, normal))
+        ("TEXINDEX",   0, DXGI_FORMAT_R32_UINT,           offsetof(Vertex, texIndex))
         ("BRIGHTNESS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, offsetof(Vertex, brightness))
         .Build(forwardShader_.GetVertexShaderByteCode());
 
@@ -35,11 +37,11 @@ void DiffuseHollowBlockEffectGenerator::CommonProperties::InitializeForward()
     Sampler shadowSampler;
     const float shadowSamplerBorderColor[] = { 1, 1, 1, 1 };
     shadowSampler.Initialize(
-        D3D11_FILTER_MIN_MAG_MIP_LINEAR,
+        D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT,
         D3D11_TEXTURE_ADDRESS_BORDER,
         D3D11_TEXTURE_ADDRESS_BORDER,
         D3D11_TEXTURE_ADDRESS_BORDER,
-        0, 1, D3D11_COMPARISON_NEVER,
+        0, 1, D3D11_COMPARISON_LESS_EQUAL,
         shadowSamplerBorderColor);
     forwardUniforms_.GetSamplerSlot<SS_PS>("ShadowSampler")->SetSampler(shadowSampler);
 
@@ -97,10 +99,11 @@ struct PSInput
 SamplerState DiffuseSampler;
 Texture2DArray<float4> DiffuseTexture;
 
-void main(PSInput input)
+float main(PSInput input) : SV_TARGET
 {
     float texel_a = DiffuseTexture.Sample(DiffuseSampler, float3(input.texCoord, input.texIndex)).a;
     clip(texel_a - 0.5);
+    return input.position.z;
 }
 )___";
 
@@ -122,9 +125,11 @@ void main(PSInput input)
 
     shadowInputLayout_ = InputLayoutBuilder
         ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, offsetof(Vertex, position))
-        ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, offsetof(Vertex, texCoord))
-        ("TEXINDEX", 0, DXGI_FORMAT_R32_UINT, offsetof(Vertex, texIndex))
+        ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    offsetof(Vertex, texCoord))
+        ("TEXINDEX", 0, DXGI_FORMAT_R32_UINT,        offsetof(Vertex, texIndex))
         .Build(shadowShader_.GetVertexShaderByteCode());
+
+    shadowRasterizerState_ = CreateRasterizerStateForShadowMapping(false);
 }
 
 DiffuseHollowBlockEffectGenerator::CommonProperties::CommonProperties()
@@ -265,7 +270,7 @@ void DiffuseHollowBlockEffect::StartShadow() const
     commonProperties_->shadowShader_.Bind();
     commonProperties_->shadowUniforms_.Bind();
     commonProperties_->shadowInputLayout_.Bind();
-    commonProperties_->forwardRasterizerState_.Bind();
+    commonProperties_->shadowRasterizerState_.Bind();
 }
 
 void DiffuseHollowBlockEffect::EndShadow() const
@@ -273,7 +278,7 @@ void DiffuseHollowBlockEffect::EndShadow() const
     commonProperties_->shadowShader_.Unbind();
     commonProperties_->shadowUniforms_.Unbind();
     commonProperties_->shadowInputLayout_.Unbind();
-    commonProperties_->forwardRasterizerState_.Unbind();
+    commonProperties_->shadowRasterizerState_.Unbind();
 }
 
 std::unique_ptr<PartialSectionModelBuilder> DiffuseHollowBlockEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
@@ -285,7 +290,7 @@ void DiffuseHollowBlockEffect::SetForwardRenderParams(const BlockForwardRenderPa
 {
     commonProperties_->forwardShadowMapSlot_->SetShaderResourceView(params.shadowMapSRV.Get());
     commonProperties_->forwardVSTransform_.SetValue({ params.shadowViewProj, params.camera->GetViewProjectionMatrix() });
-    commonProperties_->forwardPSPerFrame_.SetValue({ params.skyLight, params.shadowScale });
+    commonProperties_->forwardPSPerFrame_.SetValue({ params.skyLight, params.shadowScale, params.sunlightDirection, params.dx });
 }
 
 void DiffuseHollowBlockEffect::SetShadowRenderParams(const BlockShadowRenderParams &params) const

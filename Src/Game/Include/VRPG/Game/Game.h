@@ -35,6 +35,8 @@ private:
 
     void Destroy();
 
+    Mat4 ConstructShadowMapVP() const;
+
     Base::Window               *window_;
     Base::KeyboardEventManager *keyboard_;
     Base::MouseEventManager    *mouse_;
@@ -58,6 +60,8 @@ private:
     agz::time::fps_counter_t fpsCounter_;
 
     bool exitMainloop_;
+
+    GlobalGraphicsConfig::ShadowMapConfig shadowMapConfig_;
 };
 
 VRPG_GAME_END

@@ -14,6 +14,8 @@ class ShadowMap : public agz::misc::uncopyable_t
     D3D11_VIEWPORT viewport_;
 
     ComPtr<ID3D11DepthStencilView> dsv_;
+
+    ComPtr<ID3D11RenderTargetView> rtv_;
     ComPtr<ID3D11ShaderResourceView> srv_;
 
     std::vector<D3D11_VIEWPORT> oldViewports_;
@@ -64,11 +66,11 @@ inline ShadowMap::ShadowMap(int width, int height)
     texDesc.Height             = height;
     texDesc.MipLevels          = 1;
     texDesc.ArraySize          = 1;
-    texDesc.Format             = DXGI_FORMAT_R24G8_TYPELESS;
+    texDesc.Format             = DXGI_FORMAT_D24_UNORM_S8_UINT;
     texDesc.SampleDesc.Count   = 1;
     texDesc.SampleDesc.Quality = 0;
     texDesc.Usage              = D3D11_USAGE_DEFAULT;
-    texDesc.BindFlags          = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+    texDesc.BindFlags          = D3D11_BIND_DEPTH_STENCIL;
     texDesc.CPUAccessFlags     = 0;
     texDesc.MiscFlags          = 0;
 
@@ -84,12 +86,36 @@ inline ShadowMap::ShadowMap(int width, int height)
     if(FAILED(gDevice->CreateDepthStencilView(depth.Get(), &dsvDesc, dsv_.GetAddressOf())))
         throw VRPGBaseException("failed to create depth stencil view for shadow mapping");
 
+    D3D11_TEXTURE2D_DESC rtDesc;
+    rtDesc.Width              = width;
+    rtDesc.Height             = height;
+    rtDesc.MipLevels          = 1;
+    rtDesc.ArraySize          = 1;
+    rtDesc.Format             = DXGI_FORMAT_R32_FLOAT;
+    rtDesc.SampleDesc.Count   = 1;
+    rtDesc.SampleDesc.Quality = 0;
+    rtDesc.Usage              = D3D11_USAGE_DEFAULT;
+    rtDesc.BindFlags          = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+    rtDesc.CPUAccessFlags     = 0;
+    rtDesc.MiscFlags          = 0;
+
+    ComPtr<ID3D11Texture2D> rt;
+    if(FAILED(gDevice->CreateTexture2D(&rtDesc, nullptr, rt.GetAddressOf())))
+        throw VRPGBaseException("failed to create render target texture for shadow mapping");
+
+    D3D11_RENDER_TARGET_VIEW_DESC rtvDesc;
+    rtvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+    rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+    rtvDesc.Texture2D.MipSlice = 0;
+    if(FAILED(gDevice->CreateRenderTargetView(rt.Get(), &rtvDesc, rtv_.GetAddressOf())))
+        throw VRPGBaseException("failed to create render target view for shadow mapping");
+
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-    srvDesc.Format                    = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+    srvDesc.Format                    = DXGI_FORMAT_R32_FLOAT;
     srvDesc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MipLevels       = texDesc.MipLevels;
     srvDesc.Texture2D.MostDetailedMip = 0;
-    if(FAILED(gDevice->CreateShaderResourceView(depth.Get(), &srvDesc, srv_.GetAddressOf())))
+    if(FAILED(gDevice->CreateShaderResourceView(rt.Get(), &srvDesc, srv_.GetAddressOf())))
         throw VRPGBaseException("failed to create shader resource view for shadow mapping");
 }
 
@@ -132,7 +158,7 @@ inline void ShadowMap::Begin()
         D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, oldRenderTargets_.data(),
         &oldDepthStencilView_);
 
-    ID3D11RenderTargetView *renderTarget[1] = { nullptr };
+    ID3D11RenderTargetView *renderTarget[1] = { rtv_.Get() };
     gDeviceContext->OMSetRenderTargets(1, renderTarget, dsv_.Get());
     gDeviceContext->ClearDepthStencilView(dsv_.Get(), D3D11_CLEAR_DEPTH, 1, 0);
 }

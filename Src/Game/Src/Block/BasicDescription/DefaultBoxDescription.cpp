@@ -57,11 +57,13 @@ void DefaultBlockDescription::AddBlockModel(
 
         VertexIndex vertexCount = VertexIndex(builder->GetVertexCount());
 
-        builder->AddVertex({ posA, lhtA });
-        builder->AddVertex({ posB, lhtB });
-        builder->AddVertex({ posC, lhtC });
-        builder->AddVertex({ posD, lhtD });
-        builder->AddVertex({ posE, lhtE });
+        Vec3 normal = cross(posB - posA, posC - posB).normalize();
+
+        builder->AddVertex({ posA, lhtA, normal });
+        builder->AddVertex({ posB, lhtB, normal });
+        builder->AddVertex({ posC, lhtC, normal });
+        builder->AddVertex({ posD, lhtD, normal });
+        builder->AddVertex({ posE, lhtE, normal });
 
         builder->AddIndexedTriangle(vertexCount + 0, vertexCount + 1, vertexCount + 4);
         builder->AddIndexedTriangle(vertexCount + 1, vertexCount + 2, vertexCount + 4);

@@ -19,11 +19,14 @@ using BlockEffectID = uint16_t;
 struct BlockForwardRenderParams
 {
     const Camera *camera = nullptr;
-    const Vec3 skyLight;
+    Vec3 skyLight;
+    Vec3 sunlightDirection;
 
     float shadowScale = 1;
     Mat4 shadowViewProj;
     ComPtr<ID3D11ShaderResourceView> shadowMapSRV;
+
+    float dx = 1.0f / 4096;
 };
 
 /**

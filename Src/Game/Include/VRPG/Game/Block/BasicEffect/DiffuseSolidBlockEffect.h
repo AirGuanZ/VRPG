@@ -24,6 +24,7 @@ public:
     {
         Vec3 position;
         Vec2 texCoord;
+        Vec3 normal;
         uint32_t texIndex = 0;
         Vec4 brightness;
     };
@@ -38,6 +39,8 @@ public:
     {
         Vec3 skyLight;
         float shadowScale = 1;
+        Vec3 sunlightDirection;
+        float dx = 1.0f / 4096;
     };
 
     struct Shadow_VS_Transform
@@ -69,6 +72,7 @@ public:
         UniformManager<SS_VS, SS_PS>        shadowUniforms_;
         ConstantBuffer<Shadow_VS_Transform> shadowVSTransform_;
         InputLayout                         shadowInputLayout_;
+        RasterizerState                     shadowRasterizerState_;
     };
 
     DiffuseSolidBlockEffectGenerator(int textureSize, int expectedArraySize);

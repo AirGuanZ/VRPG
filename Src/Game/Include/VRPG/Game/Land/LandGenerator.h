@@ -8,6 +8,10 @@ class ChunkBlockDataPool;
 
 class LandGenerator
 {
+protected:
+
+    static void ComputeHeightMap(ChunkBlockData *blockData) noexcept;
+
 public:
 
     virtual ~LandGenerator() = default;

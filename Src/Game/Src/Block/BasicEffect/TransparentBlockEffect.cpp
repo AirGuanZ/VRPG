@@ -162,11 +162,11 @@ void TransparentBlockEffect::Initialize()
     Sampler shadowSampler;
     const float shadowSamplerBorderColor[] = { 1, 1, 1, 1 };
     shadowSampler.Initialize(
-        D3D11_FILTER_MIN_MAG_MIP_LINEAR,
+        D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT,
         D3D11_TEXTURE_ADDRESS_BORDER,
         D3D11_TEXTURE_ADDRESS_BORDER,
         D3D11_TEXTURE_ADDRESS_BORDER,
-        0, 1, D3D11_COMPARISON_NEVER,
+        0, 1, D3D11_COMPARISON_LESS_EQUAL,
         shadowSamplerBorderColor);
     uniforms_.GetSamplerSlot<SS_PS>("ShadowSampler")->SetSampler(shadowSampler);
 
@@ -273,7 +273,7 @@ void TransparentBlockEffect::SetForwardRenderParams(const BlockForwardRenderPara
 {
     shadowMapSlot_->SetShaderResourceView(params.shadowMapSRV.Get());
     vsTransform_.SetValue({ params.shadowViewProj, params.camera->GetViewProjectionMatrix() });
-    psPerFrame_.SetValue({ params.skyLight, params.shadowScale });
+    psPerFrame_.SetValue({ params.skyLight, params.shadowScale, params.sunlightDirection, params.dx });
 }
 
 VRPG_GAME_END

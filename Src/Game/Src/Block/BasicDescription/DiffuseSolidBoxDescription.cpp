@@ -78,11 +78,13 @@ void DiffuseSolidBoxDescription::AddBlockModel(
 
         VertexIndex vertexCount = VertexIndex(builder->GetVertexCount());
 
-        builder->AddVertex({ posA, BOX_FACE_TEXCOORD[0], textureIndexInEffect, lhtA });
-        builder->AddVertex({ posB, BOX_FACE_TEXCOORD[1], textureIndexInEffect, lhtB });
-        builder->AddVertex({ posC, BOX_FACE_TEXCOORD[2], textureIndexInEffect, lhtC });
-        builder->AddVertex({ posD, BOX_FACE_TEXCOORD[3], textureIndexInEffect, lhtD });
-        builder->AddVertex({ posE, Vec2(0.5f, 0.5f), textureIndexInEffect, lhtE });
+        Vec3 normal = cross(posB - posA, posC - posB).normalize();
+
+        builder->AddVertex({ posA, BOX_FACE_TEXCOORD[0], normal, textureIndexInEffect, lhtA });
+        builder->AddVertex({ posB, BOX_FACE_TEXCOORD[1], normal, textureIndexInEffect, lhtB });
+        builder->AddVertex({ posC, BOX_FACE_TEXCOORD[2], normal, textureIndexInEffect, lhtC });
+        builder->AddVertex({ posD, BOX_FACE_TEXCOORD[3], normal, textureIndexInEffect, lhtD });
+        builder->AddVertex({ posE, Vec2(0.5f, 0.5f), normal, textureIndexInEffect, lhtE });
 
         builder->AddIndexedTriangle(vertexCount + 0, vertexCount + 1, vertexCount + 4);
         builder->AddIndexedTriangle(vertexCount + 1, vertexCount + 2, vertexCount + 4);

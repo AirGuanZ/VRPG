@@ -173,18 +173,6 @@ void TransparentLiquidDescription::AddBlockModel(
             }
 
             return ComputeVertexBrightness(sum) / float(count);
-
-            /*if(blocks[1 + dx][1][1].desc->IsFullOpaque() && blocks[1][1][1 + dz].desc->IsFullOpaque())
-            {
-                return ComputeVertexBrightness(
-                    blocks[1][1][1].brightness, blocks[1 + dx][1][1].brightness, blocks[1][1][1 + dz].brightness);
-            }
-
-            return ComputeVertexBrightness(
-                blocks[1     ][1][1     ].brightness,
-                blocks[1 + dx][1][1     ].brightness,
-                blocks[1     ][1][1 + dz].brightness,
-                blocks[1 + dx][1][1 + dz].brightness);*/
         }
 
         int dx = (normalDirection == PositiveX || normalDirection == NegativeX) ? 0 : (pos.x > 0.5f ? 1 : -1);

@@ -1,6 +1,7 @@
 ﻿#include <ImGui/imgui.h>
 
 #include <VRPG/Game/Block/BuiltinBlock/BuiltinBlock.h>
+#include <VRPG/Game/Config/GlobalConfig.h>
 #include <VRPG/Game/Land/FlatLandGenerator.h>
 #include <VRPG/Game/World/BlockUpdater/LiquidUpdater.h>
 #include <VRPG/Game/Game.h>
@@ -114,6 +115,8 @@ void Game::Initialize()
     blockUpdaterManager_ = std::make_unique<BlockUpdaterManager>(chunkManager_.get());
 
     worldTickInterval_ = us(50 * 1000);
+
+    shadowMapConfig_ = GlobalGraphicsConfig::GetInstance().GetShadowMapConfig();
 }
 
 void Game::PlayerTick(float deltaT)
@@ -159,8 +162,10 @@ void Game::PlayerTick(float deltaT)
                 auto waterDesc = BuiltinBlockTypeManager::GetInstance().GetDesc(BuiltinBlockType::Water).desc;
                 BlockID waterID = waterDesc->GetBlockID();
                 chunkManager_->SetBlockID(newBlockPosition, waterID, {}, MakeLiquidExtraData(waterDesc->GetLiquidDescription()->sourceLevel));
-
                 LiquidUpdater::AddUpdaterForNeighborhood(newBlockPosition, *blockUpdaterManager_, *chunkManager_, StdClock::now());
+
+                /*auto stoneID = BuiltinBlockTypeManager::GetInstance().GetDesc(BuiltinBlockType::Stone).desc->GetBlockID();
+                chunkManager_->SetBlockID(newBlockPosition, stoneID, {});*/
             }
         }
     }
@@ -215,10 +220,8 @@ void Game::Render()
 
     shadowMap_->Begin();
 
-    Vec3 cameraPosition = camera_->GetPosition();
-    Mat4 shadowVP = Trans4::look_at(cameraPosition + Vec3(50, 60, 70), cameraPosition, Vec3(0, 1, 0))
-                  * Trans4::orthographic(-40, +40, +40, -40, 50, 200);
-    chunkRenderer_->RenderShadow({ shadowVP });
+    Mat4 shadowMapVP = ConstructShadowMapVP();
+    chunkRenderer_->RenderShadow({ shadowMapVP });
 
     shadowMap_->End();
 
@@ -226,7 +229,15 @@ void Game::Render()
     window_->ClearDefaultRenderTarget(&backgroundColor[0]);
     window_->ClearDefaultDepthStencil();
 
-    chunkRenderer_->RenderForward({ camera_.get(), Vec3(1), 0.2f, shadowVP, shadowMap_->GetSRV() });
+    chunkRenderer_->RenderForward({
+        camera_.get(),
+        Vec3(1),
+        Vec3(5, 6, 7).normalize(),
+        0.2f,
+        shadowMapVP,
+        shadowMap_->GetSRV(),
+        1.0f / 4096
+    });
 
     crosshairPainter_->Draw(*imm2D_);
 
@@ -254,6 +265,19 @@ void Game::Destroy()
 
     spdlog::info("destroy chunk manager");
     chunkManager_.reset();
+}
+
+Mat4 Game::ConstructShadowMapVP() const
+{
+    float distance = shadowMapConfig_.shadowMapDistance;
+    float radius   = shadowMapConfig_.shadowMapRadius;
+    float nearP    = shadowMapConfig_.shadowMapNear;
+    float farP     = shadowMapConfig_.shadowMapFar;
+
+    Vec3 cameraPosition = camera_->GetPosition();
+    Mat4 view = Trans4::look_at(cameraPosition + distance * Vec3(5, 6, 7).normalize(), cameraPosition, Vec3(0, 1, 0));
+    Mat4 proj = Trans4::orthographic(-radius, +radius, +radius, -radius, nearP, farP);
+    return view * proj;
 }
 
 VRPG_GAME_END

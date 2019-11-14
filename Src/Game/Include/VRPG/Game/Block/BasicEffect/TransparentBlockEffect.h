@@ -31,6 +31,8 @@ public:
     {
         Vec3 skyLight;
         float shadowScale = 1;
+        Vec3 sunlightDirection;
+        float dx = 1.0f / 4096;
     };
 
     class Builder : public PartialSectionModelBuilder

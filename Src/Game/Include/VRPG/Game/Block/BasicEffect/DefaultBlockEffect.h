@@ -14,17 +14,26 @@ public:
     {
         Vec3 position;
         Vec4 brightness;
+        Vec3 normal;
     };
 
     struct Forward_VS_Transform
     {
-        Mat4 WVP;
+        Mat4 shadowVP;
+        Mat4 VP;
     };
 
-    struct Forward_PS_Sky
+    struct Forward_PS_PerFrame
     {
         Vec3 skylight;
-        float pad = 0;
+        float shadowScale = 1;
+        Vec3 sunlightDirection;
+        float dx = 1.0f / 4096;
+    };
+
+    struct Shadow_VS_Transform
+    {
+        Mat4 VP;
     };
 
     using Builder = NativePartialSectionModelBuilder<DefaultBlockEffect>;
@@ -39,17 +48,34 @@ public:
 
     void EndForward() const override;
 
+    void StartShadow() const override;
+
+    void EndShadow() const override;
+
     std::unique_ptr<PartialSectionModelBuilder> CreateModelBuilder(const Vec3i &globalSectionPosition) const override;
 
     void SetForwardRenderParams(const BlockForwardRenderParams &params) const override;
 
+    void SetShadowRenderParams(const BlockShadowRenderParams &params) const override;
+
 private:
 
-    Shader<SS_VS, SS_PS>                         forwardShader_;
-    UniformManager<SS_VS, SS_PS>                 forwardUniforms_;
-    InputLayout                                  forwardInputLayout_;
+    void InitializeForward();
+
+    void InitializeShadow();
+
+    Shader<SS_VS, SS_PS>         forwardShader_;
+    UniformManager<SS_VS, SS_PS> forwardUniforms_;
+    InputLayout                  forwardInputLayout_;
+    ShaderResourceSlot<SS_PS>   *forwardShadowMap_;
     mutable ConstantBuffer<Forward_VS_Transform> forwardVSTransform_;
-    mutable ConstantBuffer<Forward_PS_Sky>       forwardPSSky_;
+    mutable ConstantBuffer<Forward_PS_PerFrame>  forwardPSPerFrame_;
+
+    Shader<SS_VS, SS_PS>         shadowShader_;
+    UniformManager<SS_VS, SS_PS> shadowUniforms_;
+    InputLayout                  shadowInputLayout_;
+    RasterizerState              shadowRasterizerState_;
+    mutable ConstantBuffer<Shadow_VS_Transform> shadowVSTransform_;
 };
 
 VRPG_GAME_END

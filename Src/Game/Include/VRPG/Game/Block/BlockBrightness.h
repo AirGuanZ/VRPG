@@ -87,14 +87,14 @@ constexpr BlockBrightness BLOCK_BRIGHTNESS_MAX = { 255, 255, 255, 255 };
 /**
  * @brief 天光亮度
  */
-constexpr BlockBrightness BLOCK_BRIGHTNESS_SKY = { 0, 0, 0, 30 };
+constexpr BlockBrightness BLOCK_BRIGHTNESS_SKY = { 0, 0, 0, 20 };
 
 /**
  * @brief 将block brightness的单个分量映射到[0, 1]的范围内
  */
 inline float BlockBrightnessToFloat(uint8_t brightness) noexcept
 {
-    return std::pow((std::min)(brightness, uint8_t(30)) / 30.0f, 2.2f);
+    return std::pow((std::min)(brightness, uint8_t(20)) / 20.0f, 2.2f);
 }
 
 /**
