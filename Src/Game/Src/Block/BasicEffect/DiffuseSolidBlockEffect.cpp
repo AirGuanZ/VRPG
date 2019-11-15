@@ -1,16 +1,15 @@
 #include <agz/utility/file.h>
 
 #include <VRPG/Game/Block/BasicEffect/DiffuseSolidBlockEffect.h>
+#include <VRPG/Game/Config/GlobalConfig.h>
 #include <VRPG/Game/Misc/ShadowMappingRasterizerState.h>
 
 VRPG_GAME_BEGIN
 
 void DiffuseSolidBlockEffectCommon::InitializeForward()
 {
-    std::string vertexShaderSource = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/DiffuseSolid/DiffuseSolidVertex.hlsl");
-    std::string pixelShaderSource = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/DiffuseSolid/DiffuseSolidPixel.hlsl");
-    forwardShader.InitializeStage<SS_VS>(vertexShaderSource);
-    forwardShader.InitializeStage<SS_PS>(pixelShaderSource);
+    forwardShader.InitializeStageFromFile<SS_VS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseSolid"]["ForwardVertexShader"]);
+    forwardShader.InitializeStageFromFile<SS_PS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseSolid"]["ForwardPixelShader"]);
     if(!forwardShader.IsAllStagesAvailable())
         throw VRPGGameException("failed to initialize diffuse solid block effect shader (forward)");
 
@@ -56,20 +55,8 @@ void DiffuseSolidBlockEffectCommon::InitializeForward()
 
 void DiffuseSolidBlockEffectCommon::InitializeShadow()
 {
-    const char *vertexShaderSource = R"___(
-cbuffer Transform { float4x4 VP; };
-struct VSInput    { float3 position : POSITION; };
-struct VSOutput   { float4 position : SV_POSITION; };
-VSOutput main(VSInput input) {
-    VSOutput output = (VSOutput)0;
-    output.position = mul(float4(input.position, 1), VP);
-    return output; }
-)___";
-
-    const char *pixelShaderSource = R"___(
-struct PSInput { float4 position : SV_POSITION; };
-float main(PSInput input) : SV_TARGET { return input.position.z; }
-)___";
+    std::string vertexShaderSource = agz::file::read_txt_file(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseSolid"]["ShadowVertexShader"]);
+    std::string pixelShaderSource  = agz::file::read_txt_file(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseSolid"]["ShadowPixelShader"]);
 
     shadowShader.InitializeStage<SS_VS>(vertexShaderSource);
     shadowShader.InitializeStage<SS_PS>(pixelShaderSource);

@@ -15,15 +15,17 @@ int main()
         using namespace VRPG::Base;
         using namespace VRPG::World;
 
-        GlobalGraphicsConfig::GetInstance().LoadFromFile("config.cfg");
+        GLOBAL_CONFIG.LoadFromFile("config.cfg");
+        GLOBAL_CONFIG.ASSET_PATH.LoadFromFile("asset.cfg");
 
         Window window;
         WindowDesc desc;
-        desc.clientWidth  = 1024;
-        desc.clientHeight = 768;
-        desc.sampleCount  = 4;
-        //desc.fullscreen = true;
-        //desc.vsync = false;
+        desc.clientWidth   = GLOBAL_CONFIG.WINDOW.width;
+        desc.clientHeight  = GLOBAL_CONFIG.WINDOW.height;
+        desc.fullscreen    = GLOBAL_CONFIG.WINDOW.fullscreen;
+        desc.vsync         = GLOBAL_CONFIG.WINDOW.vsync;
+        desc.sampleCount   = GLOBAL_CONFIG.WINDOW.sampleCount;
+        desc.sampleQuality = GLOBAL_CONFIG.WINDOW.sampleQuality;
         window.Initialize(desc);
 
         spdlog::info("initialize builtin block manager");
@@ -37,6 +39,11 @@ int main()
 
         Game game(&window);
         game.Run();
+    }
+    catch(const libconfig::SettingException &err)
+    {
+        std::cout << err.what() << ": " << err.getPath() << std::endl;
+        return 1;
     }
     catch(const std::exception &err)
     {

@@ -8,6 +8,7 @@
 #include <VRPG/Game/Block/BasicEffect/DiffuseSolidBlockEffect.h>
 #include <VRPG/Game/Block/BasicEffect/TransparentBlockEffect.h>
 #include <VRPG/Game/Block/BuiltinBlock/BuiltinBlock.h>
+#include <VRPG/Game/Config/GlobalConfig.h>
 
 VRPG_GAME_BEGIN
 
@@ -85,7 +86,8 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
 
     {
         auto effect = diffuseSolidEffectGenerator.GetEffectWithTextureSpaces(1);
-        int textureIndex = diffuseSolidEffectGenerator.AddTexture(LoadSolidTextureFrom("Asset/World/Texture/BuiltinBlock/Stone.png").raw_data());
+        int textureIndex = diffuseSolidEffectGenerator.AddTexture(
+            LoadSolidTextureFrom(GLOBAL_CONFIG.ASSET_PATH["BuiltinBlock"]["Stone"]["Texture"]).raw_data());
         int textureIndices[] = { textureIndex, textureIndex, textureIndex, textureIndex, textureIndex, textureIndex };
         
         auto stoneDesc = std::make_shared<DiffuseSolidBoxDescription>(
@@ -96,7 +98,8 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
     
     {
         auto effect = diffuseSolidEffectGenerator.GetEffectWithTextureSpaces(1);
-        int textureIndex = diffuseSolidEffectGenerator.AddTexture(LoadSolidTextureFrom("Asset/World/Texture/BuiltinBlock/Soil.png").raw_data());
+        int textureIndex = diffuseSolidEffectGenerator.AddTexture(
+            LoadSolidTextureFrom(GLOBAL_CONFIG.ASSET_PATH["BuiltinBlock"]["Soil"]["Texture"]).raw_data());
         int textureIndices[] = { textureIndex, textureIndex, textureIndex, textureIndex, textureIndex, textureIndex };
         
         auto soilDesc = std::make_shared<DiffuseSolidBoxDescription>(
@@ -107,9 +110,12 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
     
     {
         auto effect = diffuseSolidEffectGenerator.GetEffectWithTextureSpaces(3);
-        int topIndex    = diffuseSolidEffectGenerator.AddTexture(LoadSolidTextureFrom("Asset/World/Texture/BuiltinBlock/LawnTop.png").raw_data());
-        int sideIndex   = diffuseSolidEffectGenerator.AddTexture(LoadSolidTextureFrom("Asset/World/Texture/BuiltinBlock/LawnSide.png").raw_data());
-        int bottomIndex = diffuseSolidEffectGenerator.AddTexture(LoadSolidTextureFrom("Asset/World/Texture/BuiltinBlock/LawnBottom.png").raw_data());
+        int topIndex = diffuseSolidEffectGenerator.AddTexture(
+            LoadSolidTextureFrom(GLOBAL_CONFIG.ASSET_PATH["BuiltinBlock"]["Lawn"]["TopTexture"]).raw_data());
+        int sideIndex = diffuseSolidEffectGenerator.AddTexture(
+            LoadSolidTextureFrom(GLOBAL_CONFIG.ASSET_PATH["BuiltinBlock"]["Lawn"]["SideTexture"]).raw_data());
+        int bottomIndex = diffuseSolidEffectGenerator.AddTexture(
+            LoadSolidTextureFrom(GLOBAL_CONFIG.ASSET_PATH["BuiltinBlock"]["Lawn"]["BottomTexture"]).raw_data());
         
         int textureIndices[6];
         textureIndices[PositiveX] = sideIndex;
@@ -127,9 +133,12 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
 
     {
         auto effect = diffuseSolidEffectGenerator.GetEffectWithTextureSpaces(3);
-        int topIndex = diffuseSolidEffectGenerator.AddTexture(LoadSolidTextureFrom("Asset/World/Texture/BuiltinBlock/LogTop.png").raw_data());
-        int sideIndex = diffuseSolidEffectGenerator.AddTexture(LoadSolidTextureFrom("Asset/World/Texture/BuiltinBlock/LogSide.png").raw_data());
-        int bottomIndex = diffuseSolidEffectGenerator.AddTexture(LoadSolidTextureFrom("Asset/World/Texture/BuiltinBlock/LogBottom.png").raw_data());
+        int topIndex = diffuseSolidEffectGenerator.AddTexture(
+            LoadSolidTextureFrom(GLOBAL_CONFIG.ASSET_PATH["BuiltinBlock"]["Log"]["TopTexture"]).raw_data());
+        int sideIndex = diffuseSolidEffectGenerator.AddTexture(
+            LoadSolidTextureFrom(GLOBAL_CONFIG.ASSET_PATH["BuiltinBlock"]["Log"]["SideTexture"]).raw_data());
+        int bottomIndex = diffuseSolidEffectGenerator.AddTexture(
+            LoadSolidTextureFrom(GLOBAL_CONFIG.ASSET_PATH["BuiltinBlock"]["Log"]["BottomTexture"]).raw_data());
 
         int textureIndices[6];
         textureIndices[PositiveX] = sideIndex;
@@ -147,7 +156,8 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
 
     {
         auto effect = diffuseSolidEffectGenerator.GetEffectWithTextureSpaces(1);
-        int textureIndex = diffuseSolidEffectGenerator.AddTexture(LoadSolidTextureFrom("Asset/World/Texture/BuiltinBlock/GlowStone.png").raw_data());
+        int textureIndex = diffuseSolidEffectGenerator.AddTexture(
+            LoadSolidTextureFrom(GLOBAL_CONFIG.ASSET_PATH["BuiltinBlock"]["GlowStone"]["Texture"]).raw_data());
         int textureIndices[] = { textureIndex, textureIndex, textureIndex, textureIndex, textureIndex, textureIndex };
 
         auto glowStoneDesc = std::make_shared<DiffuseSolidBoxDescription>(
@@ -158,7 +168,8 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
 
     {
         auto effect = diffuseHollowBlockEffectGenerator.GetEffectWithTextureSpaces(1);
-        int textureIndex = diffuseHollowBlockEffectGenerator.AddTexture(LoadHollowTextureFrom("Asset/World/Texture/BuiltinBlock/Leaf.png").raw_data());
+        int textureIndex = diffuseHollowBlockEffectGenerator.AddTexture(
+            LoadHollowTextureFrom(GLOBAL_CONFIG.ASSET_PATH["BuiltinBlock"]["Leaf"]["Texture"]).raw_data());
         int textureIndices[] = { textureIndex, textureIndex, textureIndex, textureIndex, textureIndex, textureIndex };
 
         auto leafDesc = std::make_shared<DiffuseHollowBoxDescription>(
@@ -169,7 +180,8 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
 
     {
         auto effect = transparentBlockEffectGenerator.GetEffectWithTextureSpaces();
-        int textureIndex = transparentBlockEffectGenerator.AddTexture(LoadTransparentTextureFrom("Asset/World/Texture/BuiltinBlock/WhiteGlass.png").raw_data());
+        int textureIndex = transparentBlockEffectGenerator.AddTexture(
+            LoadTransparentTextureFrom(GLOBAL_CONFIG.ASSET_PATH["BuiltinBlock"]["WhiteGlass"]["Texture"]).raw_data());
         int textureIndices[] = { textureIndex, textureIndex, textureIndex, textureIndex, textureIndex, textureIndex };
 
         auto whiteGlassDesc = std::make_shared<TransparentBoxDescription>(
@@ -180,7 +192,8 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
 
     {
         auto effect = transparentBlockEffectGenerator.GetEffectWithTextureSpaces();
-        int textureIndex = transparentBlockEffectGenerator.AddTexture(LoadTransparentTextureFrom("Asset/World/Texture/BuiltinBlock/RedGlass.png").raw_data());
+        int textureIndex = transparentBlockEffectGenerator.AddTexture(
+            LoadTransparentTextureFrom(GLOBAL_CONFIG.ASSET_PATH["BuiltinBlock"]["RedGlass"]["Texture"]).raw_data());
         int textureIndices[] = { textureIndex, textureIndex, textureIndex, textureIndex, textureIndex, textureIndex };
 
         auto whiteGlassDesc = std::make_shared<TransparentBoxDescription>(
@@ -191,7 +204,8 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
 
     {
         auto effect = transparentBlockEffectGenerator.GetEffectWithTextureSpaces();
-        int textureIndex = transparentBlockEffectGenerator.AddTexture(LoadTransparentTextureFrom("Asset/World/Texture/BuiltinBlock/Water.png").raw_data());
+        int textureIndex = transparentBlockEffectGenerator.AddTexture(
+            LoadTransparentTextureFrom(GLOBAL_CONFIG.ASSET_PATH["BuiltinBlock"]["Water"]["Texture"]).raw_data());
 
         LiquidDescription waterLiquid;
         waterLiquid.isLiquid = true;

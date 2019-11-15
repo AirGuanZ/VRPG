@@ -1,16 +1,15 @@
 #include <agz/utility/file.h>
 
 #include <VRPG/Game/Block/BasicEffect/DiffuseHollowBlockEffect.h>
+#include <VRPG/Game/Config/GlobalConfig.h>
 #include <VRPG/Game/Misc/ShadowMappingRasterizerState.h>
 
 VRPG_GAME_BEGIN
 
 void DiffuseHollowBlockEffectCommon::InitializeForward()
 {
-    std::string vertexShaderSource = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/DiffuseHollow/DiffuseHollowVertex.hlsl");
-    std::string pixelShaderSource = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/DiffuseHollow/DiffuseHollowPixel.hlsl");
-    forwardShader_.InitializeStage<SS_VS>(vertexShaderSource);
-    forwardShader_.InitializeStage<SS_PS>(pixelShaderSource);
+    forwardShader_.InitializeStageFromFile<SS_VS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseHollow"]["ForwardVertexShader"]);
+    forwardShader_.InitializeStageFromFile<SS_PS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseHollow"]["ForwardPixelShader"]);
     if(!forwardShader_.IsAllStagesAvailable())
         throw VRPGGameException("failed to initialize diffuse hollow block effect shader");
 
@@ -58,54 +57,8 @@ void DiffuseHollowBlockEffectCommon::InitializeForward()
 
 void DiffuseHollowBlockEffectCommon::InitializeShadow()
 {
-    const char *vertexShaderSource = R"___(
-cbuffer Transform
-{
-    float4x4 VP;
-};
-
-struct VSInput
-{
-    float3 position : POSITION;
-    float2 texCoord : TEXCOORD;
-    nointerpolation uint texIndex : TEXINDEX;
-};
-
-struct VSOutput
-{
-    float4 position : SV_POSITION;
-    float2 texCoord : TEXCOORD;
-    nointerpolation uint texIndex : TEXINDEX;
-};
-
-VSOutput main(VSInput input)
-{
-    VSOutput output = (VSOutput)0;
-    output.position = mul(float4(input.position, 1), VP);
-    output.texCoord = input.texCoord;
-    output.texIndex = input.texIndex;
-    return output;
-}
-)___";
-
-    const char *pixelShaderSource = R"___(
-struct PSInput
-{
-    float4 position : SV_POSITION;
-    float2 texCoord : TEXCOORD;
-    nointerpolation uint texIndex : TEXINDEX;
-};
-
-SamplerState DiffuseSampler;
-Texture2DArray<float4> DiffuseTexture;
-
-float main(PSInput input) : SV_TARGET
-{
-    float texel_a = DiffuseTexture.Sample(DiffuseSampler, float3(input.texCoord, input.texIndex)).a;
-    clip(texel_a - 0.5);
-    return input.position.z;
-}
-)___";
+    std::string vertexShaderSource = agz::file::read_txt_file(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseHollow"]["ShadowVertexShader"]);
+    std::string pixelShaderSource  = agz::file::read_txt_file(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseHollow"]["ShadowPixelShader"]);
 
     shadowShader_.InitializeStage<SS_VS>(vertexShaderSource);
     shadowShader_.InitializeStage<SS_PS>(pixelShaderSource);

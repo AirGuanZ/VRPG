@@ -28,7 +28,7 @@ public:
         Vec3 skylight;
         float shadowScale = 1;
         Vec3 sunlightDirection;
-        float dx = 1.0f / 4096;
+        float PCFStep = 1.0f / 4096;
     };
 
     struct Shadow_VS_Transform

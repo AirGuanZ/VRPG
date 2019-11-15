@@ -9,8 +9,7 @@
 VRPG_GAME_BEGIN
 
 Game::Game(Base::Window *window)
-    : window_(window), keyboard_(window->GetKeyboard()), mouse_(window->GetMouse()),
-      worldTickInterval_(100000), exitMainloop_(false)
+    : window_(window), keyboard_(window->GetKeyboard()), mouse_(window->GetMouse())
 {
     assert(window);
     lbState_ = MouseButtonStateTracker(Base::MouseButton::Left);
@@ -27,8 +26,6 @@ void Game::Run()
     int cameraBlockX = int(camera_->GetPosition().x), cameraBlockZ = int(camera_->GetPosition().z);
     chunkManager_->SetCentreChunk(GlobalBlockToChunk(cameraBlockX, cameraBlockZ));
 
-    exitMainloop_ = false;
-
     mouse_->ShowCursor(false);
     mouse_->SetCursorLock(true, window_->GetClientSizeX() / 2, window_->GetClientSizeY() / 2);
     mouse_->UpdatePosition();
@@ -37,11 +34,13 @@ void Game::Run()
 
     using Clock = std::chrono::high_resolution_clock;
     Clock::time_point lastWorldTickEnd = Clock::now();
-    fpsCounter_.restart();
+    
+    agz::time::fps_counter_t fpsCounter;
 
-    while(!exitMainloop_)
+    bool exitMainloop = false;
+    while(!exitMainloop)
     {
-        float deltaT = fpsCounter_.elasped_microseconds() / 1000.0f;
+        float deltaT = fpsCounter.elasped_microseconds() / 1000.0f;
 
         window_->DoEvents();
         window_->WaitForFocus();
@@ -51,27 +50,27 @@ void Game::Run()
         rbState_.Update(mouse_);
 
         if(keyboard_->IsKeyPressed(Base::KEY_ESCAPE) || window_->GetCloseFlag())
-            exitMainloop_ = true;
+            exitMainloop = true;
 
         PlayerTick(deltaT);
 
         {
             us worldTickDelta = std::chrono::duration_cast<us>(Clock::now() - lastWorldTickEnd);
-            if(worldTickDelta > 10 * worldTickInterval_)
-                worldTickDelta = worldTickInterval_;
-            while(worldTickDelta >= worldTickInterval_)
+            if(worldTickDelta > 10 * WORLD_TICK_INTERVAL)
+                worldTickDelta = WORLD_TICK_INTERVAL;
+            while(worldTickDelta >= WORLD_TICK_INTERVAL)
             {
                 WorldTick();
-                worldTickDelta -= worldTickInterval_;
+                worldTickDelta -= WORLD_TICK_INTERVAL;
                 lastWorldTickEnd = Clock::now();
             }
         }
 
         ChunkTick();
 
-        Render();
+        Render(fpsCounter.fps());
 
-        fpsCounter_.frame_end();
+        fpsCounter.frame_end();
     }
 
     spdlog::info("exit mainloop");
@@ -105,18 +104,14 @@ void Game::Initialize()
     spdlog::info("initialize chunk manager");
 
     ChunkManagerParams chunkMgrParams;
-    chunkMgrParams.unloadDistance        = 10;
-    chunkMgrParams.loadDistance          = 8;
-    chunkMgrParams.renderDistance        = 7;
-    chunkMgrParams.backgroundPoolSize    = 20;
-    chunkMgrParams.backgroundThreadCount = 1;
+    chunkMgrParams.unloadDistance        = GLOBAL_CONFIG.CHUNK_MANAGER.unloadDistance;
+    chunkMgrParams.loadDistance          = GLOBAL_CONFIG.CHUNK_MANAGER.loadDistance;
+    chunkMgrParams.renderDistance        = GLOBAL_CONFIG.CHUNK_MANAGER.renderDistance;
+    chunkMgrParams.backgroundPoolSize    = GLOBAL_CONFIG.CHUNK_MANAGER.backgroundPoolSize;
+    chunkMgrParams.backgroundThreadCount = GLOBAL_CONFIG.CHUNK_MANAGER.backgroundThreadCount;
     chunkManager_ = std::make_unique<ChunkManager>(chunkMgrParams, std::make_unique<FlatLandGenerator>(20));
 
     blockUpdaterManager_ = std::make_unique<BlockUpdaterManager>(chunkManager_.get());
-
-    worldTickInterval_ = us(50 * 1000);
-
-    shadowMapConfig_ = GlobalGraphicsConfig::GetInstance().GetShadowMapConfig();
 }
 
 void Game::PlayerTick(float deltaT)
@@ -194,7 +189,7 @@ void Game::ChunkTick()
     }
 }
 
-void Game::Render()
+void Game::Render(int fps)
 {
     constexpr auto WIN_FLAG =
         ImGuiWindowFlags_NoMove |
@@ -208,7 +203,7 @@ void Game::Render()
     ImGui::SetNextWindowPos({ 20, 20 });
     if(ImGui::Begin("debug overlay", nullptr, WIN_FLAG))
     {
-        ImGui::Text("fps: %i", fpsCounter_.fps());
+        ImGui::Text("fps: %i", fps);
 
         Vec3 position = camera_->GetPosition();
         ImGui::Text("position: (%f, %f, %f)", position.x, position.y, position.z);
@@ -269,10 +264,10 @@ void Game::Destroy()
 
 Mat4 Game::ConstructShadowMapVP() const
 {
-    float distance = shadowMapConfig_.shadowMapDistance;
-    float radius   = shadowMapConfig_.shadowMapRadius;
-    float nearP    = shadowMapConfig_.shadowMapNear;
-    float farP     = shadowMapConfig_.shadowMapFar;
+    float distance = GLOBAL_CONFIG.SHADOW_MAP.shadowMapDistance;
+    float radius   = GLOBAL_CONFIG.SHADOW_MAP.shadowMapRadius;
+    float nearP    = GLOBAL_CONFIG.SHADOW_MAP.shadowMapNear;
+    float farP     = GLOBAL_CONFIG.SHADOW_MAP.shadowMapFar;
 
     Vec3 cameraPosition = camera_->GetPosition();
     Mat4 view = Trans4::look_at(cameraPosition + distance * Vec3(5, 6, 7).normalize(), cameraPosition, Vec3(0, 1, 0));

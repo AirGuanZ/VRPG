@@ -1,6 +1,7 @@
 ﻿#include <agz/utility/file.h>
 
 #include <VRPG/Game/Block/BasicEffect/TransparentBlockEffect.h>
+#include <VRPG/Game/Config/GlobalConfig.h>
 
 VRPG_GAME_BEGIN
 
@@ -156,10 +157,8 @@ void TransparentBlockEffect::Initialize(int textureSize, const std::vector<agz::
 {
     assert(!textureArrayData.empty());
 
-    std::string vertexShaderSource = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/Transparent/TransparentVertex.hlsl");
-    std::string pixelShaderSource  = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/Transparent/TransparentPixel.hlsl");
-    shader_.InitializeStage<SS_VS>(vertexShaderSource);
-    shader_.InitializeStage<SS_PS>(pixelShaderSource);
+    shader_.InitializeStageFromFile<SS_VS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Transparent"]["ForwardVertexShader"]);
+    shader_.InitializeStageFromFile<SS_PS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Transparent"]["ForwardPixelShader"]);
     if(!shader_.IsAllStagesAvailable())
         throw VRPGGameException("failed to initialize transparent box block effect");
 

@@ -23,6 +23,8 @@ private:
 
     using us = std::chrono::microseconds;
 
+    static constexpr us WORLD_TICK_INTERVAL = us(50 * 1000);
+
     void Initialize();
 
     void PlayerTick(float deltaT);
@@ -31,7 +33,7 @@ private:
 
     void ChunkTick();
 
-    void Render();
+    void Render(int fps);
 
     void Destroy();
 
@@ -54,14 +56,6 @@ private:
     std::unique_ptr<ChunkManager> chunkManager_;
 
     std::unique_ptr<BlockUpdaterManager> blockUpdaterManager_;
-
-    us worldTickInterval_;
-
-    agz::time::fps_counter_t fpsCounter_;
-
-    bool exitMainloop_;
-
-    GlobalGraphicsConfig::ShadowMapConfig shadowMapConfig_;
 };
 
 VRPG_GAME_END

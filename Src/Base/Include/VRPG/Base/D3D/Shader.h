@@ -1,5 +1,6 @@
 #pragma once
 
+#include <agz/utility/file.h>
 #include <agz/utility/misc.h>
 
 #include <VRPG/Base/D3D/Shader/Stage.h>
@@ -40,6 +41,17 @@ public:
     {
         auto &stage = std::get<Stage<STAGE>>(stages_);
         stage.Initialize(source, sourceName, entry, target);
+    }
+
+    template<ShaderStage STAGE>
+    void InitializeStageFromFile(
+        const std::string &filename,
+        const char *entry = "main",
+        const char *target = Stage<STAGE>::SpecImpl::DefaultCompileTarget())
+    {
+        auto source = agz::file::read_txt_file(filename);
+        auto &stage = std::get<Stage<STAGE>>(stages_);
+        stage.Initialize(source, filename.c_str(), entry, target);
     }
 
     template<ShaderStage STAGE>

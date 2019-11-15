@@ -5,10 +5,9 @@ VRPG_GAME_BEGIN
 
 RasterizerState CreateRasterizerStateForShadowMapping(bool enableBackfaceCulling)
 {
-    auto &config = GlobalGraphicsConfig::GetInstance().GetShadowMapConfig();
-    UINT depthBias       = config.shadowDepthBias;
-    float depthBiasClamp = config.shadowDepthBiasClamp;
-    float depthSlope     = config.shadowDepthSlope;
+    UINT depthBias       = GLOBAL_CONFIG.SHADOW_MAP.shadowDepthBias;
+    float depthBiasClamp = GLOBAL_CONFIG.SHADOW_MAP.shadowDepthBiasClamp;
+    float depthSlope     = GLOBAL_CONFIG.SHADOW_MAP.shadowDepthSlope;
 
     RasterizerState state;
     state.Initialize(
