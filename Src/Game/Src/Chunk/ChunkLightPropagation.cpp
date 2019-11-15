@@ -1,7 +1,7 @@
 ﻿#include <deque>
 #include <queue>
 
-#include <VRPG/Game/Chunk/LightPropagation.h>
+#include <VRPG/Game/Chunk/ChunkLightPropagation.h>
 
 VRPG_GAME_BEGIN
 

@@ -61,7 +61,7 @@ void DefaultBlockEffect::SetForwardRenderParams(const BlockForwardRenderParams &
 {
     forwardShadowMap_->SetShaderResourceView(params.shadowMapSRV.Get());
     forwardVSTransform_.SetValue({ params.shadowViewProj, params.camera->GetViewProjectionMatrix() });
-    forwardPSPerFrame_.SetValue({ params.skyLight, params.shadowScale, params.sunlightDirection, params.dx });
+    forwardPSPerFrame_.SetValue({ params.skyLight, params.shadowScale, params.sunlightDirection, params.PCFStep });
 }
 
 void DefaultBlockEffect::SetShadowRenderParams(const BlockShadowRenderParams &params) const
@@ -71,8 +71,8 @@ void DefaultBlockEffect::SetShadowRenderParams(const BlockShadowRenderParams &pa
 
 void DefaultBlockEffect::InitializeForward()
 {
-    std::string vertexShaderSource = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/DefaultVertex.hlsl");
-    std::string pixelShaderSource = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/DefaultPixel.hlsl");
+    std::string vertexShaderSource = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/Default/DefaultVertex.hlsl");
+    std::string pixelShaderSource = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/Default/DefaultPixel.hlsl");
     forwardShader_.InitializeStage<SS_VS>(vertexShaderSource);
     forwardShader_.InitializeStage<SS_PS>(pixelShaderSource);
     if(!forwardShader_.IsAllStagesAvailable())

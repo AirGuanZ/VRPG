@@ -82,11 +82,11 @@ void DiffuseHollowBoxDescription::AddBlockModel(
 
         Vec3 normal = cross(posB - posA, posC - posB).normalize();
 
-        builder->AddVertex({ posA, BOX_FACE_TEXCOORD[0], normal, textureIndexInEffect, lhtA });
-        builder->AddVertex({ posB, BOX_FACE_TEXCOORD[1], normal, textureIndexInEffect, lhtB });
-        builder->AddVertex({ posC, BOX_FACE_TEXCOORD[2], normal, textureIndexInEffect, lhtC });
-        builder->AddVertex({ posD, BOX_FACE_TEXCOORD[3], normal, textureIndexInEffect, lhtD });
-        builder->AddVertex({ posE, Vec2(0.5f, 0.5f), normal, textureIndexInEffect, lhtE });
+        builder->AddVertex({ posA, BOX_FACE_TEXCOORD[0], normal, lhtA, textureIndexInEffect });
+        builder->AddVertex({ posB, BOX_FACE_TEXCOORD[1], normal, lhtB, textureIndexInEffect });
+        builder->AddVertex({ posC, BOX_FACE_TEXCOORD[2], normal, lhtC, textureIndexInEffect });
+        builder->AddVertex({ posD, BOX_FACE_TEXCOORD[3], normal, lhtD, textureIndexInEffect });
+        builder->AddVertex({ posE, Vec2(0.5f, 0.5f), normal, lhtE, textureIndexInEffect });
 
         builder->AddIndexedTriangle(vertexCount + 0, vertexCount + 1, vertexCount + 4);
         builder->AddIndexedTriangle(vertexCount + 1, vertexCount + 2, vertexCount + 4);

@@ -34,13 +34,6 @@ void BlockEffectManager::Clear()
     blockEffects_.clear();
     name2Effect_.clear();
     rawBlockEffects_.clear();
-
-    auto defaultEffect = std::make_shared<DefaultBlockEffect>();
-    defaultEffect->SetBlockEffectID(BLOCK_EFFECT_ID_DEFAULT);
-
-    rawBlockEffects_.push_back(defaultEffect.get());
-    name2Effect_[std::string(defaultEffect->GetName())] = defaultEffect;
-    blockEffects_.push_back(std::move(defaultEffect));
 }
 
 VRPG_GAME_END

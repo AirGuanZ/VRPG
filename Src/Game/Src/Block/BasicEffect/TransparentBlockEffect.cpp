@@ -112,29 +112,52 @@ std::shared_ptr<const PartialSectionModel> TransparentBlockEffect::Builder::Buil
         globalSectionPosition_, effect_, std::move(vertexBuffer), std::move(indexBuffer), std::move(indices_), std::move(faces_));
 }
 
-int TransparentBlockEffect::AddTexture(agz::texture::texture2d_t<Vec4> textureData)
+const char *TransparentBlockEffect::GetName() const
 {
-    assert(textureData.width() == textureData.height());
-    if(!textureSize_)
-        textureSize_ = textureData.width();
-    else if(textureSize_ != textureData.width())
-    {
-        throw VRPGGameException(
-            "invalid texture data size. expected: " + std::to_string(textureSize_) + 
-            ", actual: " + std::to_string(textureData.width()));
-    }
-
-    int ret = int(textureDataArray_.size());
-    textureDataArray_.push_back(std::move(textureData));
-    return ret;
+    return "transparent";
 }
 
-void TransparentBlockEffect::Initialize()
+bool TransparentBlockEffect::IsTransparent() const noexcept
 {
-    assert(!textureDataArray_.empty());
+    return true;
+}
 
-    std::string vertexShaderSource = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/TransparentVertex.hlsl");
-    std::string pixelShaderSource  = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/TransparentPixel.hlsl");
+void TransparentBlockEffect::StartForward() const
+{
+    shader_.Bind();
+    uniforms_.Bind();
+    inputLayout_.Bind();
+    blendState_.Bind();
+    depthState_.Bind();
+}
+
+void TransparentBlockEffect::EndForward() const
+{
+    depthState_.Unbind();
+    blendState_.Unbind();
+    inputLayout_.Unbind();
+    uniforms_.Unbind();
+    shader_.Unbind();
+}
+
+std::unique_ptr<PartialSectionModelBuilder> TransparentBlockEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
+{
+    return std::make_unique<Builder>(globalSectionPosition, this);
+}
+
+void TransparentBlockEffect::SetForwardRenderParams(const BlockForwardRenderParams &params) const
+{
+    shadowMapSlot_->SetShaderResourceView(params.shadowMapSRV.Get());
+    vsTransform_.SetValue({ params.shadowViewProj, params.camera->GetViewProjectionMatrix() });
+    psPerFrame_.SetValue({ params.skyLight, params.shadowScale, params.sunlightDirection, params.PCFStep });
+}
+
+void TransparentBlockEffect::Initialize(int textureSize, const std::vector<agz::texture::texture2d_t<Vec4>> &textureArrayData)
+{
+    assert(!textureArrayData.empty());
+
+    std::string vertexShaderSource = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/Transparent/TransparentVertex.hlsl");
+    std::string pixelShaderSource  = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/Transparent/TransparentPixel.hlsl");
     shader_.InitializeStage<SS_VS>(vertexShaderSource);
     shader_.InitializeStage<SS_PS>(pixelShaderSource);
     if(!shader_.IsAllStagesAvailable())
@@ -177,18 +200,18 @@ void TransparentBlockEffect::Initialize()
         .Build();
     depthState_.Initialize(true, D3D11_DEPTH_WRITE_MASK_ZERO);
 
-    std::vector<agz::texture::mipmap_chain_t<Vec4>> mipmapChains(textureDataArray_.size());
-    for(size_t i = 0; i < textureDataArray_.size(); ++i)
+    std::vector<agz::texture::mipmap_chain_t<Vec4>> mipmapChains(textureArrayData.size());
+    for(size_t i = 0; i < textureArrayData.size(); ++i)
     {
-        auto &texData = textureDataArray_[i];
+        auto &texData = textureArrayData[i];
         mipmapChains[i].generate(texData);
     }
 
     D3D11_TEXTURE2D_DESC texDesc;
-    texDesc.Width              = UINT(textureSize_);
-    texDesc.Height             = UINT(textureSize_);
+    texDesc.Width              = UINT(textureSize);
+    texDesc.Height             = UINT(textureSize);
     texDesc.MipLevels          = UINT(mipmapChains[0].chain_length());
-    texDesc.ArraySize          = UINT(textureDataArray_.size());
+    texDesc.ArraySize          = UINT(textureArrayData.size());
     texDesc.Format             = DXGI_FORMAT_R32G32B32A32_FLOAT;
     texDesc.SampleDesc.Count   = 1;
     texDesc.SampleDesc.Quality = 0;
@@ -197,9 +220,9 @@ void TransparentBlockEffect::Initialize()
     texDesc.CPUAccessFlags     = 0;
     texDesc.MiscFlags          = 0;
 
-    std::vector<D3D11_SUBRESOURCE_DATA> initDataArr(textureDataArray_.size() * mipmapChains[0].chain_length());
+    std::vector<D3D11_SUBRESOURCE_DATA> initDataArr(textureArrayData.size() * mipmapChains[0].chain_length());
     int initDataArrIndex = 0;
-    for(size_t i = 0; i < textureDataArray_.size(); ++i)
+    for(size_t i = 0; i < textureArrayData.size(); ++i)
     {
         for(int j = 0; j < mipmapChains[i].chain_length(); ++j)
         {
@@ -222,7 +245,7 @@ void TransparentBlockEffect::Initialize()
     srvDesc.Texture2DArray.MostDetailedMip = 0;
     srvDesc.Texture2DArray.MipLevels       = -1;
     srvDesc.Texture2DArray.FirstArraySlice = 0;
-    srvDesc.Texture2DArray.ArraySize       = UINT(textureDataArray_.size());
+    srvDesc.Texture2DArray.ArraySize       = UINT(textureArrayData.size());
 
     ComPtr<ID3D11ShaderResourceView> srv = Base::D3D::CreateShaderResourceView(srvDesc, texture.Get());
     if(!srv)
@@ -230,50 +253,35 @@ void TransparentBlockEffect::Initialize()
 
     uniforms_.GetShaderResourceSlot<SS_PS>("TransparentTexture")->SetShaderResourceView(ShaderResourceView(srv));
 
-    decltype(textureDataArray_) tTexDataArr;
-    textureDataArray_.swap(tTexDataArr);
-
     shadowMapSlot_ = uniforms_.GetShaderResourceSlot<SS_PS>("ShadowMap");
 }
 
-const char *TransparentBlockEffect::GetName() const
+TransparentBlockEffectGenerator::TransparentBlockEffectGenerator(int textureSize)
+    : textureSize_(textureSize)
 {
-    return "transparent";
+    currentEffect_ = std::make_shared<TransparentBlockEffect>();
 }
 
-bool TransparentBlockEffect::IsTransparent() const noexcept
+std::shared_ptr<TransparentBlockEffect> TransparentBlockEffectGenerator::GetEffectWithTextureSpaces()
 {
-    return true;
+    return currentEffect_;
 }
 
-void TransparentBlockEffect::StartForward() const
+int TransparentBlockEffectGenerator::AddTexture(const Vec4 *textureData)
 {
-    shader_.Bind();
-    uniforms_.Bind();
-    inputLayout_.Bind();
-    blendState_.Bind();
-    depthState_.Bind();
+    int ret = static_cast<int>(textureArrayData_.size());
+    textureArrayData_.emplace_back(textureSize_, textureSize_, textureData);
+    return ret;
 }
 
-void TransparentBlockEffect::EndForward() const
+void TransparentBlockEffectGenerator::Done()
 {
-    depthState_.Unbind();
-    blendState_.Unbind();
-    inputLayout_.Unbind();
-    uniforms_.Unbind();
-    shader_.Unbind();
-}
+    if(textureArrayData_.empty())
+        return;
 
-std::unique_ptr<PartialSectionModelBuilder> TransparentBlockEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
-{
-    return std::make_unique<Builder>(globalSectionPosition, this);
-}
-
-void TransparentBlockEffect::SetForwardRenderParams(const BlockForwardRenderParams &params) const
-{
-    shadowMapSlot_->SetShaderResourceView(params.shadowMapSRV.Get());
-    vsTransform_.SetValue({ params.shadowViewProj, params.camera->GetViewProjectionMatrix() });
-    psPerFrame_.SetValue({ params.skyLight, params.shadowScale, params.sunlightDirection, params.dx });
+    currentEffect_->Initialize(textureSize_, textureArrayData_);
+    textureArrayData_.clear();
+    BlockEffectManager::GetInstance().RegisterBlockEffect(currentEffect_);
 }
 
 VRPG_GAME_END

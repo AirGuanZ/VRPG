@@ -26,7 +26,7 @@ struct BlockForwardRenderParams
     Mat4 shadowViewProj;
     ComPtr<ID3D11ShaderResourceView> shadowMapSRV;
 
-    float dx = 1.0f / 4096;
+    float PCFStep = 1.0f / 4096;
 };
 
 /**

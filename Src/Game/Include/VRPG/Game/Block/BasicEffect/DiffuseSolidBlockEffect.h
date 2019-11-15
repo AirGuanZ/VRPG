@@ -1,6 +1,4 @@
-﻿#pragma once
-
-#include <optional>
+#pragma once
 
 #include <agz/utility/texture.h>
 
@@ -9,25 +7,10 @@
 
 VRPG_GAME_BEGIN
 
-class DiffuseSolidBlockEffect;
-
-/**
- * 一个DiffuseSolidBlockEffect中存有一个表示Diffuse Albedo的Texture Array，
- * 而单个Texture Array未必能存下所有需要的Texture，所以可能会有多个DiffuseSolidBlockEffect实例。
- * 这些实例共享Shader、Constant Buffer等，只有Texture Array不同
- */
-class DiffuseSolidBlockEffectGenerator
+class DiffuseSolidBlockEffectCommon
 {
-public:
-
-    struct Vertex
-    {
-        Vec3 position;
-        Vec2 texCoord;
-        Vec3 normal;
-        uint32_t texIndex = 0;
-        Vec4 brightness;
-    };
+    void InitializeForward();
+    void InitializeShadow();
 
     struct Forward_VS_Transform
     {
@@ -48,84 +31,63 @@ public:
         Mat4 VP;
     };
 
-    /**
-     * @brief 由多个DiffuseBlockEffect实例所共享的数据
-     */
-    class CommonProperties
-    {
-        void InitializeForward();
-        void InitializeShadow();
+    Shader<SS_VS, SS_PS>                 forwardShader;
+    UniformManager<SS_VS, SS_PS>         forwardUniforms;
+    InputLayout                          forwardInputLayout;
+    ConstantBuffer<Forward_VS_Transform> forwardVSTransform;
+    ConstantBuffer<Forward_PS_PerFrame>  forwardPSPerFrame;
+    ShaderResourceSlot<SS_PS>           *forwardDiffuseTextureSlot;
+    ShaderResourceSlot<SS_PS>           *forwardShadowMapSlot;
 
-    public:
+    Shader<SS_VS, SS_PS>                shadowShader;
+    UniformManager<SS_VS, SS_PS>        shadowUniforms;
+    ConstantBuffer<Shadow_VS_Transform> shadowVSTransform;
+    InputLayout                         shadowInputLayout;
+    RasterizerState                     shadowRasterizerState;
 
-        CommonProperties();
+public:
 
-        Shader<SS_VS, SS_PS>                 forwardShader_;
-        UniformManager<SS_VS, SS_PS>         forwardUniforms_;
-        InputLayout                          forwardInputLayout_;
-        ConstantBuffer<Forward_VS_Transform> forwardVSTransform_;
-        ConstantBuffer<Forward_PS_PerFrame>  forwardPSPerFrame_;
-        ShaderResourceSlot<SS_PS>           *forwardDiffuseTextureSlot_;
-        ShaderResourceSlot<SS_PS>           *forwardShadowMapSlot_;
+    DiffuseSolidBlockEffectCommon();
 
-        Shader<SS_VS, SS_PS>                shadowShader_;
-        UniformManager<SS_VS, SS_PS>        shadowUniforms_;
-        ConstantBuffer<Shadow_VS_Transform> shadowVSTransform_;
-        InputLayout                         shadowInputLayout_;
-        RasterizerState                     shadowRasterizerState_;
-    };
+    void SetForwardRenderParams(const BlockForwardRenderParams &params);
 
-    DiffuseSolidBlockEffectGenerator(int textureSize, int expectedArraySize);
+    void SetShadowRenderParams(const BlockShadowRenderParams &params);
 
-    /**
-     * @brief array是否为空
-     */
-    bool IsEmpty() const noexcept;
+    void StartForward(ID3D11ShaderResourceView *diffuseTextureArray) const;
 
-    /**
-     * @brief array中是否还能再增加arrayDataCount个texture data
-     */
-    bool HasEnoughSpaceFor(int arrayDataCount) const noexcept;
+    void EndForward() const;
 
-    /**
-     * @brief 向texture array中添加一个textureSize^2大小的texture data
-     *
-     * 返回新添加的texture data在texture array中的下标
-     */
-    int AddTexture(const Vec4 *data);
-    
-    /**
-     * @brief 初始化给定的effect
-      */
-    void InitializeEffect(DiffuseSolidBlockEffect &effect);
+    void StartShadow() const;
 
-private:
-
-    std::shared_ptr<CommonProperties> commonProperties_;
-
-    std::vector<agz::texture::texture2d_t<Vec4>> textureArrayData_;
-    int textureSize_;
-    int maxArraySize_;
-
-    int generatedEffectCount_;
+    void EndShadow() const;
 };
 
 class DiffuseSolidBlockEffect : public BlockEffect
 {
+    friend class DiffuseSolidBlockEffectGenerator;
+
 public:
 
-    using Generator = DiffuseSolidBlockEffectGenerator;
-    using Vertex = Generator::Vertex;
+    struct Vertex
+    {
+        Vec3 position;
+        Vec2 texCoord;
+        Vec3 normal;
+        Vec4 brightness;
+        uint32_t texIndex = 0;
+    };
 
     using Builder = NativePartialSectionModelBuilder<DiffuseSolidBlockEffect>;
-
-    void Initialize(
-        std::shared_ptr<Generator::CommonProperties> commonProperties,
-        ShaderResourceView textureArray, int semanticsIndex);
 
     const char *GetName() const override;
 
     bool IsTransparent() const noexcept override;
+
+    std::unique_ptr<PartialSectionModelBuilder> CreateModelBuilder(const Vec3i &globalSectionPosition) const override;
+
+    void SetForwardRenderParams(const BlockForwardRenderParams &params) const override;
+
+    void SetShadowRenderParams(const BlockShadowRenderParams &params) const override;
 
     void StartForward() const override;
 
@@ -135,18 +97,41 @@ public:
 
     void EndShadow() const override;
 
-    std::unique_ptr<PartialSectionModelBuilder> CreateModelBuilder(const Vec3i &globalSectionPosition) const override;
+private:
 
-    void SetForwardRenderParams(const BlockForwardRenderParams &params) const override;
+    void Initialize(
+        std::shared_ptr<DiffuseSolidBlockEffectCommon> common,
+        ShaderResourceView textureArray, std::string name);
 
-    void SetShadowRenderParams(const BlockShadowRenderParams &params) const override;
+    std::shared_ptr<DiffuseSolidBlockEffectCommon> common_;
+    ShaderResourceView textureArray_;
+    std::string name_;
+};
+
+class DiffuseSolidBlockEffectGenerator : public agz::misc::uncopyable_t
+{
+public:
+
+    DiffuseSolidBlockEffectGenerator(int textureSize, int maxArraySize);
+
+    std::shared_ptr<DiffuseSolidBlockEffect> GetEffectWithTextureSpaces(int textureCount);
+
+    int AddTexture(const Vec4 *textureData);
+
+    void Done();
 
 private:
 
-    std::shared_ptr<Generator::CommonProperties> commonProperties_;
+    void InitializeCurrentEffect();
 
-    ShaderResourceView textureArray_;
-    std::string name_;
+    std::shared_ptr<DiffuseSolidBlockEffectCommon> common_;
+
+    std::vector<agz::texture::texture2d_t<Vec4>> textureArrayData_;
+    int textureSize_;
+    int maxArraySize_;
+
+    int nextEffectSemanticsIndex_;
+    std::shared_ptr<DiffuseSolidBlockEffect> currentEffect_;
 };
 
 VRPG_GAME_END

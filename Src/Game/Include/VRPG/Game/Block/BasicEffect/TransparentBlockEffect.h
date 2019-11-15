@@ -11,6 +11,8 @@ VRPG_GAME_BEGIN
  */
 class TransparentBlockEffect : public BlockEffect
 {
+    friend class TransparentBlockEffectGenerator;
+
 public:
 
     struct Vertex
@@ -42,7 +44,7 @@ public:
         struct FaceIndexRange
         {
             Vec3 position;
-            VertexIndex startIndex;
+            VertexIndex startIndex = 0;
         };
 
         explicit Builder(const Vec3i &globalSectionPosition, const TransparentBlockEffect *effect);
@@ -70,10 +72,6 @@ public:
         const TransparentBlockEffect *effect_;
     };
 
-    int AddTexture(agz::texture::texture2d_t<Vec4> textureData);
-
-    void Initialize();
-
     const char *GetName() const override;
 
     bool IsTransparent() const noexcept override;
@@ -88,6 +86,8 @@ public:
 
 private:
 
+    void Initialize(int textureSize, const std::vector<agz::texture::texture2d_t<Vec4>> &textureArrayData);
+
     Shader<SS_VS, SS_PS>                 shader_;
     UniformManager<SS_VS, SS_PS>         uniforms_;
     InputLayout                          inputLayout_;
@@ -97,9 +97,26 @@ private:
     DepthState                           depthState_;
 
     ShaderResourceSlot<SS_PS> *shadowMapSlot_ = nullptr;
+};
 
-    std::vector<agz::texture::texture2d_t<Vec4>> textureDataArray_;
-    int textureSize_ = 0;
+class TransparentBlockEffectGenerator : public agz::misc::uncopyable_t
+{
+public:
+
+    explicit TransparentBlockEffectGenerator(int textureSize);
+
+    std::shared_ptr<TransparentBlockEffect> GetEffectWithTextureSpaces();
+
+    int AddTexture(const Vec4 *textureData);
+
+    void Done();
+
+private:
+
+    std::vector<agz::texture::texture2d_t<Vec4>> textureArrayData_;
+    int textureSize_;
+
+    std::shared_ptr<TransparentBlockEffect> currentEffect_;
 };
 
 VRPG_GAME_END

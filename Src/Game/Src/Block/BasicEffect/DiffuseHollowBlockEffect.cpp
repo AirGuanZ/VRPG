@@ -1,14 +1,14 @@
-﻿#include <agz/utility/file.h>
+#include <agz/utility/file.h>
 
 #include <VRPG/Game/Block/BasicEffect/DiffuseHollowBlockEffect.h>
 #include <VRPG/Game/Misc/ShadowMappingRasterizerState.h>
 
 VRPG_GAME_BEGIN
 
-void DiffuseHollowBlockEffectGenerator::CommonProperties::InitializeForward()
+void DiffuseHollowBlockEffectCommon::InitializeForward()
 {
-    std::string vertexShaderSource = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/DiffuseHollowVertex.hlsl");
-    std::string pixelShaderSource = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/DiffuseHollowPixel.hlsl");
+    std::string vertexShaderSource = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/DiffuseHollow/DiffuseHollowVertex.hlsl");
+    std::string pixelShaderSource = agz::file::read_txt_file("Asset/World/Shader/BlockEffect/DiffuseHollow/DiffuseHollowPixel.hlsl");
     forwardShader_.InitializeStage<SS_VS>(vertexShaderSource);
     forwardShader_.InitializeStage<SS_PS>(pixelShaderSource);
     if(!forwardShader_.IsAllStagesAvailable())
@@ -17,11 +17,11 @@ void DiffuseHollowBlockEffectGenerator::CommonProperties::InitializeForward()
     forwardUniforms_ = forwardShader_.CreateUniformManager();
 
     forwardInputLayout_ = InputLayoutBuilder
-        ("POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT,    offsetof(Vertex, position))
-        ("TEXCOORD",   0, DXGI_FORMAT_R32G32_FLOAT,       offsetof(Vertex, texCoord))
-        ("NORMAL",     0, DXGI_FORMAT_R32G32B32_FLOAT,    offsetof(Vertex, normal))
-        ("TEXINDEX",   0, DXGI_FORMAT_R32_UINT,           offsetof(Vertex, texIndex))
-        ("BRIGHTNESS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, offsetof(Vertex, brightness))
+        ("POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT,    offsetof(DiffuseHollowBlockEffect::Vertex, position))
+        ("TEXCOORD",   0, DXGI_FORMAT_R32G32_FLOAT,       offsetof(DiffuseHollowBlockEffect::Vertex, texCoord))
+        ("NORMAL",     0, DXGI_FORMAT_R32G32B32_FLOAT,    offsetof(DiffuseHollowBlockEffect::Vertex, normal))
+        ("TEXINDEX",   0, DXGI_FORMAT_R32_UINT,           offsetof(DiffuseHollowBlockEffect::Vertex, texIndex))
+        ("BRIGHTNESS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, offsetof(DiffuseHollowBlockEffect::Vertex, brightness))
         .Build(forwardShader_.GetVertexShaderByteCode());
 
     forwardVSTransform_.Initialize(true, nullptr);
@@ -56,7 +56,7 @@ void DiffuseHollowBlockEffectGenerator::CommonProperties::InitializeForward()
     forwardRasterizerState_.Initialize(D3D11_FILL_SOLID, D3D11_CULL_NONE, false);
 }
 
-void DiffuseHollowBlockEffectGenerator::CommonProperties::InitializeShadow()
+void DiffuseHollowBlockEffectCommon::InitializeShadow()
 {
     const char *vertexShaderSource = R"___(
 cbuffer Transform
@@ -124,52 +124,160 @@ float main(PSInput input) : SV_TARGET
     shadowDiffuseTextureSlot_ = shadowUniforms_.GetShaderResourceSlot<SS_PS>("DiffuseTexture");
 
     shadowInputLayout_ = InputLayoutBuilder
-        ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, offsetof(Vertex, position))
-        ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    offsetof(Vertex, texCoord))
-        ("TEXINDEX", 0, DXGI_FORMAT_R32_UINT,        offsetof(Vertex, texIndex))
+        ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, offsetof(DiffuseHollowBlockEffect::Vertex, position))
+        ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    offsetof(DiffuseHollowBlockEffect::Vertex, texCoord))
+        ("TEXINDEX", 0, DXGI_FORMAT_R32_UINT,        offsetof(DiffuseHollowBlockEffect::Vertex, texIndex))
         .Build(shadowShader_.GetVertexShaderByteCode());
 
     shadowRasterizerState_ = CreateRasterizerStateForShadowMapping(false);
 }
 
-DiffuseHollowBlockEffectGenerator::CommonProperties::CommonProperties()
-    : forwardDiffuseTextureSlot_(nullptr), forwardShadowMapSlot_(nullptr),
-      shadowDiffuseTextureSlot_(nullptr)
+DiffuseHollowBlockEffectCommon::DiffuseHollowBlockEffectCommon()
+    : forwardDiffuseTextureSlot_(nullptr), forwardShadowMapSlot_(nullptr), shadowDiffuseTextureSlot_(nullptr)
 {
     InitializeForward();
     InitializeShadow();
 }
 
-DiffuseHollowBlockEffectGenerator::DiffuseHollowBlockEffectGenerator(int textureSize, int expectedArraySize)
+void DiffuseHollowBlockEffectCommon::SetForwardRenderParams(const BlockForwardRenderParams &params)
 {
-    assert(textureSize > 0 && expectedArraySize > 0);
-    commonProperties_ = std::make_shared<CommonProperties>();
-    textureSize_ = textureSize;
-    maxArraySize_ = (std::min)(expectedArraySize, D3D11_REQ_TEXTURE2D_ARRAY_AXIS_DIMENSION);
-    generatedEffectCount_ = 0;
+    forwardShadowMapSlot_->SetShaderResourceView(params.shadowMapSRV.Get());
+    forwardVSTransform_.SetValue({ params.shadowViewProj, params.camera->GetViewProjectionMatrix() });
+    forwardPSPerFrame_.SetValue({ params.skyLight, params.shadowScale, params.sunlightDirection, params.PCFStep });
 }
 
-bool DiffuseHollowBlockEffectGenerator::IsEmpty() const noexcept
+void DiffuseHollowBlockEffectCommon::SetShadowRenderParams(const BlockShadowRenderParams &params)
 {
-    return textureArrayData_.empty();
+    shadowVSTransform_.SetValue({ params.shadowViewProj });
 }
 
-bool DiffuseHollowBlockEffectGenerator::HasEnoughSpaceFor(int arrayDataCount) const noexcept
+void DiffuseHollowBlockEffectCommon::StartForward(ID3D11ShaderResourceView *textureArray)
 {
-    return int(textureArrayData_.size()) + arrayDataCount <= maxArraySize_;
+    forwardDiffuseTextureSlot_->SetShaderResourceView(textureArray);
+    forwardShader_.Bind();
+    forwardUniforms_.Bind();
+    forwardInputLayout_.Bind();
+    forwardRasterizerState_.Bind();
 }
 
-int DiffuseHollowBlockEffectGenerator::AddTexture(const Vec4 *data)
+void DiffuseHollowBlockEffectCommon::EndForward()
 {
-    int ret = int(textureArrayData_.size());
-    textureArrayData_.emplace_back(textureSize_, textureSize_, data);
+    forwardRasterizerState_.Unbind();
+    forwardShader_.Unbind();
+    forwardUniforms_.Unbind();
+    forwardInputLayout_.Unbind();
+}
+
+void DiffuseHollowBlockEffectCommon::StartShadow(ID3D11ShaderResourceView *textureArray)
+{
+    shadowDiffuseTextureSlot_->SetShaderResourceView(textureArray);
+    shadowShader_.Bind();
+    shadowUniforms_.Bind();
+    shadowInputLayout_.Bind();
+    shadowRasterizerState_.Bind();
+}
+
+void DiffuseHollowBlockEffectCommon::EndShadow()
+{
+    shadowShader_.Unbind();
+    shadowUniforms_.Unbind();
+    shadowInputLayout_.Unbind();
+    shadowRasterizerState_.Unbind();
+}
+
+const char *DiffuseHollowBlockEffect::GetName() const
+{
+    return name_.c_str();
+}
+
+bool DiffuseHollowBlockEffect::IsTransparent() const noexcept
+{
+    return false;
+}
+
+void DiffuseHollowBlockEffect::StartForward() const
+{
+    common_->StartForward(textureArray_.Get());
+}
+
+void DiffuseHollowBlockEffect::EndForward() const
+{
+    common_->EndForward();
+}
+
+void DiffuseHollowBlockEffect::StartShadow() const
+{
+    common_->StartShadow(textureArray_.Get());
+}
+
+void DiffuseHollowBlockEffect::EndShadow() const
+{
+    common_->EndShadow();
+}
+
+std::unique_ptr<PartialSectionModelBuilder> DiffuseHollowBlockEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
+{
+    return std::make_unique<Builder>(globalSectionPosition, this);
+}
+
+void DiffuseHollowBlockEffect::SetForwardRenderParams(const BlockForwardRenderParams &params) const
+{
+    common_->SetForwardRenderParams(params);
+}
+
+void DiffuseHollowBlockEffect::SetShadowRenderParams(const BlockShadowRenderParams &params) const
+{
+    common_->SetShadowRenderParams(params);
+}
+
+void DiffuseHollowBlockEffect::Initialize(
+    std::shared_ptr<DiffuseHollowBlockEffectCommon> commonProperties,
+    ShaderResourceView textureArray, std::string name)
+{
+    common_ = std::move(commonProperties);
+    textureArray_ = std::move(textureArray);
+    name_ = std::move(name);
+}
+
+DiffuseHollowBlockEffectGenerator::DiffuseHollowBlockEffectGenerator(int textureSize, int maxArraySize)
+{
+    assert(textureSize > 0 && maxArraySize > 0);
+
+    common_                   = std::make_shared<DiffuseHollowBlockEffectCommon>();
+    textureSize_              = textureSize;
+    maxArraySize_             = (std::min)(maxArraySize, D3D11_REQ_TEXTURE2D_ARRAY_AXIS_DIMENSION);
+    nextEffectSemanticsIndex_ = 0;
+
+    currentEffect_ = std::make_shared<DiffuseHollowBlockEffect>();
+}
+
+std::shared_ptr<DiffuseHollowBlockEffect> DiffuseHollowBlockEffectGenerator::GetEffectWithTextureSpaces(int textureCount)
+{
+    if(static_cast<int>(textureArrayData_.size()) + textureCount <= maxArraySize_)
+        return currentEffect_;
+
+    InitializeCurrentEffect();
+    return currentEffect_;
+}
+
+int DiffuseHollowBlockEffectGenerator::AddTexture(const Vec4 *textureData)
+{
+    int ret = static_cast<int>(textureArrayData_.size());
+    textureArrayData_.emplace_back(textureSize_, textureSize_, textureData);
     return ret;
 }
 
-void DiffuseHollowBlockEffectGenerator::InitializeEffect(DiffuseHollowBlockEffect &effect)
+void DiffuseHollowBlockEffectGenerator::Done()
 {
-    assert(!textureArrayData_.empty());
+    InitializeCurrentEffect();
+}
 
+void DiffuseHollowBlockEffectGenerator::InitializeCurrentEffect()
+{
+    if(textureArrayData_.empty())
+        return;
+
+    
     // 生成mipmap chain
 
     std::vector<agz::texture::mipmap_chain_t<Vec4>> mipmapChains(textureArrayData_.size());
@@ -225,77 +333,16 @@ void DiffuseHollowBlockEffectGenerator::InitializeEffect(DiffuseHollowBlockEffec
     if(!srv)
         throw VRPGGameException("failed to create shader resource view of texture2d array of for diffuse hollow block effect");
 
-    effect.Initialize(commonProperties_, ShaderResourceView(srv), generatedEffectCount_++);
-}
+    // 延迟初始化之前的effect
 
-void DiffuseHollowBlockEffect::Initialize(
-    std::shared_ptr<Generator::CommonProperties> commonProperties,
-    ShaderResourceView textureArray, int semanticsIndex)
-{
-    commonProperties_ = std::move(commonProperties);
-    textureArray_ = std::move(textureArray);
-    name_ = "diffuse hollow " + std::to_string(semanticsIndex);
-}
+    std::string name = "diffuse hollow " + std::to_string(nextEffectSemanticsIndex_);
+    currentEffect_->Initialize(common_, ShaderResourceView(srv), std::move(name));
+    BlockEffectManager::GetInstance().RegisterBlockEffect(currentEffect_);
 
-const char *DiffuseHollowBlockEffect::GetName() const
-{
-    return name_.c_str();
-}
+    // 准备新的block effect
 
-bool DiffuseHollowBlockEffect::IsTransparent() const noexcept
-{
-    return false;
-}
-
-void DiffuseHollowBlockEffect::StartForward() const
-{
-    commonProperties_->forwardDiffuseTextureSlot_->SetShaderResourceView(textureArray_);
-    commonProperties_->forwardShader_.Bind();
-    commonProperties_->forwardUniforms_.Bind();
-    commonProperties_->forwardInputLayout_.Bind();
-    commonProperties_->forwardRasterizerState_.Bind();
-}
-
-void DiffuseHollowBlockEffect::EndForward() const
-{
-    commonProperties_->forwardRasterizerState_.Unbind();
-    commonProperties_->forwardShader_.Unbind();
-    commonProperties_->forwardUniforms_.Unbind();
-    commonProperties_->forwardInputLayout_.Unbind();
-}
-
-void DiffuseHollowBlockEffect::StartShadow() const
-{
-    commonProperties_->shadowDiffuseTextureSlot_->SetShaderResourceView(textureArray_);
-    commonProperties_->shadowShader_.Bind();
-    commonProperties_->shadowUniforms_.Bind();
-    commonProperties_->shadowInputLayout_.Bind();
-    commonProperties_->shadowRasterizerState_.Bind();
-}
-
-void DiffuseHollowBlockEffect::EndShadow() const
-{
-    commonProperties_->shadowShader_.Unbind();
-    commonProperties_->shadowUniforms_.Unbind();
-    commonProperties_->shadowInputLayout_.Unbind();
-    commonProperties_->shadowRasterizerState_.Unbind();
-}
-
-std::unique_ptr<PartialSectionModelBuilder> DiffuseHollowBlockEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
-{
-    return std::make_unique<Builder>(globalSectionPosition, this);
-}
-
-void DiffuseHollowBlockEffect::SetForwardRenderParams(const BlockForwardRenderParams &params) const
-{
-    commonProperties_->forwardShadowMapSlot_->SetShaderResourceView(params.shadowMapSRV.Get());
-    commonProperties_->forwardVSTransform_.SetValue({ params.shadowViewProj, params.camera->GetViewProjectionMatrix() });
-    commonProperties_->forwardPSPerFrame_.SetValue({ params.skyLight, params.shadowScale, params.sunlightDirection, params.dx });
-}
-
-void DiffuseHollowBlockEffect::SetShadowRenderParams(const BlockShadowRenderParams &params) const
-{
-    commonProperties_->shadowVSTransform_.SetValue({ params.shadowViewProj });
+    textureArrayData_.clear();
+    currentEffect_ = std::make_shared<DiffuseHollowBlockEffect>();
 }
 
 VRPG_GAME_END

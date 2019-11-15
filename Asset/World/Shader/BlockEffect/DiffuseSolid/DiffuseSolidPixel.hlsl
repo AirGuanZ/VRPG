@@ -28,7 +28,7 @@ float computeShadowFactor(float4 shadowPosition, float shadowBrightness, float3 
     if(dot(normal, sunlightDirection) < 0)
         return shadowBrightness;
         
-	if(shadowPosition.z >= 0.999)
+	if(shadowPosition.z >= 0.95)
 		return 1;
         
     float u = 0.5 + 0.5 *shadowPosition.x;

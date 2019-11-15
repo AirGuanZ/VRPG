@@ -148,22 +148,6 @@ void BlockDescriptionManager::Clear()
     blockDescriptions_.clear();
     name2Desc_.clear();
     rawBlockDescriptions_.clear();
-
-    auto voidDesc = std::make_shared<VoidBlockDescription>();
-    voidDesc->SetBlockID(BLOCK_ID_VOID);
-
-    rawBlockDescriptions_.push_back(voidDesc.get());
-    name2Desc_[std::string(voidDesc->GetName())] = voidDesc;
-    blockDescriptions_.push_back(std::move(voidDesc));
-
-    auto defaultEffect = BlockEffectManager::GetInstance().GetSharedBlockEffect(BLOCK_EFFECT_ID_DEFAULT);
-    auto defaultDesc = std::make_shared<DefaultBlockDescription>(
-        std::dynamic_pointer_cast<const DefaultBlockEffect>(defaultEffect));
-    defaultDesc->SetBlockID(BLOCK_ID_DEFAULT);
-
-    rawBlockDescriptions_.push_back(defaultDesc.get());
-    name2Desc_[std::string(defaultDesc->GetName())] = defaultDesc;
-    blockDescriptions_.push_back(std::move(defaultDesc));
 }
 
 VRPG_GAME_END

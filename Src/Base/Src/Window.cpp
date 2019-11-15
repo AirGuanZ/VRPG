@@ -103,21 +103,21 @@ struct WindowImplData
 
     bool vsync = true;
 
-    IDXGISwapChain *swapChain          = nullptr;
-    ID3D11Device *device               = nullptr;
+    IDXGISwapChain      *swapChain     = nullptr;
+    ID3D11Device        *device        = nullptr;
     ID3D11DeviceContext *deviceContext = nullptr;
 
-    ID3D11RenderTargetView *renderTargetView = nullptr;
-    ID3D11Texture2D *depthStencilBuffer      = nullptr;
-    ID3D11DepthStencilView *depthStencilView = nullptr;
+    ID3D11RenderTargetView *renderTargetView   = nullptr;
+    ID3D11Texture2D        *depthStencilBuffer = nullptr;
+    ID3D11DepthStencilView *depthStencilView   = nullptr;
 
-    int screenbufferSampleCount = 1;
-    int screenbufferSampleQuality = 0;
-    DXGI_FORMAT colorFormat = DXGI_FORMAT_UNKNOWN;
+    int screenbufferSampleCount    = 1;
+    int screenbufferSampleQuality  = 0;
+    DXGI_FORMAT colorFormat        = DXGI_FORMAT_UNKNOWN;
     DXGI_FORMAT depthStencilFormat = DXGI_FORMAT_UNKNOWN;
 
     int mouseUpdateInterval = 1;
-    int mouseUpdateCounter = 0;
+    int mouseUpdateCounter  = 0;
     std::unique_ptr<MouseEventManager> mouse;
     std::unique_ptr<KeyboardEventManager> keyboard;
 
@@ -529,7 +529,7 @@ void Window::_resize()
     data_->clientWidth  = RB.x - LT.x;
     data_->clientHeight = RB.y - LT.y;
 
-    data_->deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+    data_->deviceContext->ClearState();
     ReleaseCOMObjects(data_->renderTargetView, data_->depthStencilBuffer, data_->depthStencilView);
 
     HRESULT hr = data_->swapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);

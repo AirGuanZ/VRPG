@@ -1,6 +1,4 @@
-﻿#pragma once
-
-#include <optional>
+#pragma once
 
 #include <agz/utility/texture.h>
 
@@ -9,26 +7,8 @@
 
 VRPG_GAME_BEGIN
 
-class DiffuseHollowBlockEffect;
-
-/**
- * 一个DiffuseHollowBlockEffect中存有一个表示Diffuse Albedo的Texture Array，
- * 而单个Texture Array未必能存下所有需要的Texture，所以可能会有多个DiffuseHollowBlockEffect实例。
- * 这些实例共享Shader、Constant Buffer等，只有Texture Array不同
- */
-class DiffuseHollowBlockEffectGenerator
+class DiffuseHollowBlockEffectCommon
 {
-public:
-
-    struct Vertex
-    {
-        Vec3 position;
-        Vec2 texCoord;
-        Vec3 normal;
-        uint32_t texIndex = 0;
-        Vec4 brightness;
-    };
-
     struct Forward_VS_Transform
     {
         Mat4 shadowVP;
@@ -48,83 +28,59 @@ public:
         Mat4 VP;
     };
 
-    /**
-     * @brief 由多个DiffuseHollowBlockEffect实例所共享的数据
-     */
-    class CommonProperties
-    {
-        void InitializeForward();
+    Shader<SS_VS, SS_PS>                 forwardShader_;
+    UniformManager<SS_VS, SS_PS>         forwardUniforms_;
+    InputLayout                          forwardInputLayout_;
+    ConstantBuffer<Forward_VS_Transform> forwardVSTransform_;
+    ConstantBuffer<Forward_PS_PerFrame>  forwardPSPerFrame_;
+    ShaderResourceSlot<SS_PS>           *forwardDiffuseTextureSlot_;
+    ShaderResourceSlot<SS_PS>           *forwardShadowMapSlot_;
+    RasterizerState                      forwardRasterizerState_;
 
-        void InitializeShadow();
+    Shader<SS_VS, SS_PS>                shadowShader_;
+    UniformManager<SS_VS, SS_PS>        shadowUniforms_;
+    InputLayout                         shadowInputLayout_;
+    ConstantBuffer<Shadow_VS_Transform> shadowVSTransform_;
+    ShaderResourceSlot<SS_PS>          *shadowDiffuseTextureSlot_;
+    RasterizerState                     shadowRasterizerState_;
 
-    public:
+    void InitializeForward();
 
-        CommonProperties();
+    void InitializeShadow();
 
-        Shader<SS_VS, SS_PS>                 forwardShader_;
-        UniformManager<SS_VS, SS_PS>         forwardUniforms_;
-        InputLayout                          forwardInputLayout_;
-        ConstantBuffer<Forward_VS_Transform> forwardVSTransform_;
-        ConstantBuffer<Forward_PS_PerFrame>  forwardPSPerFrame_;
-        ShaderResourceSlot<SS_PS>           *forwardDiffuseTextureSlot_;
-        ShaderResourceSlot<SS_PS>           *forwardShadowMapSlot_;
-        RasterizerState                      forwardRasterizerState_;
+public:
 
-        Shader<SS_VS, SS_PS>                shadowShader_;
-        UniformManager<SS_VS, SS_PS>        shadowUniforms_;
-        InputLayout                         shadowInputLayout_;
-        ConstantBuffer<Shadow_VS_Transform> shadowVSTransform_;
-        ShaderResourceSlot<SS_PS>          *shadowDiffuseTextureSlot_;
-        RasterizerState                     shadowRasterizerState_;
-    };
+    DiffuseHollowBlockEffectCommon();
 
-    DiffuseHollowBlockEffectGenerator(int textureSize, int expectedArraySize);
+    void SetForwardRenderParams(const BlockForwardRenderParams &params);
 
-    /**
-     * @brief array是否为空
-     */
-    bool IsEmpty() const noexcept;
+    void SetShadowRenderParams(const BlockShadowRenderParams &params);
 
-    /**
-     * @brief array中是否还能再增加arrayDataCount个texture data
-     */
-    bool HasEnoughSpaceFor(int arrayDataCount) const noexcept;
+    void StartForward(ID3D11ShaderResourceView *textureArray);
 
-    /**
-     * @brief 向texture array中添加一个textureSize^2大小的texture data
-     *
-     * 返回新添加的texture data在texture array中的下标
-     */
-    int AddTexture(const Vec4 *data);
+    void EndForward();
 
-    /**
-     * @brief 初始化给定的effect
-     */
-    void InitializeEffect(DiffuseHollowBlockEffect &effect);
+    void StartShadow(ID3D11ShaderResourceView *textureArray);
 
-private:
-
-    std::shared_ptr<CommonProperties> commonProperties_;
-
-    std::vector<agz::texture::texture2d_t<Vec4>> textureArrayData_;
-    int textureSize_;
-    int maxArraySize_;
-
-    int generatedEffectCount_;
+    void EndShadow();
 };
 
 class DiffuseHollowBlockEffect : public BlockEffect
 {
+    friend class DiffuseHollowBlockEffectGenerator;
+
 public:
 
-    using Generator = DiffuseHollowBlockEffectGenerator;
-    using Vertex = Generator::Vertex;
+    struct Vertex
+    {
+        Vec3 position;
+        Vec2 texCoord;
+        Vec3 normal;
+        Vec4 brightness;
+        uint32_t texIndex = 0;
+    };
 
     using Builder = NativePartialSectionModelBuilder<DiffuseHollowBlockEffect>;
-
-    void Initialize(
-        std::shared_ptr<Generator::CommonProperties> commonProperties,
-        ShaderResourceView textureArray, int semanticsIndex);
 
     const char *GetName() const override;
 
@@ -146,10 +102,39 @@ public:
 
 private:
 
-    std::shared_ptr<Generator::CommonProperties> commonProperties_;
+    void Initialize(
+        std::shared_ptr<DiffuseHollowBlockEffectCommon> commonProperties,
+        ShaderResourceView textureArray, std::string name);
 
+    std::shared_ptr<DiffuseHollowBlockEffectCommon> common_;
     ShaderResourceView textureArray_;
     std::string name_;
+};
+
+class DiffuseHollowBlockEffectGenerator : public agz::misc::uncopyable_t
+{
+public:
+
+    DiffuseHollowBlockEffectGenerator(int textureSize, int maxArraySize);
+
+    std::shared_ptr<DiffuseHollowBlockEffect> GetEffectWithTextureSpaces(int textureCount);
+
+    int AddTexture(const Vec4 *textureData);
+
+    void Done();
+
+private:
+
+    void InitializeCurrentEffect();
+
+    std::shared_ptr<DiffuseHollowBlockEffectCommon> common_;
+
+    std::vector<agz::texture::texture2d_t<Vec4>> textureArrayData_;
+    int textureSize_;
+    int maxArraySize_;
+
+    int nextEffectSemanticsIndex_;
+    std::shared_ptr<DiffuseHollowBlockEffect> currentEffect_;
 };
 
 VRPG_GAME_END

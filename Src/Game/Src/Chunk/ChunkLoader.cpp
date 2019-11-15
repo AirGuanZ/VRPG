@@ -1,7 +1,7 @@
 ﻿#include <agz/utility/misc.h>
 
+#include <VRPG/Game/Chunk/ChunkLightPropagation.h>
 #include <VRPG/Game/Chunk/ChunkLoader.h>
-#include <VRPG/Game/Chunk/LightPropagation.h>
 
 VRPG_GAME_BEGIN
 
