@@ -22,7 +22,7 @@ namespace
 
         bool IsVisible() const noexcept override;
 
-        bool IsReplacable() const noexcept override;
+        bool IsReplacableByLiquid() const noexcept override;
 
         bool IsFullOpaque() const noexcept override;
 
@@ -75,7 +75,7 @@ bool VoidBlockDescription::IsVisible() const noexcept
     return false;
 }
 
-bool VoidBlockDescription::IsReplacable() const noexcept
+bool VoidBlockDescription::IsReplacableByLiquid() const noexcept
 {
     return true;
 }

@@ -3,6 +3,7 @@
 #include <VRPG/Game/Block/BasicEffect/NativePartialSectionModel.h>
 #include <VRPG/Game/Block/BlockEffect.h>
 #include <VRPG/Game/Chunk/ChunkModel.h>
+#include <VRPG/Game/Misc/ShadowMappingUtility.h>
 
 VRPG_GAME_BEGIN
 
@@ -19,16 +20,13 @@ public:
 
     struct Forward_VS_Transform
     {
-        Mat4 shadowVP;
         Mat4 VP;
     };
 
     struct Forward_PS_PerFrame
     {
         Vec3 skylight;
-        float shadowScale = 1;
-        Vec3 sunlightDirection;
-        float PCFStep = 1.0f / 4096;
+        float pad = 0;
     };
 
     struct Shadow_VS_Transform
@@ -64,12 +62,12 @@ private:
 
     void InitializeShadow();
 
-    Shader<SS_VS, SS_PS>         forwardShader_;
-    UniformManager<SS_VS, SS_PS> forwardUniforms_;
-    InputLayout                  forwardInputLayout_;
-    ShaderResourceSlot<SS_PS>   *forwardShadowMap_;
+    Shader<SS_VS, SS_PS>                         forwardShader_;
+    UniformManager<SS_VS, SS_PS>                 forwardUniforms_;
+    InputLayout                                  forwardInputLayout_;
     mutable ConstantBuffer<Forward_VS_Transform> forwardVSTransform_;
     mutable ConstantBuffer<Forward_PS_PerFrame>  forwardPSPerFrame_;
+    std::unique_ptr<ForwardShadowMapping>        forwardShadowMapping_;
 
     Shader<SS_VS, SS_PS>         shadowShader_;
     UniformManager<SS_VS, SS_PS> shadowUniforms_;

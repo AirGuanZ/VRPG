@@ -2,7 +2,7 @@
 
 #include <VRPG/Game/Block/BasicEffect/DiffuseSolidBlockEffect.h>
 #include <VRPG/Game/Config/GlobalConfig.h>
-#include <VRPG/Game/Misc/ShadowMappingRasterizerState.h>
+#include <VRPG/Game/Misc/ShadowMappingUtility.h>
 
 VRPG_GAME_BEGIN
 
@@ -33,24 +33,9 @@ void DiffuseSolidBlockEffectCommon::InitializeForward()
     diffuseSampler.Initialize(D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR);
     forwardUniforms.GetSamplerSlot<SS_PS>("DiffuseSampler")->SetSampler(diffuseSampler);
 
-    Sampler shadowSampler;
-    const float shadowSamplerBorderColor[] = { 1, 1, 1, 1 };
-    shadowSampler.Initialize(
-        D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT,
-        D3D11_TEXTURE_ADDRESS_BORDER,
-        D3D11_TEXTURE_ADDRESS_BORDER,
-        D3D11_TEXTURE_ADDRESS_BORDER,
-        0, 1, D3D11_COMPARISON_LESS_EQUAL,
-        shadowSamplerBorderColor);
-    forwardUniforms.GetSamplerSlot<SS_PS>("ShadowSampler")->SetSampler(shadowSampler);
-
     forwardDiffuseTextureSlot = forwardUniforms.GetShaderResourceSlot<SS_PS>("DiffuseTexture");
     if(!forwardDiffuseTextureSlot)
         throw VRPGGameException("shader resource slot not found in diffuse solid block effect shader: DiffuseTexture");
-
-    forwardShadowMapSlot = forwardUniforms.GetShaderResourceSlot<SS_PS>("ShadowMap");
-    if(!forwardShadowMapSlot)
-        throw VRPGGameException("shader resource slot not found in diffuse solid block effect shader: ShadowMap");
 }
 
 void DiffuseSolidBlockEffectCommon::InitializeShadow()
@@ -76,17 +61,19 @@ void DiffuseSolidBlockEffectCommon::InitializeShadow()
 }
 
 DiffuseSolidBlockEffectCommon::DiffuseSolidBlockEffectCommon()
-    : forwardDiffuseTextureSlot(nullptr), forwardShadowMapSlot(nullptr)
+    : forwardDiffuseTextureSlot(nullptr)
 {
     InitializeForward();
     InitializeShadow();
+
+    forwardShadowMapping = std::make_unique<ForwardShadowMapping>(&forwardUniforms);
 }
 
 void DiffuseSolidBlockEffectCommon::SetForwardRenderParams(const BlockForwardRenderParams &params)
 {
-    forwardShadowMapSlot->SetShaderResourceView(params.shadowMapSRV.Get());
-    forwardVSTransform.SetValue({ params.shadowViewProj, params.camera->GetViewProjectionMatrix() });
-    forwardPSPerFrame.SetValue({ params.skyLight, params.shadowScale, params.sunlightDirection, params.PCFStep });
+    forwardShadowMapping->SetRenderParams(params);
+    forwardVSTransform.SetValue({ params.camera->GetViewProjectionMatrix() });
+    forwardPSPerFrame.SetValue({ params.skyLight, 0 });
 }
 
 void DiffuseSolidBlockEffectCommon::SetShadowRenderParams(const BlockShadowRenderParams &params)
@@ -96,6 +83,8 @@ void DiffuseSolidBlockEffectCommon::SetShadowRenderParams(const BlockShadowRende
 
 void DiffuseSolidBlockEffectCommon::StartForward(ID3D11ShaderResourceView *diffuseTextureArray) const
 {
+    forwardShadowMapping->Bind();
+
     forwardDiffuseTextureSlot->SetShaderResourceView(diffuseTextureArray);
     forwardShader.Bind();
     forwardUniforms.Bind();
@@ -107,6 +96,8 @@ void DiffuseSolidBlockEffectCommon::EndForward() const
     forwardShader.Unbind();
     forwardUniforms.Unbind();
     forwardInputLayout.Unbind();
+
+    forwardShadowMapping->Unbind();
 }
 
 void DiffuseSolidBlockEffectCommon::StartShadow() const

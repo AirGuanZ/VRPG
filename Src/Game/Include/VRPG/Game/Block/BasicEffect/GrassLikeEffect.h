@@ -8,7 +8,7 @@
 
 VRPG_GAME_BEGIN
 
-class DiffuseHollowBlockEffectCommon
+class GrassLikeEffectCommon
 {
     struct Forward_VS_Transform
     {
@@ -32,7 +32,6 @@ class DiffuseHollowBlockEffectCommon
     ConstantBuffer<Forward_VS_Transform>  forwardVSTransform_;
     ConstantBuffer<Forward_PS_PerFrame>   forwardPSPerFrame_;
     ShaderResourceSlot<SS_PS>            *forwardDiffuseTextureSlot_;
-    RasterizerState                       forwardRasterizerState_;
     std::unique_ptr<ForwardShadowMapping> forwardShadowMapping_;
 
     Shader<SS_VS, SS_PS>                shadowShader_;
@@ -48,7 +47,7 @@ class DiffuseHollowBlockEffectCommon
 
 public:
 
-    DiffuseHollowBlockEffectCommon();
+    GrassLikeEffectCommon();
 
     void SetForwardRenderParams(const BlockForwardRenderParams &params);
 
@@ -63,9 +62,9 @@ public:
     void EndShadow();
 };
 
-class DiffuseHollowBlockEffect : public BlockEffect
+class GrassLikeEffect : public BlockEffect
 {
-    friend class DiffuseHollowBlockEffectGenerator;
+    friend class GrassLikeEffectGenerator;
 
 public:
 
@@ -78,7 +77,7 @@ public:
         uint32_t texIndex = 0;
     };
 
-    using Builder = NativePartialSectionModelBuilder<DiffuseHollowBlockEffect>;
+    using Builder = NativePartialSectionModelBuilder<GrassLikeEffect>;
 
     const char *GetName() const override;
 
@@ -101,21 +100,21 @@ public:
 private:
 
     void Initialize(
-        std::shared_ptr<DiffuseHollowBlockEffectCommon> commonProperties,
+        std::shared_ptr<GrassLikeEffectCommon> commonProperties,
         ShaderResourceView textureArray, std::string name);
 
-    std::shared_ptr<DiffuseHollowBlockEffectCommon> common_;
+    std::shared_ptr<GrassLikeEffectCommon> common_;
     ShaderResourceView textureArray_;
     std::string name_;
 };
 
-class DiffuseHollowBlockEffectGenerator : public agz::misc::uncopyable_t
+class GrassLikeEffectGenerator : public agz::misc::uncopyable_t
 {
 public:
 
-    DiffuseHollowBlockEffectGenerator(int textureSize, int maxArraySize);
+    GrassLikeEffectGenerator(int textureSize, int maxArraySize);
 
-    std::shared_ptr<DiffuseHollowBlockEffect> GetEffectWithTextureSpaces(int textureCount);
+    std::shared_ptr<GrassLikeEffect> GetEffectWithTextureSpaces(int textureCount);
 
     int AddTexture(const Vec4 *textureData);
 
@@ -125,14 +124,14 @@ private:
 
     void InitializeCurrentEffect();
 
-    std::shared_ptr<DiffuseHollowBlockEffectCommon> common_;
+    std::shared_ptr<GrassLikeEffectCommon> common_;
 
     std::vector<agz::texture::texture2d_t<Vec4>> textureArrayData_;
     int textureSize_;
     int maxArraySize_;
 
     int nextEffectSemanticsIndex_;
-    std::shared_ptr<DiffuseHollowBlockEffect> currentEffect_;
+    std::shared_ptr<GrassLikeEffect> currentEffect_;
 };
 
 VRPG_GAME_END

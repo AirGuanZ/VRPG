@@ -19,13 +19,14 @@ namespace
 
 void DefaultCamera::Update() noexcept
 {
-    Vec3 direction(
+    direction_ = {
         std::cos(verticalAngle_) * std::cos(horizontalAngle_),
         std::sin(verticalAngle_),
-        std::cos(verticalAngle_) * std::sin(horizontalAngle_));
-    Mat4 viewMatrix = Trans4::look_at(position_, position_ + direction, Vec3(0, 1, 0));
-    Mat4 projMatrix = Trans4::perspective(FOVYRad_, wOverH_, nearPlane_, farPlane_);
-    viewProjectionMatrix_ = viewMatrix * projMatrix;
+        std::cos(verticalAngle_) * std::sin(horizontalAngle_)
+    };
+    viewMatrix_ = Trans4::look_at(position_, position_ + direction_, Vec3(0, 1, 0));
+    projMatrix_ = Trans4::perspective(FOVYRad_, wOverH_, nearPlane_, farPlane_);
+    viewProjectionMatrix_ = viewMatrix_ * projMatrix_;
 
     cullingF_[0] = viewProjectionMatrix_.get_col(3) - viewProjectionMatrix_.get_col(0);
     cullingF_[1] = viewProjectionMatrix_.get_col(3) + viewProjectionMatrix_.get_col(0);
@@ -100,10 +101,27 @@ Vec3 DefaultCamera::GetPosition() const noexcept
 
 Vec3 DefaultCamera::GetDirection() const noexcept
 {
-    return Vec3(
-            std::cos(verticalAngle_) * std::cos(horizontalAngle_),
-            std::sin(verticalAngle_),
-            std::cos(verticalAngle_) * std::sin(horizontalAngle_));
+    return direction_;
+}
+
+float DefaultCamera::GetFOVy() const noexcept
+{
+    return FOVYRad_;
+}
+
+float DefaultCamera::GetWOverH() const noexcept
+{
+    return wOverH_;
+}
+
+float DefaultCamera::GetNearDistance() const noexcept
+{
+    return nearPlane_;
+}
+
+float DefaultCamera::GetFarDistance() const noexcept
+{
+    return farPlane_;
 }
 
 void DefaultCamera::Update(const Input &input, float deltaT) noexcept
@@ -142,6 +160,16 @@ void DefaultCamera::Update(const Input &input, float deltaT) noexcept
 
     Update();
     Update();
+}
+
+Base::Mat4 DefaultCamera::GetViewMatrix() const
+{
+    return viewMatrix_;
+}
+
+Base::Mat4 DefaultCamera::GetProjMatrix() const
+{
+    return projMatrix_;
 }
 
 Mat4 DefaultCamera::GetViewProjectionMatrix() const

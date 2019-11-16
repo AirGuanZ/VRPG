@@ -15,6 +15,8 @@ VRPG_GAME_BEGIN
 
 using Base::ComPtr;
 
+// Vertex Shader && Pixel Shader
+
 using Base::D3D::SS_VS;
 using Base::D3D::SS_PS;
 
@@ -51,8 +53,14 @@ using Vec4b = Base::Vec4b;
 using Mat4 = Base::Mat4;
 using Trans4 = Base::Trans4;
 
+/**
+ * @brief 全局使用的Wall Clock类型
+ */
 using StdClock = std::chrono::high_resolution_clock;
 
+/**
+ * @brief 全局基本异常类
+ */
 class VRPGGameException : public std::runtime_error
 {
 public:
@@ -60,6 +68,9 @@ public:
     using runtime_error::runtime_error;
 };
 
+/**
+ * @brief 轴对齐的六个方向
+ */
 enum Direction : uint8_t
 {
     PositiveX = 0,

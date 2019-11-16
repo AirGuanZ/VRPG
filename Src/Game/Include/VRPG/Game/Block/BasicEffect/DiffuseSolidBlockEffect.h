@@ -4,6 +4,7 @@
 
 #include <VRPG/Game/Block/BasicEffect/NativePartialSectionModel.h>
 #include <VRPG/Game/Block/BlockEffect.h>
+#include <VRPG/Game/Misc/ShadowMappingUtility.h>
 
 VRPG_GAME_BEGIN
 
@@ -14,16 +15,13 @@ class DiffuseSolidBlockEffectCommon
 
     struct Forward_VS_Transform
     {
-        Mat4 shadowVP;
         Mat4 VP;
     };
 
     struct Forward_PS_PerFrame
     {
         Vec3 skyLight;
-        float shadowScale = 1;
-        Vec3 sunlightDirection;
-        float PCFStep = 1.0f / 4096;
+        float pad = 0;
     };
 
     struct Shadow_VS_Transform
@@ -37,13 +35,14 @@ class DiffuseSolidBlockEffectCommon
     ConstantBuffer<Forward_VS_Transform> forwardVSTransform;
     ConstantBuffer<Forward_PS_PerFrame>  forwardPSPerFrame;
     ShaderResourceSlot<SS_PS>           *forwardDiffuseTextureSlot;
-    ShaderResourceSlot<SS_PS>           *forwardShadowMapSlot;
 
     Shader<SS_VS, SS_PS>                shadowShader;
     UniformManager<SS_VS, SS_PS>        shadowUniforms;
     ConstantBuffer<Shadow_VS_Transform> shadowVSTransform;
     InputLayout                         shadowInputLayout;
     RasterizerState                     shadowRasterizerState;
+
+    std::unique_ptr<ForwardShadowMapping> forwardShadowMapping;
 
 public:
 

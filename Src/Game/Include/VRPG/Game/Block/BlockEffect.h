@@ -12,6 +12,17 @@ VRPG_GAME_BEGIN
 using BlockEffectID = uint16_t;
 
 /**
+ * @brief 单个shadow map的渲染参数
+ */
+struct ShadowMapParams
+{
+    Mat4 shadowViewProj;
+    float PCFStep = 1.0f / 4096;
+    float homZLimit = 1;
+    ComPtr<ID3D11ShaderResourceView> shadowMapSRV;
+};
+
+/**
  * @brief 通用区块前向渲染参数
  * 
  * 所有的block effect在前向渲染时均只接收此参数
@@ -20,13 +31,10 @@ struct BlockForwardRenderParams
 {
     const Camera *camera = nullptr;
     Vec3 skyLight;
-    Vec3 sunlightDirection;
 
     float shadowScale = 1;
-    Mat4 shadowViewProj;
-    ComPtr<ID3D11ShaderResourceView> shadowMapSRV;
-
-    float PCFStep = 1.0f / 4096;
+    Vec3 sunlightDirection;
+    ShadowMapParams cascadeShadowMaps[3];
 };
 
 /**

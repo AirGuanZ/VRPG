@@ -96,7 +96,7 @@ void LiquidUpdater::FlowFromNeighborhood(
             return;
 
         bool isSource = neiLevel == nei.desc->GetLiquidDescription()->sourceLevel;
-        if(!isSource && chunkManager.GetBlock(neiPos + Vec3i(0, -1, 0)).desc->IsReplacable())
+        if(!isSource && chunkManager.GetBlock(neiPos + Vec3i(0, -1, 0)).desc->IsReplacableByLiquid())
             return;
 
         flowResult[int(direction)].desc = nei.desc;
@@ -197,7 +197,7 @@ void LiquidUpdater::Execute(BlockUpdaterManager &updaterManager, ChunkManager &c
 
     BlockInstance block = chunkManager.GetBlock(blockPos_);
 
-    if(!block.desc->IsReplacable())
+    if(!block.desc->IsReplacableByLiquid())
         return;
 
     // 处理该方块与周围的液体间发生的反应

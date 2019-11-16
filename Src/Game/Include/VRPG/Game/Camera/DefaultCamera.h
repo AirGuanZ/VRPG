@@ -23,8 +23,11 @@ class DefaultCamera : public Camera
     float FOVYRad_;
     float wOverH_;
 
+    Mat4 viewMatrix_;
+    Mat4 projMatrix_;
     Mat4 viewProjectionMatrix_;
     Vec4 cullingF_[5];
+    Vec3 direction_;
 
     void Update() noexcept;
 
@@ -61,11 +64,23 @@ public:
 
     void Update(const Input &input, float deltaT) noexcept;
 
+    Mat4 GetViewMatrix() const override;
+
+    Mat4 GetProjMatrix() const override;
+
     Mat4 GetViewProjectionMatrix() const override;
 
     Vec3 GetPosition() const noexcept override;
 
     Vec3 GetDirection() const noexcept override;
+
+    float GetFOVy() const noexcept override;
+
+    float GetWOverH() const noexcept override;
+
+    float GetNearDistance() const noexcept override;
+
+    float GetFarDistance() const noexcept override;
 
     bool IsVisible(const CullingBoundingBox &bbox) const noexcept override;
 };

@@ -9,14 +9,13 @@ VRPG_GAME_BEGIN
 
 struct ShadowMapConfig
 {
-    UINT  shadowDepthBias      = 0;
-    float shadowDepthBiasClamp = 0;
-    float shadowDepthSlope     = 0;
+    int resolution[3] = { 4096, 4096, 4096 };
 
-    float shadowMapDistance = 60;
-    float shadowMapRadius   = 40;
-    float shadowMapNear     = 50;
-    float shadowMapFar      = 200;
+    UINT  depthBias      = 0;
+    float depthBiasClamp = 0;
+    float depthSlope     = 0;
+
+    float distance = 60;
 
     void Load(const libconfig::Setting &setting);
 

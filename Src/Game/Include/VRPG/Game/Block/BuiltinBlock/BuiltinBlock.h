@@ -14,6 +14,7 @@ enum class BuiltinBlockType
     GlowStone,
 
     Leaf,
+    Grass,
 
     WhiteGlass,
     RedGlass,
@@ -49,11 +50,21 @@ public:
         }
     }
 
-    const BuiltinBlockInfo &GetDesc(BuiltinBlockType type) const noexcept
+    const BuiltinBlockInfo &GetInfo(BuiltinBlockType type) const noexcept
     {
         assert(IsAvailable());
         assert(int(type) < BUILTIN_BLOCK_TYPE_COUNT);
         return info_[int(type)];
+    }
+
+    const BlockDescription *GetDesc(BuiltinBlockType type) const noexcept
+    {
+        return GetInfo(type).desc.get();
+    }
+
+    BlockID GetID(BuiltinBlockType type) const noexcept
+    {
+        return GetDesc(type)->GetBlockID();
     }
 
 private:

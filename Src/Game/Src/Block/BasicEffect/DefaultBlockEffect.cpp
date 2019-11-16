@@ -2,15 +2,16 @@
 
 #include <VRPG/Game/Block/BasicEffect/DefaultBlockEffect.h>
 #include <VRPG/Game/Config/GlobalConfig.h>
-#include <VRPG/Game/Misc/ShadowMappingRasterizerState.h>
+#include <VRPG/Game/Misc/ShadowMappingUtility.h>
 
 VRPG_GAME_BEGIN
 
 DefaultBlockEffect::DefaultBlockEffect()
-    : forwardShadowMap_(nullptr)
 {
     InitializeForward();
     InitializeShadow();
+
+    forwardShadowMapping_ = std::make_unique<ForwardShadowMapping>(&forwardUniforms_);
 }
 
 const char *DefaultBlockEffect::GetName() const
@@ -25,6 +26,7 @@ bool DefaultBlockEffect::IsTransparent() const noexcept
 
 void DefaultBlockEffect::StartForward() const
 {
+    forwardShadowMapping_->Bind();
     forwardShader_.Bind();
     forwardUniforms_.Bind();
     forwardInputLayout_.Bind();
@@ -35,6 +37,7 @@ void DefaultBlockEffect::EndForward() const
     forwardInputLayout_.Unbind();
     forwardUniforms_.Unbind();
     forwardShader_.Unbind();
+    forwardShadowMapping_->Unbind();
 }
 
 void DefaultBlockEffect::StartShadow() const
@@ -60,9 +63,9 @@ std::unique_ptr<PartialSectionModelBuilder> DefaultBlockEffect::CreateModelBuild
 
 void DefaultBlockEffect::SetForwardRenderParams(const BlockForwardRenderParams &params) const
 {
-    forwardShadowMap_->SetShaderResourceView(params.shadowMapSRV.Get());
-    forwardVSTransform_.SetValue({ params.shadowViewProj, params.camera->GetViewProjectionMatrix() });
-    forwardPSPerFrame_.SetValue({ params.skyLight, params.shadowScale, params.sunlightDirection, params.PCFStep });
+    forwardShadowMapping_->SetRenderParams(params);
+    forwardVSTransform_.SetValue({ params.camera->GetViewProjectionMatrix() });
+    forwardPSPerFrame_.SetValue({ params.skyLight, 0 });
 }
 
 void DefaultBlockEffect::SetShadowRenderParams(const BlockShadowRenderParams &params) const
@@ -88,23 +91,8 @@ void DefaultBlockEffect::InitializeForward()
     forwardVSTransform_.Initialize(true, nullptr);
     forwardUniforms_.GetConstantBufferSlot<SS_VS>("Transform")->SetBuffer(forwardVSTransform_);
 
-    Sampler shadowSampler;
-    const float shadowSamplerBorderColor[] = { 1, 1, 1, 1 };
-    shadowSampler.Initialize(
-        D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT,
-        D3D11_TEXTURE_ADDRESS_BORDER,
-        D3D11_TEXTURE_ADDRESS_BORDER,
-        D3D11_TEXTURE_ADDRESS_BORDER,
-        0, 1, D3D11_COMPARISON_LESS_EQUAL,
-        shadowSamplerBorderColor);
-    forwardUniforms_.GetSamplerSlot<SS_PS>("ShadowSampler")->SetSampler(shadowSampler);
-
     forwardPSPerFrame_.Initialize(true, nullptr);
     forwardUniforms_.GetConstantBufferSlot<SS_PS>("PerFrame")->SetBuffer(forwardPSPerFrame_);
-
-    forwardShadowMap_ = forwardUniforms_.GetShaderResourceSlot<SS_PS>("ShadowMap");
-    if(!forwardShadowMap_)
-        throw VRPGGameException("shader resource slot not found in default block effect shader: ShadowMap");
 }
 
 void DefaultBlockEffect::InitializeShadow()

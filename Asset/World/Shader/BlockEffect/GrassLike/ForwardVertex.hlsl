@@ -6,15 +6,21 @@ cbuffer Transform
 struct VSInput
 {
     float3 position   : POSITION;
-    float4 brightness : BRIGHTNESS;
     float3 normal     : NORMAL;
+    float2 texCoord   : TEXCOORD;
+    float4 brightness : BRIGHTNESS;
+	
+    uint texIndex : TEXINDEX;
 };
 
 struct VSOutput
 {
-    float4 position           : SV_POSITION;
-    float4 brightness         : BRIGHTNESS;
-    float3 normal             : NORMAL;
+    float4 position   	  : SV_POSITION;
+    float3 normal         : NORMAL;
+    float2 texCoord   	  : TEXCOORD;
+    float4 brightness 	  : BRIGHTNESS;
+    
+    nointerpolation uint texIndex : TEXINDEX;
     
     float  clipSpaceZ           : CLIP_SPACE_Z;
     float4 nearShadowPosition   : NEAR_SHADOW_POSITION;
@@ -26,12 +32,14 @@ struct VSOutput
 
 VSOutput main(VSInput input)
 {
-    float4 position = float4(input.position, 1);
     VSOutput output = (VSOutput)0;
+    float4 position = float4(input.position, 1);
     
-    output.position   = mul(position, VP);
-    output.brightness = input.brightness;
-    output.normal     = input.normal;
+    output.position       = mul(position, VP);
+	output.normal         = input.normal;
+    output.texCoord       = input.texCoord;
+    output.texIndex       = input.texIndex;
+    output.brightness     = input.brightness;
     
     output.clipSpaceZ           = output.position.z;
     output.nearShadowPosition   = toNearShadowSpace(position);

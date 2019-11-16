@@ -6,25 +6,28 @@ GlobalConfig GLOBAL_CONFIG;
 
 void ShadowMapConfig::Load(const libconfig::Setting &setting)
 {
-    setting.lookupValue("DepthBias", shadowDepthBias);
-    setting.lookupValue("DepthBiasClamp", shadowDepthBiasClamp);
-    setting.lookupValue("DepthSlope", shadowDepthSlope);
+    setting.lookupValue("Resolution0", resolution[0]);
+    setting.lookupValue("Resolution1", resolution[1]);
+    setting.lookupValue("Resolution2", resolution[2]);
 
-    setting.lookupValue("Distance", shadowMapDistance);
-    setting.lookupValue("Radius", shadowMapRadius);
-    setting.lookupValue("Near", shadowMapNear);
-    setting.lookupValue("Far", shadowMapFar);
+    setting.lookupValue("DepthBias",      depthBias);
+    setting.lookupValue("DepthBiasClamp", depthBiasClamp);
+    setting.lookupValue("DepthSlope",     depthSlope);
+
+    setting.lookupValue("Distance", distance);
 }
 
 void ShadowMapConfig::Print()
 {
-    spdlog::info("ShadowMap::DepthBias      = {}", shadowDepthBias);
-    spdlog::info("ShadowMap::DepthBiasClamp = {}", shadowDepthBiasClamp);
-    spdlog::info("ShadowMap::DepthSlope     = {}", shadowDepthSlope);
-    spdlog::info("ShadowMap::Distance       = {}", shadowMapDistance);
-    spdlog::info("ShadowMap::Radius         = {}", shadowMapRadius);
-    spdlog::info("ShadowMap::Near           = {}", shadowMapNear);
-    spdlog::info("ShadowMap::Far            = {}", shadowMapFar);
+    spdlog::info("ShadowMap::Resolution[0] = {}", resolution[0]);
+    spdlog::info("ShadowMap::Resolution[1] = {}", resolution[1]);
+    spdlog::info("ShadowMap::Resolution[2] = {}", resolution[2]);
+
+    spdlog::info("ShadowMap::DepthBias      = {}", depthBias);
+    spdlog::info("ShadowMap::DepthBiasClamp = {}", depthBiasClamp);
+    spdlog::info("ShadowMap::DepthSlope     = {}", depthSlope);
+
+    spdlog::info("ShadowMap::Distance       = {}", distance);
 }
 
 void ChunkManagerConfig::Load(const libconfig::Setting &setting)

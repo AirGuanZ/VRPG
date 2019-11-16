@@ -46,16 +46,21 @@ public:
     virtual FaceVisibilityProperty GetFaceVisibilityProperty(Direction direction) const noexcept = 0;
 
     /**
-     * @brief 是否是一个可替代的方块
+     * @brief 是否是一个可以被液体替代的方块
      *
      * 如空气、水等
      */
-    virtual bool IsReplacable() const noexcept { return IsVoid() || IsLiquid(); }
+    virtual bool IsReplacableByLiquid() const noexcept { return IsVoid() || IsLiquid(); }
 
     /**
-     * @brief 该方块是否是一个完全不可见的方块
+     * @brief 是否是一个不和玩家视线发生碰撞的方块
      */
-    virtual bool IsVisible() const noexcept = 0;
+    virtual bool IsReplacableByCrosshairRay() const noexcept { return IsVoid() || IsLiquid(); }
+
+    /**
+     * @brief 该方块是否是一个可见的方块
+     */
+    virtual bool IsVisible() const noexcept { return true; }
 
     /**
      * @brief 该方块是否是一个完全遮光的box

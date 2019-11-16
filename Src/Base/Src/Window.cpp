@@ -419,7 +419,7 @@ void Window::DoEvents(bool updateMouse, bool updateKeyboard)
     if(updateMouse && ++data_->mouseUpdateCounter >= data_->mouseUpdateInterval)
     {
         data_->mouseUpdateCounter = 0;
-        data_->mouse->UpdatePosition();
+        data_->mouse->Update();
     }
 
     if(updateKeyboard)
@@ -450,7 +450,7 @@ void Window::WaitForFocus()
 
         mouse->ShowCursor(showCursor);
         mouse->SetCursorLock(lockCursor, cursorLockX, cursorLockY);
-        mouse->UpdatePosition();
+        mouse->Update();
     }
 }
 

@@ -20,7 +20,7 @@ public:
 
     bool IsVisible() const noexcept override;
 
-    bool IsReplacable() const noexcept override;
+    bool IsReplacableByLiquid() const noexcept override;
 
     bool IsFullOpaque() const noexcept override;
 

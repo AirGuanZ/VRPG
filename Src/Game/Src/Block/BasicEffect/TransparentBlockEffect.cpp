@@ -125,6 +125,7 @@ bool TransparentBlockEffect::IsTransparent() const noexcept
 
 void TransparentBlockEffect::StartForward() const
 {
+    forwardShadowMapping_->Bind();
     shader_.Bind();
     uniforms_.Bind();
     inputLayout_.Bind();
@@ -139,6 +140,7 @@ void TransparentBlockEffect::EndForward() const
     inputLayout_.Unbind();
     uniforms_.Unbind();
     shader_.Unbind();
+    forwardShadowMapping_->Unbind();
 }
 
 std::unique_ptr<PartialSectionModelBuilder> TransparentBlockEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
@@ -148,9 +150,9 @@ std::unique_ptr<PartialSectionModelBuilder> TransparentBlockEffect::CreateModelB
 
 void TransparentBlockEffect::SetForwardRenderParams(const BlockForwardRenderParams &params) const
 {
-    shadowMapSlot_->SetShaderResourceView(params.shadowMapSRV.Get());
-    vsTransform_.SetValue({ params.shadowViewProj, params.camera->GetViewProjectionMatrix() });
-    psPerFrame_.SetValue({ params.skyLight, params.shadowScale, params.sunlightDirection, params.PCFStep });
+    forwardShadowMapping_->SetRenderParams(params);
+    vsTransform_.SetValue({ params.camera->GetViewProjectionMatrix() });
+    psPerFrame_.SetValue({ params.skyLight, 0 });
 }
 
 void TransparentBlockEffect::Initialize(int textureSize, const std::vector<agz::texture::texture2d_t<Vec4>> &textureArrayData)
@@ -180,17 +182,6 @@ void TransparentBlockEffect::Initialize(int textureSize, const std::vector<agz::
     Sampler transparentSampler;
     transparentSampler.Initialize(D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR);
     uniforms_.GetSamplerSlot<SS_PS>("TransparentSampler")->SetSampler(transparentSampler);
-
-    Sampler shadowSampler;
-    const float shadowSamplerBorderColor[] = { 1, 1, 1, 1 };
-    shadowSampler.Initialize(
-        D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT,
-        D3D11_TEXTURE_ADDRESS_BORDER,
-        D3D11_TEXTURE_ADDRESS_BORDER,
-        D3D11_TEXTURE_ADDRESS_BORDER,
-        0, 1, D3D11_COMPARISON_LESS_EQUAL,
-        shadowSamplerBorderColor);
-    uniforms_.GetSamplerSlot<SS_PS>("ShadowSampler")->SetSampler(shadowSampler);
 
     blendState_ = BlendStateBuilder()
         .Set(0, true,
@@ -251,8 +242,7 @@ void TransparentBlockEffect::Initialize(int textureSize, const std::vector<agz::
         throw VRPGGameException("failed to create shader resource view of texture2d array of for transparent block effect");
 
     uniforms_.GetShaderResourceSlot<SS_PS>("TransparentTexture")->SetShaderResourceView(ShaderResourceView(srv));
-
-    shadowMapSlot_ = uniforms_.GetShaderResourceSlot<SS_PS>("ShadowMap");
+    forwardShadowMapping_ = std::make_unique<ForwardShadowMapping>(&uniforms_);
 }
 
 TransparentBlockEffectGenerator::TransparentBlockEffectGenerator(int textureSize)

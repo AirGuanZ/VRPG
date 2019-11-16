@@ -29,7 +29,7 @@ bool TransparentLiquidDescription::IsVisible() const noexcept
     return true;
 }
 
-bool TransparentLiquidDescription::IsReplacable() const noexcept
+bool TransparentLiquidDescription::IsReplacableByLiquid() const noexcept
 {
     return true;
 }

@@ -44,7 +44,10 @@ class MouseEventManager :
 {
     HWND hWindow_;
 
-    bool isButtonPressed_[3] = { false, false, false };
+    bool isButtonPressedLastFrame_[3] = { false, false, false };
+    bool isButtonPressed_         [3] = { false, false, false };
+    bool isButtonDown_            [3] = { false, false, false };
+    bool isButtonUp_              [3] = { false, false, false };
 
     int cursorX_         = 0, cursorY_         = 0;
     int lastCursorX_     = 0, lastCursorY_     = 0;
@@ -91,68 +94,28 @@ public:
         EventManager::InvokeAllHandlers(e);
     }
 
-    bool IsMouseButtonPressed(MouseButton button) const noexcept
-    {
-        return isButtonPressed_[int(button)];
-    }
+    bool IsMouseButtonPressed(MouseButton button) const noexcept { return isButtonPressed_[int(button)]; }
+    bool IsMouseButtonDown   (MouseButton button) const noexcept { return isButtonDown_[int(button)]; }
+    bool IsMouseButtonUp     (MouseButton button) const noexcept { return isButtonUp_[int(button)]; }
 
-    int GetCursorPositionX() const noexcept
-    {
-        return cursorX_;
-    }
+    int GetCursorPositionX() const noexcept { return cursorX_; }
+    int GetCursorPositionY() const noexcept { return cursorY_; }
 
-    int GetCursorPositionY() const noexcept
-    {
-        return cursorY_;
-    }
-
-    int GetRelativeCursorPositionX() const noexcept
-    {
-        return relativeCursorX_;
-    }
-
-    int GetRelativeCursorPositionY() const noexcept
-    {
-        return relativeCursorY_;
-    }
+    int GetRelativeCursorPositionX() const noexcept { return relativeCursorX_; }
+    int GetRelativeCursorPositionY() const noexcept { return relativeCursorY_; }
 
     void SetCursorLock(bool locked, int lockPositionX, int lockPositionY);
-
     void ShowCursor(bool show);
 
-    bool IsCursorLocked() const noexcept
-    {
-        return isCursorLocked_;
-    }
+    bool IsCursorLocked()  const noexcept { return isCursorLocked_; }
+    bool IsCursorVisible() const noexcept { return showCursor_; }
 
-    bool IsCursorVisible() const noexcept
-    {
-        return showCursor_;
-    }
+    int GetCursorLockX() const noexcept { return lockPositionX_; }
+    int GetCursorLockY() const noexcept { return lockPositionY_; }
 
-    int GetCursorLockX() const noexcept
-    {
-        return lockPositionX_;
-    }
+    void Update();
 
-    int GetCursorLockY() const noexcept
-    {
-        return lockPositionY_;
-    }
-
-    void UpdatePosition();
-
-    void ClearState()
-    {
-        isButtonPressed_[0] = isButtonPressed_[1] = isButtonPressed_[2] = false;
-        cursorX_         = cursorY_         = 0;
-        lastCursorX_     = lastCursorY_     = 0;
-        relativeCursorX_ = relativeCursorY_ = 0;
-
-        isCursorLocked_ = false;
-        if(!showCursor_)
-            ShowCursor(true);
-    }
+    void ClearState();
 };
 
 VRPG_BASE_END

@@ -13,14 +13,15 @@ FlatLandGenerator::FlatLandGenerator(int landHeight) noexcept
 void FlatLandGenerator::Generate(const ChunkPosition &position, ChunkBlockData *blockData)
 {
     auto &builtinBlocks = BuiltinBlockTypeManager::GetInstance();
-    BlockID stoneID      = builtinBlocks.GetDesc(BuiltinBlockType::Stone)     .desc->GetBlockID();
-    BlockID soilID       = builtinBlocks.GetDesc(BuiltinBlockType::Soil)      .desc->GetBlockID();
-    BlockID lawnID       = builtinBlocks.GetDesc(BuiltinBlockType::Lawn)      .desc->GetBlockID();
-    BlockID glowStoneID  = builtinBlocks.GetDesc(BuiltinBlockType::GlowStone) .desc->GetBlockID();
-    BlockID leafID       = builtinBlocks.GetDesc(BuiltinBlockType::Leaf)      .desc->GetBlockID();
-    BlockID whiteGlassID = builtinBlocks.GetDesc(BuiltinBlockType::WhiteGlass).desc->GetBlockID();
-    BlockID redGlassID   = builtinBlocks.GetDesc(BuiltinBlockType::RedGlass)  .desc->GetBlockID();
-    BlockID logID        = builtinBlocks.GetDesc(BuiltinBlockType::Log)       .desc->GetBlockID();
+    BlockID stoneID      = builtinBlocks.GetID(BuiltinBlockType::Stone);
+    BlockID soilID       = builtinBlocks.GetID(BuiltinBlockType::Soil);
+    BlockID lawnID       = builtinBlocks.GetID(BuiltinBlockType::Lawn);
+    BlockID glowStoneID  = builtinBlocks.GetID(BuiltinBlockType::GlowStone);
+    BlockID leafID       = builtinBlocks.GetID(BuiltinBlockType::Leaf);
+    BlockID grassID      = builtinBlocks.GetID(BuiltinBlockType::Grass);
+    BlockID whiteGlassID = builtinBlocks.GetID(BuiltinBlockType::WhiteGlass);
+    BlockID redGlassID   = builtinBlocks.GetID(BuiltinBlockType::RedGlass);
+    BlockID logID        = builtinBlocks.GetID(BuiltinBlockType::Log);
 
     for(int x = 0; x < CHUNK_SIZE_X; ++x)
     {
@@ -51,6 +52,9 @@ void FlatLandGenerator::Generate(const ChunkPosition &position, ChunkBlockData *
                 blockData->SetID({ x, ++height, z }, logID, { PositiveY, PositiveZ });
             if(x == 17 && z == 17)
                 blockData->SetID({ x, ++height, z }, logID, { PositiveZ, PositiveX });
+
+            if(22 <= x && x <= 23 && 12 <= z && z <= 13)
+                blockData->SetID({ x, ++height, z }, grassID, {});
 
             //for(int y = 0; y <= height; ++y)
             //    blockData->SetID({ x, y, z }, BLOCK_ID_DEFAULT, {});

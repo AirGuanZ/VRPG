@@ -1,25 +1,26 @@
 #include <agz/utility/file.h>
 
-#include <VRPG/Game/Block/BasicEffect/DiffuseHollowBlockEffect.h>
+#include <VRPG/Game/Block/BasicEffect/GrassLikeEffect.h>
 #include <VRPG/Game/Config/GlobalConfig.h>
+#include <VRPG/Game/Misc/ShadowMappingUtility.h>
 
 VRPG_GAME_BEGIN
 
-void DiffuseHollowBlockEffectCommon::InitializeForward()
+void GrassLikeEffectCommon::InitializeForward()
 {
-    forwardShader_.InitializeStageFromFile<SS_VS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseHollow"]["ForwardVertexShader"]);
-    forwardShader_.InitializeStageFromFile<SS_PS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseHollow"]["ForwardPixelShader"]);
+    forwardShader_.InitializeStageFromFile<SS_VS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["GrassLike"]["ForwardVertexShader"]);
+    forwardShader_.InitializeStageFromFile<SS_PS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["GrassLike"]["ForwardPixelShader"]);
     if(!forwardShader_.IsAllStagesAvailable())
         throw VRPGGameException("failed to initialize diffuse hollow block effect shader");
 
     forwardUniforms_ = forwardShader_.CreateUniformManager();
 
     forwardInputLayout_ = InputLayoutBuilder
-        ("POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT,    offsetof(DiffuseHollowBlockEffect::Vertex, position))
-        ("TEXCOORD",   0, DXGI_FORMAT_R32G32_FLOAT,       offsetof(DiffuseHollowBlockEffect::Vertex, texCoord))
-        ("NORMAL",     0, DXGI_FORMAT_R32G32B32_FLOAT,    offsetof(DiffuseHollowBlockEffect::Vertex, normal))
-        ("TEXINDEX",   0, DXGI_FORMAT_R32_UINT,           offsetof(DiffuseHollowBlockEffect::Vertex, texIndex))
-        ("BRIGHTNESS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, offsetof(DiffuseHollowBlockEffect::Vertex, brightness))
+        ("POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT,    offsetof(GrassLikeEffect::Vertex, position))
+        ("TEXCOORD",   0, DXGI_FORMAT_R32G32_FLOAT,       offsetof(GrassLikeEffect::Vertex, texCoord))
+        ("NORMAL",     0, DXGI_FORMAT_R32G32B32_FLOAT,    offsetof(GrassLikeEffect::Vertex, normal))
+        ("TEXINDEX",   0, DXGI_FORMAT_R32_UINT,           offsetof(GrassLikeEffect::Vertex, texIndex))
+        ("BRIGHTNESS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, offsetof(GrassLikeEffect::Vertex, brightness))
         .Build(forwardShader_.GetVertexShaderByteCode());
 
     forwardVSTransform_.Initialize(true, nullptr);
@@ -34,20 +35,18 @@ void DiffuseHollowBlockEffectCommon::InitializeForward()
 
     forwardDiffuseTextureSlot_ = forwardUniforms_.GetShaderResourceSlot<SS_PS>("DiffuseTexture");
     if(!forwardDiffuseTextureSlot_)
-        throw VRPGGameException("shader resource slot not found in diffuse hollow block effect shader: DiffuseTexture");
-
-    forwardRasterizerState_.Initialize(D3D11_FILL_SOLID, D3D11_CULL_NONE, false);
+        throw VRPGGameException("shader resource slot not found in grass like block effect shader: DiffuseTexture");
 }
 
-void DiffuseHollowBlockEffectCommon::InitializeShadow()
+void GrassLikeEffectCommon::InitializeShadow()
 {
-    std::string vertexShaderSource = agz::file::read_txt_file(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseHollow"]["ShadowVertexShader"]);
-    std::string pixelShaderSource  = agz::file::read_txt_file(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseHollow"]["ShadowPixelShader"]);
+    std::string vertexShaderSource = agz::file::read_txt_file(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["GrassLike"]["ShadowVertexShader"]);
+    std::string pixelShaderSource  = agz::file::read_txt_file(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["GrassLike"]["ShadowPixelShader"]);
 
     shadowShader_.InitializeStage<SS_VS>(vertexShaderSource);
     shadowShader_.InitializeStage<SS_PS>(pixelShaderSource);
     if(!shadowShader_.IsAllStagesAvailable())
-        throw VRPGGameException("failed to initialize shadow shader for diffuse hollow block effect");
+        throw VRPGGameException("failed to initialize shadow shader for grass like block effect");
 
     shadowUniforms_ = shadowShader_.CreateUniformManager();
 
@@ -61,55 +60,64 @@ void DiffuseHollowBlockEffectCommon::InitializeShadow()
     shadowDiffuseTextureSlot_ = shadowUniforms_.GetShaderResourceSlot<SS_PS>("DiffuseTexture");
 
     shadowInputLayout_ = InputLayoutBuilder
-        ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, offsetof(DiffuseHollowBlockEffect::Vertex, position))
-        ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    offsetof(DiffuseHollowBlockEffect::Vertex, texCoord))
-        ("TEXINDEX", 0, DXGI_FORMAT_R32_UINT,        offsetof(DiffuseHollowBlockEffect::Vertex, texIndex))
+        ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, offsetof(GrassLikeEffect::Vertex, position))
+        ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    offsetof(GrassLikeEffect::Vertex, texCoord))
+        ("TEXINDEX", 0, DXGI_FORMAT_R32_UINT,        offsetof(GrassLikeEffect::Vertex, texIndex))
         .Build(shadowShader_.GetVertexShaderByteCode());
 
     shadowRasterizerState_ = CreateRasterizerStateForShadowMapping(false);
 }
 
-DiffuseHollowBlockEffectCommon::DiffuseHollowBlockEffectCommon()
+GrassLikeEffectCommon::GrassLikeEffectCommon()
     : forwardDiffuseTextureSlot_(nullptr), shadowDiffuseTextureSlot_(nullptr)
 {
     InitializeForward();
     InitializeShadow();
-
     forwardShadowMapping_ = std::make_unique<ForwardShadowMapping>(&forwardUniforms_);
 }
 
-void DiffuseHollowBlockEffectCommon::SetForwardRenderParams(const BlockForwardRenderParams &params)
+void GrassLikeEffectCommon::SetForwardRenderParams(const BlockForwardRenderParams &params)
 {
-    forwardShadowMapping_->SetRenderParams(params);
-    forwardVSTransform_.SetValue({ params.camera->GetViewProjectionMatrix() });
+    forwardShadowMapping_->SetRenderParams(
+        params.sunlightDirection,
+        (std::min)(1.0f, 2.5f* params.shadowScale),
+        params.cascadeShadowMaps[0].PCFStep,
+        params.cascadeShadowMaps[1].PCFStep,
+        params.cascadeShadowMaps[2].PCFStep,
+        params.cascadeShadowMaps[0].homZLimit,
+        params.cascadeShadowMaps[1].homZLimit,
+        params.cascadeShadowMaps[2].homZLimit,
+        params.cascadeShadowMaps[0].shadowMapSRV,
+        params.cascadeShadowMaps[1].shadowMapSRV,
+        params.cascadeShadowMaps[2].shadowMapSRV);
+    forwardVSTransform_.SetValue({
+        params.camera->GetViewProjectionMatrix() });
     forwardPSPerFrame_.SetValue({ params.skyLight, 0 });
 }
 
-void DiffuseHollowBlockEffectCommon::SetShadowRenderParams(const BlockShadowRenderParams &params)
+void GrassLikeEffectCommon::SetShadowRenderParams(const BlockShadowRenderParams &params)
 {
     shadowVSTransform_.SetValue({ params.shadowViewProj });
 }
 
-void DiffuseHollowBlockEffectCommon::StartForward(ID3D11ShaderResourceView *textureArray)
+void GrassLikeEffectCommon::StartForward(ID3D11ShaderResourceView *textureArray)
 {
     forwardShadowMapping_->Bind();
     forwardDiffuseTextureSlot_->SetShaderResourceView(textureArray);
     forwardShader_.Bind();
     forwardUniforms_.Bind();
     forwardInputLayout_.Bind();
-    forwardRasterizerState_.Bind();
 }
 
-void DiffuseHollowBlockEffectCommon::EndForward()
+void GrassLikeEffectCommon::EndForward()
 {
-    forwardRasterizerState_.Unbind();
     forwardShader_.Unbind();
     forwardUniforms_.Unbind();
     forwardInputLayout_.Unbind();
     forwardShadowMapping_->Unbind();
 }
 
-void DiffuseHollowBlockEffectCommon::StartShadow(ID3D11ShaderResourceView *textureArray)
+void GrassLikeEffectCommon::StartShadow(ID3D11ShaderResourceView *textureArray)
 {
     shadowDiffuseTextureSlot_->SetShaderResourceView(textureArray);
     shadowShader_.Bind();
@@ -118,7 +126,7 @@ void DiffuseHollowBlockEffectCommon::StartShadow(ID3D11ShaderResourceView *textu
     shadowRasterizerState_.Bind();
 }
 
-void DiffuseHollowBlockEffectCommon::EndShadow()
+void GrassLikeEffectCommon::EndShadow()
 {
     shadowShader_.Unbind();
     shadowUniforms_.Unbind();
@@ -126,53 +134,53 @@ void DiffuseHollowBlockEffectCommon::EndShadow()
     shadowRasterizerState_.Unbind();
 }
 
-const char *DiffuseHollowBlockEffect::GetName() const
+const char *GrassLikeEffect::GetName() const
 {
     return name_.c_str();
 }
 
-bool DiffuseHollowBlockEffect::IsTransparent() const noexcept
+bool GrassLikeEffect::IsTransparent() const noexcept
 {
     return false;
 }
 
-void DiffuseHollowBlockEffect::StartForward() const
+void GrassLikeEffect::StartForward() const
 {
     common_->StartForward(textureArray_.Get());
 }
 
-void DiffuseHollowBlockEffect::EndForward() const
+void GrassLikeEffect::EndForward() const
 {
     common_->EndForward();
 }
 
-void DiffuseHollowBlockEffect::StartShadow() const
+void GrassLikeEffect::StartShadow() const
 {
     common_->StartShadow(textureArray_.Get());
 }
 
-void DiffuseHollowBlockEffect::EndShadow() const
+void GrassLikeEffect::EndShadow() const
 {
     common_->EndShadow();
 }
 
-std::unique_ptr<PartialSectionModelBuilder> DiffuseHollowBlockEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
+std::unique_ptr<PartialSectionModelBuilder> GrassLikeEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
 {
     return std::make_unique<Builder>(globalSectionPosition, this);
 }
 
-void DiffuseHollowBlockEffect::SetForwardRenderParams(const BlockForwardRenderParams &params) const
+void GrassLikeEffect::SetForwardRenderParams(const BlockForwardRenderParams &params) const
 {
     common_->SetForwardRenderParams(params);
 }
 
-void DiffuseHollowBlockEffect::SetShadowRenderParams(const BlockShadowRenderParams &params) const
+void GrassLikeEffect::SetShadowRenderParams(const BlockShadowRenderParams &params) const
 {
     common_->SetShadowRenderParams(params);
 }
 
-void DiffuseHollowBlockEffect::Initialize(
-    std::shared_ptr<DiffuseHollowBlockEffectCommon> commonProperties,
+void GrassLikeEffect::Initialize(
+    std::shared_ptr<GrassLikeEffectCommon> commonProperties,
     ShaderResourceView textureArray, std::string name)
 {
     common_ = std::move(commonProperties);
@@ -180,19 +188,19 @@ void DiffuseHollowBlockEffect::Initialize(
     name_ = std::move(name);
 }
 
-DiffuseHollowBlockEffectGenerator::DiffuseHollowBlockEffectGenerator(int textureSize, int maxArraySize)
+GrassLikeEffectGenerator::GrassLikeEffectGenerator(int textureSize, int maxArraySize)
 {
     assert(textureSize > 0 && maxArraySize > 0);
 
-    common_                   = std::make_shared<DiffuseHollowBlockEffectCommon>();
+    common_                   = std::make_shared<GrassLikeEffectCommon>();
     textureSize_              = textureSize;
     maxArraySize_             = (std::min)(maxArraySize, D3D11_REQ_TEXTURE2D_ARRAY_AXIS_DIMENSION);
     nextEffectSemanticsIndex_ = 0;
 
-    currentEffect_ = std::make_shared<DiffuseHollowBlockEffect>();
+    currentEffect_ = std::make_shared<GrassLikeEffect>();
 }
 
-std::shared_ptr<DiffuseHollowBlockEffect> DiffuseHollowBlockEffectGenerator::GetEffectWithTextureSpaces(int textureCount)
+std::shared_ptr<GrassLikeEffect> GrassLikeEffectGenerator::GetEffectWithTextureSpaces(int textureCount)
 {
     if(static_cast<int>(textureArrayData_.size()) + textureCount <= maxArraySize_)
         return currentEffect_;
@@ -201,23 +209,23 @@ std::shared_ptr<DiffuseHollowBlockEffect> DiffuseHollowBlockEffectGenerator::Get
     return currentEffect_;
 }
 
-int DiffuseHollowBlockEffectGenerator::AddTexture(const Vec4 *textureData)
+int GrassLikeEffectGenerator::AddTexture(const Vec4 *textureData)
 {
     int ret = static_cast<int>(textureArrayData_.size());
     textureArrayData_.emplace_back(textureSize_, textureSize_, textureData);
     return ret;
 }
 
-void DiffuseHollowBlockEffectGenerator::Done()
+void GrassLikeEffectGenerator::Done()
 {
     InitializeCurrentEffect();
 }
 
-void DiffuseHollowBlockEffectGenerator::InitializeCurrentEffect()
+void GrassLikeEffectGenerator::InitializeCurrentEffect()
 {
     if(textureArrayData_.empty())
         return;
-    
+
     // 生成mipmap chain
 
     std::vector<agz::texture::mipmap_chain_t<Vec4>> mipmapChains(textureArrayData_.size());
@@ -259,7 +267,7 @@ void DiffuseHollowBlockEffectGenerator::InitializeCurrentEffect()
 
     ComPtr<ID3D11Texture2D> texture = Base::D3D::CreateTexture2D(textureDesc, initDataArr.data());
     if(!texture)
-        throw VRPGGameException("failed to create texture2d array for diffuse hollow block effect");
+        throw VRPGGameException("failed to create texture2d array for grass like block effect");
 
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
     srvDesc.Format                         = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -271,18 +279,18 @@ void DiffuseHollowBlockEffectGenerator::InitializeCurrentEffect()
 
     ComPtr<ID3D11ShaderResourceView> srv = Base::D3D::CreateShaderResourceView(srvDesc, texture.Get());
     if(!srv)
-        throw VRPGGameException("failed to create shader resource view of texture2d array of for diffuse hollow block effect");
+        throw VRPGGameException("failed to create shader resource view of texture2d array of for grass like block effect");
 
     // 延迟初始化之前的effect
 
-    std::string name = "diffuse hollow " + std::to_string(nextEffectSemanticsIndex_);
+    std::string name = "grass like " + std::to_string(nextEffectSemanticsIndex_);
     currentEffect_->Initialize(common_, ShaderResourceView(srv), std::move(name));
     BlockEffectManager::GetInstance().RegisterBlockEffect(currentEffect_);
 
     // 准备新的block effect
 
     textureArrayData_.clear();
-    currentEffect_ = std::make_shared<DiffuseHollowBlockEffect>();
+    currentEffect_ = std::make_shared<GrassLikeEffect>();
 }
 
 VRPG_GAME_END

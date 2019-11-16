@@ -3,6 +3,7 @@
 #include <agz/utility/texture.h>
 
 #include <VRPG/Game/Block/BlockEffect.h>
+#include <VRPG/Game/Misc/ShadowMappingUtility.h>
 
 VRPG_GAME_BEGIN
 
@@ -25,16 +26,13 @@ public:
 
     struct VS_Transform
     {
-        Mat4 shadowVP;
         Mat4 VP;
     };
 
     struct PS_PerFrame
     {
         Vec3 skyLight;
-        float shadowScale = 1;
-        Vec3 sunlightDirection;
-        float PCFStep = 1.0f / 4096;
+        float pad = 0;
     };
 
     class Builder : public PartialSectionModelBuilder
@@ -96,7 +94,7 @@ private:
     BlendState                           blendState_;
     DepthState                           depthState_;
 
-    ShaderResourceSlot<SS_PS> *shadowMapSlot_ = nullptr;
+    std::unique_ptr<ForwardShadowMapping> forwardShadowMapping_;
 };
 
 class TransparentBlockEffectGenerator : public agz::misc::uncopyable_t

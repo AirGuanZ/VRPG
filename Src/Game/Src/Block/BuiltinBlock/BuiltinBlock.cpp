@@ -2,11 +2,9 @@
 
 #include <VRPG/Game/Block/BasicDescription/DiffuseHollowBoxDescription.h>
 #include <VRPG/Game/Block/BasicDescription/DiffuseSolidBoxDescription.h>
+#include <VRPG/Game/Block/BasicDescription/GrassLikeDescription.h>
 #include <VRPG/Game/Block/BasicDescription/TransparentBoxDescription.h>
 #include <VRPG/Game/Block/BasicDescription/TransparentLiquidDescription.h>
-#include <VRPG/Game/Block/BasicEffect/DiffuseHollowBlockEffect.h>
-#include <VRPG/Game/Block/BasicEffect/DiffuseSolidBlockEffect.h>
-#include <VRPG/Game/Block/BasicEffect/TransparentBlockEffect.h>
 #include <VRPG/Game/Block/BuiltinBlock/BuiltinBlock.h>
 #include <VRPG/Game/Config/GlobalConfig.h>
 
@@ -81,8 +79,9 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
     auto &descMgr = BlockDescriptionManager::GetInstance();
 
     DiffuseHollowBlockEffectGenerator diffuseHollowBlockEffectGenerator(32, 64);
-    DiffuseSolidBlockEffectGenerator diffuseSolidEffectGenerator(32, 64);
-    TransparentBlockEffectGenerator transparentBlockEffectGenerator(32);
+    DiffuseSolidBlockEffectGenerator  diffuseSolidEffectGenerator      (32, 64);
+    GrassLikeEffectGenerator          grassLikeEffectGenerator         (32, 32);
+    TransparentBlockEffectGenerator   transparentBlockEffectGenerator  (32);
 
     {
         auto effect = diffuseSolidEffectGenerator.GetEffectWithTextureSpaces(1);
@@ -179,6 +178,18 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
     }
 
     {
+        auto effect = grassLikeEffectGenerator.GetEffectWithTextureSpaces(1);
+        int textureIndex = grassLikeEffectGenerator.AddTexture(
+            LoadHollowTextureFrom(GLOBAL_CONFIG.ASSET_PATH["BuiltinBlock"]["Grass"]["Texture"]).raw_data());
+        int textureIndices[] = { textureIndex, textureIndex };
+
+        auto grassDesc = std::make_shared<GrassLikeDescription>(
+            "grass", effect, textureIndices);
+        descMgr.RegisterBlockDescription(grassDesc);
+        info_[int(BuiltinBlockType::Grass)].desc = grassDesc;
+    }
+
+    {
         auto effect = transparentBlockEffectGenerator.GetEffectWithTextureSpaces();
         int textureIndex = transparentBlockEffectGenerator.AddTexture(
             LoadTransparentTextureFrom(GLOBAL_CONFIG.ASSET_PATH["BuiltinBlock"]["WhiteGlass"]["Texture"]).raw_data());
@@ -217,6 +228,7 @@ void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
 
     diffuseHollowBlockEffectGenerator.Done();
     diffuseSolidEffectGenerator.Done();
+    grassLikeEffectGenerator.Done();
     transparentBlockEffectGenerator.Done();
 }
 

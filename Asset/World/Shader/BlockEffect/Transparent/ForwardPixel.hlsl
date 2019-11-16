@@ -1,9 +1,7 @@
 cbuffer PerFrame
 {
     float3 skylight;
-	float shadowScale;
-    float3 sunlightDirection;
-    float PCFStep;
+    float _perFramePad;
 };
 
 struct PSInput
@@ -14,17 +12,21 @@ struct PSInput
     float4 brightness     : BRIGHTNESS;
 	
     nointerpolation uint texIndex : TEXINDEX;
+    
+    float  clipSpaceZ           : CLIP_SPACE_Z;
+    float4 nearShadowPosition   : NEAR_SHADOW_POSITION;
+    float4 middleShadowPosition : MIDDLE_SHADOW_POSITION;
+    float4 farShadowPosition    : FAR_SHADOW_POSITION;
 };
 
 SamplerState TransparentSampler;
 Texture2DArray<float4> TransparentTexture;
 
-#include "../Common.hlsl"
+#include "../ShadowPixel.hlsl"
 
 float4 main(PSInput input) : SV_TARGET
 {
-    float shadowFactor = computeShadowFactor(input.shadowPosition, shadowScale, PCFStep);
-        
+    float shadowFactor = computeShadowFactor_NoNormal(input);
     float4 texel = TransparentTexture.Sample(TransparentSampler, float3(input.texCoord, input.texIndex));
     float3 light = min(MAX_LIGHT, input.brightness.rgb + shadowFactor * input.brightness.a * skylight);
     float3 linear_color = texel.rgb;

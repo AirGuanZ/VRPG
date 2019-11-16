@@ -6,7 +6,6 @@
 #include <VRPG/Game/Chunk/ChunkManager.h>
 #include <VRPG/Game/Chunk/ChunkRenderer.h>
 #include <VRPG/Game/Misc/Crosshair.h>
-#include <VRPG/Game/Utility/KeyStateTracker.h>
 #include <VRPG/Game/World/BlockUpdater.h>
 
 VRPG_GAME_BEGIN
@@ -37,20 +36,23 @@ private:
 
     void Destroy();
 
-    Mat4 ConstructShadowMapVP() const;
+    void HideCursor();
+
+    void UpdateCentreChunk();
+
+    void ConstructShadowMapVP(Mat4 VP[3], float homZLimit[3]) const;
 
     Base::Window               *window_;
     Base::KeyboardEventManager *keyboard_;
     Base::MouseEventManager    *mouse_;
 
-    MouseButtonStateTracker lbState_;
-    MouseButtonStateTracker rbState_;
-
     std::unique_ptr<Immediate2D> imm2D_;
     std::unique_ptr<Crosshair> crosshairPainter_;
 
     std::unique_ptr<DefaultCamera> camera_;
-    std::unique_ptr<Base::ShadowMap> shadowMap_;
+    std::unique_ptr<Base::ShadowMap> nearShadowMap_;
+    std::unique_ptr<Base::ShadowMap> middleShadowMap_;
+    std::unique_ptr<Base::ShadowMap> farShadowMap_;
 
     std::unique_ptr<ChunkRenderer> chunkRenderer_;
     std::unique_ptr<ChunkManager> chunkManager_;
