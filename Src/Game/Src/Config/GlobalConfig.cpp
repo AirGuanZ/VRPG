@@ -70,8 +70,18 @@ void WindowConfig::Print()
     spdlog::info("Window::MSAAQuality = {}", sampleQuality);
 }
 
+void MiscConfig::Load(const libconfig::Setting &setting)
+{
+    setting.lookupValue("EnableChosenBlockWireframe", enableChoseBlockWireframe);
+}
+
+void MiscConfig::Print()
+{
+    spdlog::info("Misc::EnableChosenBlockWireframe = {}", enableChoseBlockWireframe);
+}
+
 GlobalConfig::GlobalConfig()
-    : SHADOW_MAP(shadowMap_), CHUNK_MANAGER(chunkManager_), WINDOW(window_)
+    : CHUNK_MANAGER(chunkManager_), MISC(misc_), SHADOW_MAP(shadowMap_), WINDOW(window_)
 {
     
 }
@@ -81,11 +91,14 @@ void GlobalConfig::LoadFromFile(const char *configFilename)
     libconfig::Config config;
     config.readFile(configFilename);
 
-    if(config.exists("ShadowMap"))
-        shadowMap_.Load(config.lookup("ShadowMap"));
-
     if(config.exists("ChunkManager"))
         chunkManager_.Load(config.lookup("ChunkManager"));
+
+    if(config.exists("Misc"))
+        misc_.Load(config.lookup("Misc"));
+
+    if(config.exists("ShadowMap"))
+        shadowMap_.Load(config.lookup("ShadowMap"));
 
     if(config.exists("Window"))
         window_.Load(config.lookup("Window"));

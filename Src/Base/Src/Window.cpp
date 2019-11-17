@@ -381,11 +381,10 @@ void Window::UseDefaultViewport()
     data_->deviceContext->RSSetViewports(1, &vp);
 }
 
-void Window::ClearDefaultRenderTarget()
+void Window::ClearDefaultRenderTarget(float r, float g, float b, float a)
 {
-    assert(IsAvailable());
-    static float CLEAR_COLOR[] = { 0, 0, 0, 0 };
-    data_->deviceContext->ClearRenderTargetView(data_->renderTargetView, CLEAR_COLOR);
+    const float CLEAR_COLOR[] = { r, g, b, a };
+    ClearDefaultRenderTarget(CLEAR_COLOR);
 }
 
 void Window::ClearDefaultRenderTarget(const float backgroundColor[4])

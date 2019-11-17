@@ -160,6 +160,9 @@ inline void ShadowMap::Begin()
 
     ID3D11RenderTargetView *renderTarget[1] = { rtv_.Get() };
     gDeviceContext->OMSetRenderTargets(1, renderTarget, dsv_.Get());
+
+    static const float BACKGROUND_COLOR[4] = { 1, 1, 1, 1 };
+    gDeviceContext->ClearRenderTargetView(rtv_.Get(), BACKGROUND_COLOR);
     gDeviceContext->ClearDepthStencilView(dsv_.Get(), D3D11_CLEAR_DEPTH, 1, 0);
 }
 

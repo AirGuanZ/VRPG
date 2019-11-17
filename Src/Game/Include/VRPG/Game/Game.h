@@ -5,6 +5,8 @@
 #include <VRPG/Game/Camera/DefaultCamera.h>
 #include <VRPG/Game/Chunk/ChunkManager.h>
 #include <VRPG/Game/Chunk/ChunkRenderer.h>
+#include <VRPG/Game/Misc/CascadeShadowMapping.h>
+#include <VRPG/Game/Misc/ChosenWireframe.h>
 #include <VRPG/Game/Misc/Crosshair.h>
 #include <VRPG/Game/World/BlockUpdater.h>
 
@@ -26,6 +28,8 @@ private:
 
     void Initialize();
 
+    void Destroy();
+
     void PlayerTick(float deltaT);
 
     void WorldTick();
@@ -34,30 +38,29 @@ private:
 
     void Render(int fps);
 
-    void Destroy();
-
     void HideCursor();
 
-    void UpdateCentreChunk();
+    void UpdateCamera(float deltaT);
 
-    void ConstructShadowMapVP(Mat4 VP[3], float homZLimit[3]) const;
+    void UpdateCentreChunk();
 
     Base::Window               *window_;
     Base::KeyboardEventManager *keyboard_;
     Base::MouseEventManager    *mouse_;
 
     std::unique_ptr<Immediate2D> imm2D_;
-    std::unique_ptr<Crosshair> crosshairPainter_;
+    std::unique_ptr<Crosshair>   crosshairPainter_;
+
+    std::unique_ptr<CascadeShadowMapping> CSM_;
 
     std::unique_ptr<DefaultCamera> camera_;
-    std::unique_ptr<Base::ShadowMap> nearShadowMap_;
-    std::unique_ptr<Base::ShadowMap> middleShadowMap_;
-    std::unique_ptr<Base::ShadowMap> farShadowMap_;
-
     std::unique_ptr<ChunkRenderer> chunkRenderer_;
-    std::unique_ptr<ChunkManager> chunkManager_;
+    std::unique_ptr<ChunkManager>  chunkManager_;
 
     std::unique_ptr<BlockUpdaterManager> blockUpdaterManager_;
+
+    std::unique_ptr<ChosenWireframeRenderer> chosenBlockWireframeRenderer_;
+    std::optional<Vec3i> chosenBlockPosition_;
 };
 
 VRPG_GAME_END

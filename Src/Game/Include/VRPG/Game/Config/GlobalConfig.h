@@ -51,6 +51,15 @@ struct WindowConfig
     void Print();
 };
 
+struct MiscConfig
+{
+    bool enableChoseBlockWireframe = false;
+
+    void Load(const libconfig::Setting &setting);
+
+    void Print();
+};
+
 class GlobalConfig
 {
 public:
@@ -59,16 +68,18 @@ public:
 
     void LoadFromFile(const char *configFilename);
 
-    const ShadowMapConfig    &SHADOW_MAP;
     const ChunkManagerConfig &CHUNK_MANAGER;
+    const MiscConfig         &MISC;
+    const ShadowMapConfig    &SHADOW_MAP;
     const WindowConfig       &WINDOW;
 
     AssetPathManager ASSET_PATH;
 
 private:
 
-    ShadowMapConfig    shadowMap_;
     ChunkManagerConfig chunkManager_;
+    MiscConfig         misc_;
+    ShadowMapConfig    shadowMap_;
     WindowConfig       window_;
 };
 

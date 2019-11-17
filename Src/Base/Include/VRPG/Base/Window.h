@@ -81,7 +81,7 @@ public:
 
     void UseDefaultViewport();
 
-    void ClearDefaultRenderTarget();
+    void ClearDefaultRenderTarget(float r = 0, float g = 0, float b = 0, float a = 0);
 
     void ClearDefaultRenderTarget(const float backgroundColor[4]);
 

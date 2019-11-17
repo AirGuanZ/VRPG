@@ -15,7 +15,7 @@ cbuffer Shadow
 };
 
 // max light value
-#define MAX_LIGHT 2
+#define MAX_BLOCK_LIGHT 2
 
 // about shadow mapping
 
