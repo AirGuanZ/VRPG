@@ -10,15 +10,17 @@ void GrassLikeEffectCommon::InitializeForward()
     forwardShader_.InitializeStageFromFile<SS_VS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["GrassLike"]["ForwardVertexShader"]);
     forwardShader_.InitializeStageFromFile<SS_PS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["GrassLike"]["ForwardPixelShader"]);
     if(!forwardShader_.IsAllStagesAvailable())
+    {
         throw VRPGGameException("failed to initialize diffuse hollow block effect shader");
+    }
 
     forwardUniforms_ = forwardShader_.CreateUniformManager();
 
     forwardInputLayout_ = InputLayoutBuilder
-        ("POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT,    offsetof(GrassLikeEffect::Vertex, position))
-        ("TEXCOORD",   0, DXGI_FORMAT_R32G32_FLOAT,       offsetof(GrassLikeEffect::Vertex, texCoord))
-        ("NORMAL",     0, DXGI_FORMAT_R32G32B32_FLOAT,    offsetof(GrassLikeEffect::Vertex, normal))
-        ("TEXINDEX",   0, DXGI_FORMAT_R32_UINT,           offsetof(GrassLikeEffect::Vertex, texIndex))
+    ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, offsetof(GrassLikeEffect::Vertex, position))
+        ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, offsetof(GrassLikeEffect::Vertex, texCoord))
+        ("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, offsetof(GrassLikeEffect::Vertex, normal))
+        ("TEXINDEX", 0, DXGI_FORMAT_R32_UINT, offsetof(GrassLikeEffect::Vertex, texIndex))
         ("BRIGHTNESS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, offsetof(GrassLikeEffect::Vertex, brightness))
         .Build(forwardShader_.GetVertexShaderByteCode());
 
@@ -34,7 +36,9 @@ void GrassLikeEffectCommon::InitializeForward()
 
     forwardDiffuseTextureSlot_ = forwardUniforms_.GetShaderResourceSlot<SS_PS>("DiffuseTexture");
     if(!forwardDiffuseTextureSlot_)
+    {
         throw VRPGGameException("shader resource slot not found in grass like block effect shader: DiffuseTexture");
+    }
 }
 
 void GrassLikeEffectCommon::InitializeShadow()
@@ -45,7 +49,9 @@ void GrassLikeEffectCommon::InitializeShadow()
     shadowShader_.InitializeStage<SS_VS>(vertexShaderSource);
     shadowShader_.InitializeStage<SS_PS>(pixelShaderSource);
     if(!shadowShader_.IsAllStagesAvailable())
+    {
         throw VRPGGameException("failed to initialize shadow shader for grass like block effect");
+    }
 
     shadowUniforms_ = shadowShader_.CreateUniformManager();
 
@@ -163,7 +169,7 @@ void GrassLikeEffect::EndShadow() const
     common_->EndShadow();
 }
 
-std::unique_ptr<PartialSectionModelBuilder> GrassLikeEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
+std::unique_ptr<ModelBuilder> GrassLikeEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
 {
     return std::make_unique<Builder>(globalSectionPosition, this);
 }
@@ -202,7 +208,9 @@ GrassLikeEffectGenerator::GrassLikeEffectGenerator(int textureSize, int maxArray
 std::shared_ptr<GrassLikeEffect> GrassLikeEffectGenerator::GetEffectWithTextureSpaces(int textureCount)
 {
     if(static_cast<int>(textureArrayData_.size()) + textureCount <= maxArraySize_)
+    {
         return currentEffect_;
+    }
 
     InitializeCurrentEffect();
     return currentEffect_;
@@ -223,7 +231,9 @@ void GrassLikeEffectGenerator::Done()
 void GrassLikeEffectGenerator::InitializeCurrentEffect()
 {
     if(textureArrayData_.empty())
+    {
         return;
+    }
 
     // 生成mipmap chain
 
@@ -266,7 +276,9 @@ void GrassLikeEffectGenerator::InitializeCurrentEffect()
 
     ComPtr<ID3D11Texture2D> texture = Base::D3D::CreateTexture2D(textureDesc, initDataArr.data());
     if(!texture)
+    {
         throw VRPGGameException("failed to create texture2d array for grass like block effect");
+    }
 
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
     srvDesc.Format                         = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -278,7 +290,9 @@ void GrassLikeEffectGenerator::InitializeCurrentEffect()
 
     ComPtr<ID3D11ShaderResourceView> srv = Base::D3D::CreateShaderResourceView(srvDesc, texture.Get());
     if(!srv)
+    {
         throw VRPGGameException("failed to create shader resource view of texture2d array of for grass like block effect");
+    }
 
     // 延迟初始化之前的effect
 

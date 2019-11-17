@@ -23,24 +23,6 @@ VRPG_GAME_BEGIN
  */
 class ChunkLoader
 {
-    struct PerThreadData
-    {
-        ChunkLoaderTaskQueue taskQueue;
-    };
-
-    std::vector<std::thread> threads_;
-    std::unique_ptr<PerThreadData[]> perThreadData_;
-
-    std::unique_ptr<ChunkBlockDataPool> blockDataPool_;
-    std::unique_ptr<LandGenerator> landGenerator_;
-
-    std::mutex loadingResultsMutex_;
-    std::unique_ptr<std::queue<std::unique_ptr<Chunk>>> loadingResults_;
-
-    std::atomic<bool> skipLoading_;
-
-    std::shared_ptr<spdlog::logger> log_;
-
 public:
 
     ChunkLoader();
@@ -84,6 +66,11 @@ public:
     
 private:
 
+    struct PerThreadData
+    {
+        ChunkLoaderTaskQueue taskQueue;
+    };
+
     /**
      * 新加载一份区块数据
      *
@@ -98,6 +85,19 @@ private:
     static void WorkerFunc(ChunkLoader *chunkLoader, PerThreadData *threadLocalData);
 
     void ExecuteTask(ChunkLoaderTask &&task);
+
+    std::vector<std::thread> threads_;
+    std::unique_ptr<PerThreadData[]> perThreadData_;
+
+    std::unique_ptr<ChunkBlockDataPool> blockDataPool_;
+    std::unique_ptr<LandGenerator> landGenerator_;
+
+    std::mutex loadingResultsMutex_;
+    std::unique_ptr<std::queue<std::unique_ptr<Chunk>>> loadingResults_;
+
+    std::atomic<bool> skipLoading_;
+
+    std::shared_ptr<spdlog::logger> log_;
 };
 
 VRPG_GAME_END

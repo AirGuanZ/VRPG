@@ -128,7 +128,8 @@ inline Vec4 ComputeVertexBrightness(const Vec4 &a, const Vec4 &b) noexcept
 /**
  * @brief 将三个float block brightness映射为一份vertex brightness
  */
-inline Vec4 ComputeVertexBrightness(const Vec4 &a, const Vec4 &b, const Vec4 &c) noexcept
+inline Vec4 ComputeVertexBrightness(
+    const Vec4 &a, const Vec4 &b, const Vec4 &c) noexcept
 {
     return ComputeVertexBrightness(0.333333f * (a + b + c));
 }
@@ -136,7 +137,8 @@ inline Vec4 ComputeVertexBrightness(const Vec4 &a, const Vec4 &b, const Vec4 &c)
 /**
  * @brief 将四个float block brightness映射为一份vertex brightness
  */
-inline Vec4 ComputeVertexBrightness(const Vec4 &a, const Vec4 &b, const Vec4 &c, const Vec4 &d) noexcept
+inline Vec4 ComputeVertexBrightness(
+    const Vec4 &a, const Vec4 &b, const Vec4 &c, const Vec4 &d) noexcept
 {
     return ComputeVertexBrightness(0.25f * (a + b + c + d));
 }
@@ -152,7 +154,8 @@ inline Vec4 ComputeVertexBrightness(const BlockBrightness &a) noexcept
 /**
  * @brief 将两个block brightness映射为一份vertex brightness
  */
-inline Vec4 ComputeVertexBrightness(const BlockBrightness &a, const BlockBrightness &b) noexcept
+inline Vec4 ComputeVertexBrightness(
+    const BlockBrightness &a, const BlockBrightness &b) noexcept
 {
     return ComputeVertexBrightness(
         BlockBrightnessToFloat(a),
@@ -162,7 +165,9 @@ inline Vec4 ComputeVertexBrightness(const BlockBrightness &a, const BlockBrightn
 /**
  * @brief 将三个block brightness映射为一份vertex brightness
  */
-inline Vec4 ComputeVertexBrightness(const BlockBrightness &a, const BlockBrightness &b, const BlockBrightness &c) noexcept
+inline Vec4 ComputeVertexBrightness(
+    const BlockBrightness &a, const BlockBrightness &b,
+    const BlockBrightness &c) noexcept
 {
     return ComputeVertexBrightness(
         BlockBrightnessToFloat(a),
@@ -173,7 +178,9 @@ inline Vec4 ComputeVertexBrightness(const BlockBrightness &a, const BlockBrightn
 /**
  * @brief 将四个block brightness映射为一份vertex brightness
  */
-inline Vec4 ComputeVertexBrightness(const BlockBrightness &a, const BlockBrightness &b, const BlockBrightness &c, const BlockBrightness &d) noexcept
+inline Vec4 ComputeVertexBrightness(
+    const BlockBrightness &a, const BlockBrightness &b,
+    const BlockBrightness &c, const BlockBrightness &d) noexcept
 {
     return ComputeVertexBrightness(
         BlockBrightnessToFloat(a),

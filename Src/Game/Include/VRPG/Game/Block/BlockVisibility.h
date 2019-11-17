@@ -18,7 +18,7 @@ VRPG_GAME_BEGIN
  * 镂空-非box：   可见-可见
  * 非box-非box：  可见-可见
  */
-enum class FaceVisibilityProperty
+enum class FaceVisibilityType
 {
     Solid       = 0, // 实体，如石头，泥土
     Transparent = 1, // 半透明，如液体底面
@@ -40,7 +40,7 @@ enum class FaceVisibility
 /**
  * @brief 测试一个面是否会被与它相邻的面挡住
  */
-inline FaceVisibility TestFaceVisibility(FaceVisibilityProperty thisFace, FaceVisibilityProperty neighborFace) noexcept
+inline FaceVisibility TestFaceVisibility(FaceVisibilityType thisFace, FaceVisibilityType neighborFace) noexcept
 {
     static const FaceVisibility LUT[4][4] = {
         {

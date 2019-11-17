@@ -92,19 +92,28 @@ void GlobalConfig::LoadFromFile(const char *configFilename)
     config.readFile(configFilename);
 
     if(config.exists("ChunkManager"))
+    {
         chunkManager_.Load(config.lookup("ChunkManager"));
+    }
 
     if(config.exists("Misc"))
+    {
         misc_.Load(config.lookup("Misc"));
+    }
 
     if(config.exists("ShadowMap"))
+    {
         shadowMap_.Load(config.lookup("ShadowMap"));
+    }
 
     if(config.exists("Window"))
+    {
         window_.Load(config.lookup("Window"));
+    }
 
-    shadowMap_   .Print();
     chunkManager_.Print();
+    misc_        .Print();
+    shadowMap_   .Print();
     window_      .Print();
 }
 

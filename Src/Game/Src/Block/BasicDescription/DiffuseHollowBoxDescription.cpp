@@ -24,9 +24,9 @@ const char *DiffuseHollowBoxDescription::GetName() const
     return name_.c_str();
 }
 
-FaceVisibilityProperty DiffuseHollowBoxDescription::GetFaceVisibilityProperty(Direction direction) const noexcept
+FaceVisibilityType DiffuseHollowBoxDescription::GetFaceVisibility(Direction direction) const noexcept
 {
-    return FaceVisibilityProperty::Hollow;
+    return FaceVisibilityType::Hollow;
 }
 
 bool DiffuseHollowBoxDescription::IsVisible() const noexcept
@@ -55,7 +55,7 @@ BlockBrightness DiffuseHollowBoxDescription::InitialBrightness() const noexcept
 }
 
 void DiffuseHollowBoxDescription::AddBlockModel(
-    PartialSectionModelBuilderSet &modelBuilders,
+    ModelBuilderSet &modelBuilders,
     const Vec3i &blockPosition,
     const BlockNeighborhood blocks) const
 {
@@ -65,8 +65,8 @@ void DiffuseHollowBoxDescription::AddBlockModel(
     auto isFaceVisible = [&](int neiX, int neiY, int neiZ, Direction neiDir)
     {
         neiDir = blocks[neiX][neiY][neiZ].orientation.RotatedToOrigin(neiDir);
-        FaceVisibilityProperty neiVis = blocks[neiX][neiY][neiZ].desc->GetFaceVisibilityProperty(neiDir);
-        FaceVisibility visibility = TestFaceVisibility(FaceVisibilityProperty::Hollow, neiVis);
+        FaceVisibilityType neiVis = blocks[neiX][neiY][neiZ].desc->GetFaceVisibility(neiDir);
+        FaceVisibility visibility = TestFaceVisibility(FaceVisibilityType::Hollow, neiVis);
         return visibility == FaceVisibility::Yes || (visibility == FaceVisibility::Pos && !IsPositive(neiDir));
     };
     
@@ -79,7 +79,6 @@ void DiffuseHollowBoxDescription::AddBlockModel(
         Vec4 lhtE = 0.25f * (lhtA + lhtB + lhtC + lhtD);
 
         VertexIndex vertexCount = VertexIndex(builder->GetVertexCount());
-
         Vec3 normal = cross(posB - posA, posC - posB).normalize();
 
         builder->AddVertex({ posA, BOX_FACE_TEXCOORD[0], normal, lhtA, textureIndexInEffect });
@@ -107,7 +106,9 @@ void DiffuseHollowBoxDescription::AddBlockModel(
         };
         Vec3i neiIndex = ROT_DIR_TO_NEI_INDEX[int(rotDir)];
         if(!isFaceVisible(neiIndex.x, neiIndex.y, neiIndex.z, -rotDir))
+        {
             return;
+        }
 
         Vec3 position[4];
         GenerateBoxFaceDynamic(normalDirection, position);

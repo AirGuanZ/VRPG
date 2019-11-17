@@ -10,7 +10,7 @@ void Chunk::RegenerateSectionModel(const Vec3i &sectionInChunk, const Chunk *nei
     assert(0 <= sectionInChunk.z && sectionInChunk.z < CHUNK_SECTION_COUNT_Z);
     assert(neighboringChunks[1][1] == this);
 
-    auto &blockDescMgr = BlockDescriptionManager::GetInstance();
+    auto &blockDescMgr = BlockDescManager::GetInstance();
 
     // 准备modelBuilders
 
@@ -19,7 +19,7 @@ void Chunk::RegenerateSectionModel(const Vec3i &sectionInChunk, const Chunk *nei
         sectionInChunk.y,
         chunkPosition_.z * CHUNK_SECTION_COUNT_Z + sectionInChunk.z
     };
-    PartialSectionModelBuilderSet modelBuilders(globalSectionPosition);
+    ModelBuilderSet modelBuilders(globalSectionPosition);
 
     // 遍历每个block，将其model数据追加到各自的model builder中
 
@@ -30,7 +30,9 @@ void Chunk::RegenerateSectionModel(const Vec3i &sectionInChunk, const Chunk *nei
     auto getBlock = [&](int x, int y, int z)
     {
         if(y < 0 || y >= CHUNK_SIZE_Y)
+        {
             return BlockInstance{ voidDesc, nullptr, BLOCK_BRIGHTNESS_MIN, BlockOrientation() };
+        }
         auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk({ x, y, z });
         return neighboringChunks[ckPos.x][ckPos.z]->GetBlock(blkPos);
     };
@@ -65,7 +67,9 @@ void Chunk::RegenerateSectionModel(const Vec3i &sectionInChunk, const Chunk *nei
             for(int y = lowBlockInChunk.y; y < highBlockInChunk.y; ++y)
             {
                 if(!blockDescMgr.GetBlockDescription(GetID({ x, y, z }))->IsVisible())
+                {
                     continue;
+                }
 
                 fillNeighbors(x + CHUNK_SIZE_X, y, z + CHUNK_SIZE_Z, neighborhood);
                 neighborhood[1][1][1].desc->AddBlockModel(modelBuilders, { xBase + x, y, zBase + z }, neighborhood);

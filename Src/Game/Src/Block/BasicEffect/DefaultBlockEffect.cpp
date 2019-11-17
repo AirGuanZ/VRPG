@@ -55,7 +55,7 @@ void DefaultBlockEffect::EndShadow() const
     shadowRasterizerState_.Unbind();
 }
 
-std::unique_ptr<PartialSectionModelBuilder> DefaultBlockEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
+std::unique_ptr<ModelBuilder> DefaultBlockEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
 {
     return std::make_unique<Builder>(globalSectionPosition, this);
 }
@@ -77,7 +77,9 @@ void DefaultBlockEffect::InitializeForward()
     forwardShader_.InitializeStageFromFile<SS_VS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Default"]["ForwardVertexShader"]);
     forwardShader_.InitializeStageFromFile<SS_PS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Default"]["ForwardPixelShader"]);
     if(!forwardShader_.IsAllStagesAvailable())
+    {
         throw VRPGGameException("failed to initialize default block effect shader");
+    }
 
     forwardUniforms_ = forwardShader_.CreateUniformManager();
 
@@ -102,7 +104,9 @@ void DefaultBlockEffect::InitializeShadow()
     shadowShader_.InitializeStage<SS_VS>(vertexShaderSource);
     shadowShader_.InitializeStage<SS_PS>(pixelShaderSource);
     if(!shadowShader_.IsAllStagesAvailable())
+    {
         throw VRPGGameException("failed to initialize shadow shader for default block effect");
+    }
 
     shadowUniforms_ = shadowShader_.CreateUniformManager();
 

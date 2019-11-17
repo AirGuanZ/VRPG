@@ -36,7 +36,9 @@ void ChunkLoader::Initialize(int threadCount, int poolSize, std::unique_ptr<Land
     perThreadData_.reset(new PerThreadData[threadCount]);
     threads_.reserve(threadCount);
     for(int i = 0; i < threadCount; ++i)
+    {
         threads_.emplace_back(&WorkerFunc, this, &perThreadData_[i]);
+    }
 
     loadingResults_ = std::make_unique<std::queue<std::unique_ptr<Chunk>>>();
 }
@@ -53,7 +55,9 @@ void ChunkLoader::Destroy()
 
     skipLoading_ = true;
     for(size_t i = 0; i < threads_.size(); ++i)
+    {
         perThreadData_[i].taskQueue.Stop();
+    }
 
     for(auto &t : threads_)
     {
@@ -135,7 +139,9 @@ std::unique_ptr<Chunk> ChunkLoader::LoadChunk(const ChunkPosition &position)
     neighboringChunksStorage[7].SetPosition({ position.x + 1, position.z + 1 });
 
     for(auto &neighboringChunk : neighboringChunksStorage)
+    {
         LoadChunkBlockData(neighboringChunk.GetPosition(), &neighboringChunk.GetBlockData());
+    }
 
     // 计算光照
 
@@ -187,7 +193,9 @@ void ChunkLoader::WorkerFunc(ChunkLoader *chunkLoader, PerThreadData *threadLoca
     {
         auto newTask = threadLocalData->taskQueue.GetTask();
         if(newTask.is<ChunkLoaderTask_Stop>())
+        {
             break;
+        }
         chunkLoader->ExecuteTask(std::move(newTask));
     }
 }
@@ -202,9 +210,13 @@ void ChunkLoader::ExecuteTask(ChunkLoaderTask &&task)
 
     auto &load = task.as<ChunkLoaderTask_Load>();
     if(skipLoading_)
+    {
         return;
+    }
     if(!load.chunk)
+    {
         load.chunk = LoadChunk(load.position);
+    }
     AddLoadingResult(std::move(load.chunk));
 }
 

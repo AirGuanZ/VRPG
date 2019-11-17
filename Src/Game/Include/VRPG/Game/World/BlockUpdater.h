@@ -97,7 +97,9 @@ public:
             delete updater;
 
             if(++executed >= maxExecutedCount)
+            {
                 return;
+            }
         }
     }
 };

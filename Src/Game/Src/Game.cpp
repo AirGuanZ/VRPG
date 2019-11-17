@@ -1,6 +1,6 @@
 ﻿#include <ImGui/imgui.h>
 
-#include <VRPG/Game/Block/BuiltinBlock/BuiltinBlock.h>
+#include <VRPG/Game/Block/BuiltinBlock.h>
 #include <VRPG/Game/Config/GlobalConfig.h>
 #include <VRPG/Game/Land/FlatLandGenerator.h>
 #include <VRPG/Game/World/BlockUpdater/LiquidUpdater.h>
@@ -36,14 +36,19 @@ void Game::Run()
         window_->ImGuiNewFrame();
 
         if(keyboard_->IsKeyPressed(Base::KEY_ESCAPE) || window_->GetCloseFlag())
+        {
             exitMainloop = true;
+        }
 
         PlayerTick(deltaT);
 
         {
             us worldTickDelta = std::chrono::duration_cast<us>(StdClock::now() - lastWorldTick);
             if(worldTickDelta > 10 * WORLD_TICK_INTERVAL)
+            {
                 worldTickDelta = WORLD_TICK_INTERVAL;
+            }
+
             while(worldTickDelta >= WORLD_TICK_INTERVAL)
             {
                 WorldTick();
@@ -174,7 +179,9 @@ void Game::PlayerTick(float deltaT)
         }
     }
     else
+    {
         chosenBlockPosition_ = std::nullopt;
+    }
 }
 
 void Game::WorldTick()
@@ -240,7 +247,9 @@ void Game::Render(int fps)
     }
 
     if(GLOBAL_CONFIG.MISC.enableChoseBlockWireframe && chosenBlockPosition_)
+    {
         chosenBlockWireframeRenderer_->DrawBlockWireframeAt(*camera_, *chosenBlockPosition_);
+    }
 
     crosshairPainter_->Draw(*imm2D_);
 

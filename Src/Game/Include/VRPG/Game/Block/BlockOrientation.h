@@ -83,16 +83,11 @@ inline Direction BlockOrientation::OriginToRotated(Direction origin) const noexc
 {
     CheckAssertion();
 
-    if(origin == PositiveX)
-        return X();
-    if(origin == NegativeX)
-        return -X();
-    if(origin == PositiveY)
-        return Y();
-    if(origin == NegativeY)
-        return -Y();
-    if(origin == PositiveZ)
-        return Z();
+    if(origin == PositiveX) return X();
+    if(origin == NegativeX) return -X();
+    if(origin == PositiveY) return Y();
+    if(origin == NegativeY) return -Y();
+    if(origin == PositiveZ) return Z();
     return -Z();
 }
 
@@ -100,16 +95,11 @@ inline Direction BlockOrientation::RotatedToOrigin(Direction rotated) const noex
 {
     CheckAssertion();
 
-    if(rotated == X())
-        return PositiveX;
-    if(rotated == -X())
-        return NegativeX;
-    if(rotated == Y())
-        return PositiveY;
-    if(rotated == -Y())
-        return NegativeY;
-    if(rotated == Z())
-        return PositiveZ;
+    if(rotated == X())  return PositiveX;
+    if(rotated == -X()) return NegativeX;
+    if(rotated == Y())  return PositiveY;
+    if(rotated == -Y()) return NegativeY;
+    if(rotated == Z())  return PositiveZ;
     return NegativeZ;
 }
 

@@ -18,7 +18,7 @@ namespace
 
         const char *GetName() const override;
 
-        FaceVisibilityProperty GetFaceVisibilityProperty(Direction direction) const noexcept override;
+        FaceVisibilityType GetFaceVisibility(Direction direction) const noexcept override;
 
         bool IsVisible() const noexcept override;
 
@@ -26,7 +26,7 @@ namespace
 
         bool IsFullOpaque() const noexcept override;
 
-        void AddBlockModel(PartialSectionModelBuilderSet &, const Vec3i &, const BlockNeighborhood) const override;
+        void AddBlockModel(ModelBuilderSet &, const Vec3i &, const BlockNeighborhood) const override;
 
         bool IsLightSource() const noexcept override;
 
@@ -54,7 +54,7 @@ BlockExtraData BlockDescription::CreateExtraData() const
     return BlockExtraData();
 }
 
-const LiquidDescription *BlockDescription::GetLiquidDescription() const noexcept
+const LiquidDescription *BlockDescription::GetLiquid() const noexcept
 {
     static const LiquidDescription ret;
     return &ret;
@@ -65,9 +65,9 @@ const char *VoidBlockDescription::GetName() const
     return "void";
 }
 
-FaceVisibilityProperty VoidBlockDescription::GetFaceVisibilityProperty(Direction direction) const noexcept
+FaceVisibilityType VoidBlockDescription::GetFaceVisibility(Direction direction) const noexcept
 {
-    return FaceVisibilityProperty::Nonbox;
+    return FaceVisibilityType::Nonbox;
 }
 
 bool VoidBlockDescription::IsVisible() const noexcept
@@ -85,7 +85,7 @@ bool VoidBlockDescription::IsFullOpaque() const noexcept
     return false;
 }
 
-void VoidBlockDescription::AddBlockModel(PartialSectionModelBuilderSet &, const Vec3i &, const BlockNeighborhood) const
+void VoidBlockDescription::AddBlockModel(ModelBuilderSet &, const Vec3i &, const BlockNeighborhood) const
 {
     // do nothing
 }
@@ -110,7 +110,7 @@ bool VoidBlockDescription::RayIntersect(const Vec3 &start, const Vec3 &invDir, f
     return false;
 }
 
-BlockDescriptionManager::BlockDescriptionManager()
+BlockDescManager::BlockDescManager()
 {
     auto voidDesc = std::make_shared<VoidBlockDescription>();
     RegisterBlockDescription(std::move(voidDesc));
@@ -122,14 +122,16 @@ BlockDescriptionManager::BlockDescriptionManager()
     RegisterBlockDescription(std::move(defaultDesc));
 }
 
-BlockID BlockDescriptionManager::RegisterBlockDescription(std::shared_ptr<BlockDescription> desc)
+BlockID BlockDescManager::RegisterBlockDescription(std::shared_ptr<BlockDescription> desc)
 {
     assert(blockDescriptions_.size() < (std::numeric_limits<BlockID>::max)());
 
     if(auto it = name2Desc_.find(desc->GetName()); it != name2Desc_.end())
     {
         if(it->second != desc)
+        {
             throw VRPGGameException("repeated block description name: " + std::string(desc->GetName()));
+        }
         return desc->GetBlockID();
     }
 
@@ -143,7 +145,7 @@ BlockID BlockDescriptionManager::RegisterBlockDescription(std::shared_ptr<BlockD
     return id;
 }
 
-void BlockDescriptionManager::Clear()
+void BlockDescManager::Clear()
 {
     blockDescriptions_.clear();
     name2Desc_.clear();

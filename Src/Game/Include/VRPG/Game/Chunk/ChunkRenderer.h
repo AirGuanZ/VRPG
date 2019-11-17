@@ -6,11 +6,6 @@ VRPG_GAME_BEGIN
 
 class ChunkRenderer : public agz::misc::uncopyable_t
 {
-    using ChunkModelSet = std::vector<std::shared_ptr<const PartialSectionModel>>;
-
-    std::vector<ChunkModelSet> modelSets_;
-    mutable ChunkModelSet transparentModelSet_;
-
 public:
 
     ChunkRenderer();
@@ -24,6 +19,13 @@ public:
     void RenderShadow(const BlockShadowRenderParams &params) const;
 
     void Clear();
+
+private:
+
+    using ChunkModelSet = std::vector<std::shared_ptr<const PartialSectionModel>>;
+
+    std::vector<ChunkModelSet> modelSets_;
+    mutable ChunkModelSet transparentModelSet_;
 };
 
 VRPG_GAME_END

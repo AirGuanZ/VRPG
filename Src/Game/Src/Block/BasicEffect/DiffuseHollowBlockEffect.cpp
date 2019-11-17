@@ -10,7 +10,9 @@ void DiffuseHollowBlockEffectCommon::InitializeForward()
     forwardShader_.InitializeStageFromFile<SS_VS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseHollow"]["ForwardVertexShader"]);
     forwardShader_.InitializeStageFromFile<SS_PS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseHollow"]["ForwardPixelShader"]);
     if(!forwardShader_.IsAllStagesAvailable())
+    {
         throw VRPGGameException("failed to initialize diffuse hollow block effect shader");
+    }
 
     forwardUniforms_ = forwardShader_.CreateUniformManager();
 
@@ -34,7 +36,9 @@ void DiffuseHollowBlockEffectCommon::InitializeForward()
 
     forwardDiffuseTextureSlot_ = forwardUniforms_.GetShaderResourceSlot<SS_PS>("DiffuseTexture");
     if(!forwardDiffuseTextureSlot_)
+    {
         throw VRPGGameException("shader resource slot not found in diffuse hollow block effect shader: DiffuseTexture");
+    }
 
     forwardRasterizerState_.Initialize(D3D11_FILL_SOLID, D3D11_CULL_NONE, false);
 }
@@ -47,7 +51,9 @@ void DiffuseHollowBlockEffectCommon::InitializeShadow()
     shadowShader_.InitializeStage<SS_VS>(vertexShaderSource);
     shadowShader_.InitializeStage<SS_PS>(pixelShaderSource);
     if(!shadowShader_.IsAllStagesAvailable())
+    {
         throw VRPGGameException("failed to initialize shadow shader for diffuse hollow block effect");
+    }
 
     shadowUniforms_ = shadowShader_.CreateUniformManager();
 
@@ -156,7 +162,7 @@ void DiffuseHollowBlockEffect::EndShadow() const
     common_->EndShadow();
 }
 
-std::unique_ptr<PartialSectionModelBuilder> DiffuseHollowBlockEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
+std::unique_ptr<ModelBuilder> DiffuseHollowBlockEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
 {
     return std::make_unique<Builder>(globalSectionPosition, this);
 }
@@ -195,7 +201,9 @@ DiffuseHollowBlockEffectGenerator::DiffuseHollowBlockEffectGenerator(int texture
 std::shared_ptr<DiffuseHollowBlockEffect> DiffuseHollowBlockEffectGenerator::GetEffectWithTextureSpaces(int textureCount)
 {
     if(static_cast<int>(textureArrayData_.size()) + textureCount <= maxArraySize_)
+    {
         return currentEffect_;
+    }
 
     InitializeCurrentEffect();
     return currentEffect_;
@@ -216,8 +224,10 @@ void DiffuseHollowBlockEffectGenerator::Done()
 void DiffuseHollowBlockEffectGenerator::InitializeCurrentEffect()
 {
     if(textureArrayData_.empty())
+    {
         return;
-    
+    }
+
     // 生成mipmap chain
 
     std::vector<agz::texture::mipmap_chain_t<Vec4>> mipmapChains(textureArrayData_.size());
@@ -259,7 +269,9 @@ void DiffuseHollowBlockEffectGenerator::InitializeCurrentEffect()
 
     ComPtr<ID3D11Texture2D> texture = Base::D3D::CreateTexture2D(textureDesc, initDataArr.data());
     if(!texture)
+    {
         throw VRPGGameException("failed to create texture2d array for diffuse hollow block effect");
+    }
 
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
     srvDesc.Format                         = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -271,7 +283,9 @@ void DiffuseHollowBlockEffectGenerator::InitializeCurrentEffect()
 
     ComPtr<ID3D11ShaderResourceView> srv = Base::D3D::CreateShaderResourceView(srvDesc, texture.Get());
     if(!srv)
+    {
         throw VRPGGameException("failed to create shader resource view of texture2d array of for diffuse hollow block effect");
+    }
 
     // 延迟初始化之前的effect
 

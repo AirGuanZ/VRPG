@@ -19,9 +19,9 @@ const char *TransparentLiquidDescription::GetName() const
     return name_.c_str();
 }
 
-FaceVisibilityProperty TransparentLiquidDescription::GetFaceVisibilityProperty(Direction direction) const noexcept
+FaceVisibilityType TransparentLiquidDescription::GetFaceVisibility(Direction direction) const noexcept
 {
-    return FaceVisibilityProperty::Transparent;
+    return FaceVisibilityType::Transparent;
 }
 
 bool TransparentLiquidDescription::IsVisible() const noexcept
@@ -55,7 +55,7 @@ BlockBrightness TransparentLiquidDescription::InitialBrightness() const noexcept
 }
 
 void TransparentLiquidDescription::AddBlockModel(
-    PartialSectionModelBuilderSet &modelBuilders,
+    ModelBuilderSet &modelBuilders,
     const Vec3i &blockPosition,
     const BlockNeighborhood blocks) const
 {
@@ -67,8 +67,8 @@ void TransparentLiquidDescription::AddBlockModel(
         auto [x, y, z] = DirectionToVectori(dirToNei) + Vec3i(1);
         auto neiDesc = blocks[x][y][z].desc;
         Direction neiDir = blocks[x][y][z].orientation.RotatedToOrigin(-dirToNei);
-        FaceVisibilityProperty neiVis = neiDesc->GetFaceVisibilityProperty(neiDir);
-        FaceVisibility vis = TestFaceVisibility(FaceVisibilityProperty::Transparent, neiVis);
+        FaceVisibilityType neiVis = neiDesc->GetFaceVisibility(neiDir);
+        FaceVisibility vis = TestFaceVisibility(FaceVisibilityType::Transparent, neiVis);
         return vis == FaceVisibility::Yes || (vis == FaceVisibility::Diff && this != neiDesc);
     };
 
@@ -97,7 +97,7 @@ void TransparentLiquidDescription::AddBlockModel(
         builder->AddFaceIndexRange(positionBase + sortCentre, startIndex);
     };
 
-    bool isThisSource = blocks[1][1][1].desc->GetLiquidDescription()->IsSource(*blocks[1][1][1].extraData);
+    bool isThisSource = blocks[1][1][1].desc->GetLiquid()->IsSource(*blocks[1][1][1].extraData);
     bool isUpSame = blocks[1][2][1].desc == this;
 
     // 计算四个xz角点处的液面高度
@@ -107,13 +107,17 @@ void TransparentLiquidDescription::AddBlockModel(
         {
             auto &block = blocks[x][1][z];
             if(!block.desc->IsLiquid())
+            {
                 return 0;
+            }
 
-            auto liquid = block.desc->GetLiquidDescription();
+            auto liquid = block.desc->GetLiquid();
             if(liquid->IsSource(*block.extraData))
             {
                 if(blocks[x][2][z].desc != block.desc)
+                {
                     return liquid->TopSourceHeight();
+                }
                 return 1;
             }
             
@@ -132,7 +136,9 @@ void TransparentLiquidDescription::AddBlockModel(
         auto synthesisVertexHeight = [&](int dx, int dz) -> float
         {
             if(!isThisSource && !isUpSame && blocks[1 + dx][1][1].desc->IsVoid() && blocks[1][1][1 + dz].desc->IsVoid())
+            {
                 return 0;
+            }
             return (std::max)((std::max)(blockHeights[1][1], blockHeights[1 + dx][1 + dz]),
                               (std::max)(blockHeights[1 + dx][1], blockHeights[1][1 + dz]));
         };
@@ -146,7 +152,9 @@ void TransparentLiquidDescription::AddBlockModel(
     auto vertexBrightness = [&](Direction normalDirection, const Vec3 &pos)
     {
         if(pos.y < 0.001f || pos.y > 0.999f)
+        {
             return BoxVertexBrightness(blocks, normalDirection, pos);
+        }
 
         assert(normalDirection != NegativeY);
         if(normalDirection == PositiveY)
@@ -187,7 +195,9 @@ void TransparentLiquidDescription::AddBlockModel(
     auto generateFace = [&](Direction normalDirection)
     {
         if(!isFaceVisible(normalDirection))
+        {
             return;
+        }
 
         Vec3i pos[4]; Vec3 posf[4];
         GenerateBoxFaceiDynamic(normalDirection, pos);
@@ -232,7 +242,7 @@ BlockExtraData TransparentLiquidDescription::CreateExtraData() const
     return MakeLiquidExtraData(0);
 }
 
-const LiquidDescription *TransparentLiquidDescription::GetLiquidDescription() const noexcept
+const LiquidDescription *TransparentLiquidDescription::GetLiquid() const noexcept
 {
     return &liquid_;
 }

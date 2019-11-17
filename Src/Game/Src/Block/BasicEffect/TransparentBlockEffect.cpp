@@ -46,7 +46,9 @@ namespace
             {
                 VertexIndex startIndex = block.startIndex;
                 for(int i = 0; i < 12; ++i)
+                {
                     tempIndices_[indexCount++] = originalIndices_[startIndex++];
+                }
             }
             indexBuffer_.SetValue(tempIndices_.data());
 
@@ -101,7 +103,9 @@ void TransparentBlockEffect::Builder::AddFaceIndexRange(const Vec3 &blockInSecti
 std::shared_ptr<const PartialSectionModel> TransparentBlockEffect::Builder::Build()
 {
     if(indices_.empty())
+    {
         return nullptr;
+    }
 
     VertexBuffer<Vertex> vertexBuffer;
     vertexBuffer.Initialize(UINT(vertices_.size()), false, vertices_.data());
@@ -143,7 +147,7 @@ void TransparentBlockEffect::EndForward() const
     forwardShadowMapping_->Unbind();
 }
 
-std::unique_ptr<PartialSectionModelBuilder> TransparentBlockEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
+std::unique_ptr<ModelBuilder> TransparentBlockEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const
 {
     return std::make_unique<Builder>(globalSectionPosition, this);
 }
@@ -227,8 +231,10 @@ void TransparentBlockEffect::Initialize(int textureSize, const std::vector<agz::
 
     ComPtr<ID3D11Texture2D> texture = Base::D3D::CreateTexture2D(texDesc, initDataArr.data());
     if(!texture)
+    {
         throw VRPGGameException("failed to create texture2d array for transparent block effect");
-    
+    }
+
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
     srvDesc.Format                         = DXGI_FORMAT_R32G32B32A32_FLOAT;
     srvDesc.ViewDimension                  = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
@@ -239,7 +245,9 @@ void TransparentBlockEffect::Initialize(int textureSize, const std::vector<agz::
 
     ComPtr<ID3D11ShaderResourceView> srv = Base::D3D::CreateShaderResourceView(srvDesc, texture.Get());
     if(!srv)
+    {
         throw VRPGGameException("failed to create shader resource view of texture2d array of for transparent block effect");
+    }
 
     uniforms_.GetShaderResourceSlot<SS_PS>("TransparentTexture")->SetShaderResourceView(ShaderResourceView(srv));
     forwardShadowMapping_ = std::make_unique<ForwardShadowMapping>(&uniforms_);
@@ -266,7 +274,9 @@ int TransparentBlockEffectGenerator::AddTexture(const Vec4 *textureData)
 void TransparentBlockEffectGenerator::Done()
 {
     if(textureArrayData_.empty())
+    {
         return;
+    }
 
     currentEffect_->Initialize(textureSize_, textureArrayData_);
     textureArrayData_.clear();

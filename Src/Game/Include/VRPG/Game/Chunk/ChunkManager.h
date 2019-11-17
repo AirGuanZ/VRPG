@@ -68,7 +68,8 @@ public:
      *
      * ChunkManager会自动维护相关的光照计算和模型更新
      */
-    void SetBlockID(const Vec3i &globalBlock, BlockID id, BlockOrientation orientation);
+    void SetBlockID(
+        const Vec3i &globalBlock, BlockID id, BlockOrientation orientation);
 
     /**
      * @brief 设置某个位置的block id与extra data
@@ -79,7 +80,8 @@ public:
      *
      * ChunkManager会自动维护相关的光照计算和模型更新
      */
-    void SetBlockID(const Vec3i &globalBlock, BlockID id, BlockOrientation orientation, BlockExtraData extraData);
+    void SetBlockID(
+        const Vec3i &globalBlock, BlockID id, BlockOrientation orientation, BlockExtraData extraData);
 
     /**
      * @brief 取得某个位置的block id
@@ -128,7 +130,8 @@ public:
      * （可选）输出被选中的方块位置
      * （可选）输出被选中的面的法线方向
      */
-    bool FindClosestIntersectedBlock(const Vec3 &o, const Vec3 &d, float maxDistance, Vec3i *pickedBlock = nullptr, Direction *pickedFace = nullptr,
+    bool FindClosestIntersectedBlock(
+        const Vec3 &o, const Vec3 &d, float maxDistance, Vec3i *pickedBlock = nullptr, Direction *pickedFace = nullptr,
         const std::function<bool(const BlockDescription *)> &blockFilter = [](const BlockDescription *) { return true; });
 
     /**

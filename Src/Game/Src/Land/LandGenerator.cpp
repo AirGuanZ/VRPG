@@ -10,7 +10,9 @@ void LandGenerator::ComputeHeightMap(ChunkBlockData *blockData) noexcept
         {
             int height = CHUNK_SIZE_Y - 1;
             while(height > 0 && blockData->GetID({ x, height, z }) == BLOCK_ID_VOID)
+            {
                 --height;
+            }
             blockData->SetHeight(x, z, height);
         }
     }

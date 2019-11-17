@@ -110,7 +110,7 @@ public:
     /**
      * @brief 创建一个空的、用于构建具有此effect的chunk section model的model builder
      */
-    virtual std::unique_ptr<PartialSectionModelBuilder> CreateModelBuilder(const Vec3i &globalSectionPosition) const = 0;
+    virtual std::unique_ptr<ModelBuilder> CreateModelBuilder(const Vec3i &globalSectionPosition) const = 0;
 
     /**
      * @brief 设置前向渲染参数
@@ -178,13 +178,13 @@ public:
  * 
  * 包含所有block effect对应的partial section model builder的实例
  */
-class PartialSectionModelBuilderSet
+class ModelBuilderSet
 {
-    std::vector<std::unique_ptr<PartialSectionModelBuilder>> builders_;
+    std::vector<std::unique_ptr<ModelBuilder>> builders_;
 
 public:
 
-    PartialSectionModelBuilderSet(const Vec3i &globalSectionModel)
+    ModelBuilderSet(const Vec3i &globalSectionModel)
     {
         auto &effectMgr = BlockEffectManager::GetInstance();
         BlockEffectID blockEffectCount = BlockEffectID(effectMgr.GetBlockEffectCount());
@@ -201,12 +201,12 @@ public:
     {
         using Builder = typename Effect::Builder;
         static_assert(std::is_base_of_v<BlockEffect, Effect>);
-        static_assert(std::is_base_of_v<PartialSectionModelBuilder, Builder>);
+        static_assert(std::is_base_of_v<ModelBuilder, Builder>);
 
         BlockEffectID id = effect->GetBlockEffectID();
         assert(0 <= id && id < builders_.size());
 
-        PartialSectionModelBuilder *rawBuilder = builders_[id].get();
+        ModelBuilder *rawBuilder = builders_[id].get();
         Builder *builder = dynamic_cast<Builder*>(rawBuilder);
         assert(builder);
         return builder;

@@ -35,7 +35,7 @@ public:
         float pad = 0;
     };
 
-    class Builder : public PartialSectionModelBuilder
+    class Builder : public ModelBuilder
     {
     public:
 
@@ -78,7 +78,7 @@ public:
 
     void EndForward() const override;
 
-    std::unique_ptr<PartialSectionModelBuilder> CreateModelBuilder(const Vec3i &globalSectionPosition) const override;
+    std::unique_ptr<ModelBuilder> CreateModelBuilder(const Vec3i &globalSectionPosition) const override;
 
     void SetForwardRenderParams(const BlockForwardRenderParams &params) const override;
 

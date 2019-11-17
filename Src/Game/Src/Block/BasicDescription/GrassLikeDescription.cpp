@@ -16,9 +16,9 @@ const char *GrassLikeDescription::GetName() const
     return name_.c_str();
 }
 
-FaceVisibilityProperty GrassLikeDescription::GetFaceVisibilityProperty(Direction direction) const noexcept
+FaceVisibilityType GrassLikeDescription::GetFaceVisibility(Direction direction) const noexcept
 {
-    return FaceVisibilityProperty::Nonbox;
+    return FaceVisibilityType::Nonbox;
 }
 
 bool GrassLikeDescription::IsReplacableByLiquid() const noexcept
@@ -47,7 +47,7 @@ BlockBrightness GrassLikeDescription::InitialBrightness() const noexcept
 }
 
 void GrassLikeDescription::AddBlockModel(
-    PartialSectionModelBuilderSet &modelBuilders,
+    ModelBuilderSet &modelBuilders,
     const Vec3i &blockPosition,
     const BlockNeighborhood blocks) const
 {
@@ -60,8 +60,8 @@ void GrassLikeDescription::AddBlockModel(
         (const Vec3 &posA, const Vec3 &posB, const Vec3 &posC, const Vec3 &posD,
          int textureIndexInEffect)
     {
-        Vec3 normal = cross(posB - posA, posC - posB).normalize();
         VertexIndex vertexCount = VertexIndex(builder->GetVertexCount());
+        Vec3 normal = cross(posB - posA, posC - posB).normalize();
 
         builder->AddVertex({ posA + positionBase, { 0, 1 }, normal, light, static_cast<uint32_t>(textureIndexInEffect) });
         builder->AddVertex({ posB + positionBase, { 0, 0 }, normal, light, static_cast<uint32_t>(textureIndexInEffect) });

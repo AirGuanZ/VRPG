@@ -41,12 +41,18 @@ void ChunkRenderer::Done()
     for(auto &modelSet : modelSets_)
     {
         if(modelSet.empty())
+        {
             continue;
+        }
 
         if(!modelSet.front()->GetBlockEffect()->IsTransparent())
+        {
             newSolidModelSets.push_back(std::move(modelSet));
+        }
         else
+        {
             transparentModelSet_.swap(modelSet);
+        }
     }
     modelSets_.swap(newSolidModelSets);
 }
@@ -56,7 +62,9 @@ void ChunkRenderer::RenderForward(const BlockForwardRenderParams &params) const
     for(auto &chunkModelSet : modelSets_)
     {
         if(chunkModelSet.empty())
+        {
             continue;
+        }
 
         auto effect = chunkModelSet.front()->GetBlockEffect();
         effect->SetForwardRenderParams(params);
@@ -64,7 +72,9 @@ void ChunkRenderer::RenderForward(const BlockForwardRenderParams &params) const
         for(auto &chunkModel : chunkModelSet)
         {
             if(ShouldRender(chunkModel->GetGlobalSectionPosition(), *params.camera))
+            {
                 chunkModel->Render(*params.camera);
+            }
         }
         effect->EndForward();
     }
@@ -96,7 +106,9 @@ void ChunkRenderer::RenderForward(const BlockForwardRenderParams &params) const
         for(auto &model : transparentModelSet_)
         {
             if(ShouldRender(model->GetGlobalSectionPosition(), *params.camera))
+            {
                 model->Render(*params.camera);
+            }
         }
         effect->EndForward();
     }
@@ -107,7 +119,9 @@ void ChunkRenderer::RenderShadow(const BlockShadowRenderParams &params) const
     for(auto &chunkModelSet : modelSets_)
     {
         if(chunkModelSet.empty())
+        {
             continue;
+        }
 
         auto effect = chunkModelSet.front()->GetBlockEffect();
         effect->SetShadowRenderParams(params);

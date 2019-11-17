@@ -48,43 +48,6 @@ using ChunkLoaderTask = agz::misc::variant_t<ChunkLoaderTask_Load, ChunkLoaderTa
  */
 class ChunkLoaderTaskQueue
 {
-    std::mutex mutex_;
-    std::condition_variable condVar_;
-
-    std::queue<ChunkPosition> queue_;
-    std::map<ChunkPosition, ChunkLoaderTask> map_;
-
-    // lhs和rhs都必须是加载/卸载
-    // stop类task拥有特别的key，绝不会需要和其他task合并
-    static ChunkLoaderTask MergeTasks(ChunkLoaderTask &&lhs, ChunkLoaderTask &&rhs)
-    {
-        assert(lhs.is<ChunkLoaderTask_Load>() || lhs.is<ChunkLoaderTask_Unload>());
-        assert(rhs.is<ChunkLoaderTask_Load>() || rhs.is<ChunkLoaderTask_Unload>());
-
-        if(auto lhs_load = lhs.as_if<ChunkLoaderTask_Load>())
-        {
-            if(rhs.is<ChunkLoaderTask_Load>())
-            {
-                // 加载-加载，此时取消前一个加载
-                return std::move(lhs);
-            }
-
-            // 加载-卸载，此时把卸载内容bypass给加载
-            auto rhs_unload = &rhs.as<ChunkLoaderTask_Unload>();
-            return ChunkLoaderTask(ChunkLoaderTask_Load{ lhs_load->position, std::move(rhs_unload->chunk) });
-        }
-
-        auto lhs_unload = &lhs.as<ChunkLoaderTask_Unload>();
-        if(auto rhs_load = rhs.as_if<ChunkLoaderTask_Load>())
-        {
-            // 卸载-加载，此时把卸载内容bypass给加载
-            return ChunkLoaderTask(ChunkLoaderTask_Load{ rhs_load->position, std::move(lhs_unload->chunk) });
-        }
-
-        // 卸载-卸载，此时取消前一个卸载
-        return std::move(rhs);
-    }
-
 public:
 
     void AddLoadingTask(const ChunkPosition &position)
@@ -138,7 +101,9 @@ public:
         std::unique_lock lk(mutex_);
 
         while(queue_.empty())
+        {
             condVar_.wait(lk);
+        }
 
         ChunkPosition position = queue_.front();
         queue_.pop();
@@ -148,6 +113,45 @@ public:
         map_.erase(it);
         return ret;
     }
+
+private:
+
+    // lhs和rhs都必须是加载/卸载
+    // stop类task拥有特别的key，绝不会需要和其他task合并
+    static ChunkLoaderTask MergeTasks(ChunkLoaderTask &&lhs, ChunkLoaderTask &&rhs)
+    {
+        assert(lhs.is<ChunkLoaderTask_Load>() || lhs.is<ChunkLoaderTask_Unload>());
+        assert(rhs.is<ChunkLoaderTask_Load>() || rhs.is<ChunkLoaderTask_Unload>());
+
+        if(auto lhs_load = lhs.as_if<ChunkLoaderTask_Load>())
+        {
+            if(rhs.is<ChunkLoaderTask_Load>())
+            {
+                // 加载-加载，此时取消前一个加载
+                return std::move(lhs);
+            }
+
+            // 加载-卸载，此时把卸载内容bypass给加载
+            auto rhs_unload = &rhs.as<ChunkLoaderTask_Unload>();
+            return ChunkLoaderTask(ChunkLoaderTask_Load{ lhs_load->position, std::move(rhs_unload->chunk) });
+        }
+
+        auto lhs_unload = &lhs.as<ChunkLoaderTask_Unload>();
+        if(auto rhs_load = rhs.as_if<ChunkLoaderTask_Load>())
+        {
+            // 卸载-加载，此时把卸载内容bypass给加载
+            return ChunkLoaderTask(ChunkLoaderTask_Load{ rhs_load->position, std::move(lhs_unload->chunk) });
+        }
+
+        // 卸载-卸载，此时取消前一个卸载
+        return std::move(rhs);
+    }
+
+    std::mutex              mutex_;
+    std::condition_variable condVar_;
+
+    std::queue<ChunkPosition>                queue_;
+    std::map<ChunkPosition, ChunkLoaderTask> map_;
 };
 
 VRPG_GAME_END

@@ -19,15 +19,18 @@ ChunkManager::ChunkManager(const ChunkManagerParams &params, std::unique_ptr<Lan
 ChunkManager::~ChunkManager()
 {
     for(auto &pair : chunks_)
+    {
         loader_->AddUnloadingTask(std::move(pair.second));
-
+    }
     loader_->Destroy();
 }
 
 void ChunkManager::SetCentreChunk(const ChunkPosition &chunkPosition)
 {
-    if(chunkPosition.x == centreChunkPosition_.x && chunkPosition .z == centreChunkPosition_.z)
+    if(chunkPosition.x == centreChunkPosition_.x && chunkPosition.z == centreChunkPosition_.z)
+    {
         return;
+    }
     centreChunkPosition_.x = chunkPosition.x;
     centreChunkPosition_.z = chunkPosition.z;
 
@@ -44,7 +47,9 @@ void ChunkManager::SetCentreChunk(const ChunkPosition &chunkPosition)
         {
             ChunkPosition loadPosition{ loadX, loadZ };
             if(chunks_.find(loadPosition) == chunks_.end())
+            {
                 chunksShouldBeLoad.push_back(loadPosition);
+            }
         }
     }
 
@@ -57,6 +62,7 @@ void ChunkManager::SetCentreChunk(const ChunkPosition &chunkPosition)
         Vec2i CR(rhs.x - chunkPosition.x, rhs.z - chunkPosition.z);
         return CL.length_square() < CR.length_square();
     });
+
     for(auto &position : chunksShouldBeLoad)
     {
         loader_->AddLoadingTask(position);
@@ -67,14 +73,15 @@ void ChunkManager::SetCentreChunk(const ChunkPosition &chunkPosition)
 
     auto shouldBeDestroyed = [
         unloadXMin = chunkPosition.x - params_.unloadDistance,
-        unloadZMin = chunkPosition.z - params_.unloadDistance,
-        unloadXMax = chunkPosition.x + params_.unloadDistance,
-        unloadZMax = chunkPosition.z + params_.unloadDistance]
-        (const ChunkPosition &position)
+            unloadZMin = chunkPosition.z - params_.unloadDistance,
+            unloadXMax = chunkPosition.x + params_.unloadDistance,
+            unloadZMax = chunkPosition.z + params_.unloadDistance]
+            (const ChunkPosition &position)
     {
         return position.x < unloadXMin || position.x > unloadXMax ||
-               position.z < unloadZMin || position.z > unloadZMax;
+            position.z < unloadZMin || position.z > unloadZMax;
     };
+
     std::vector<ChunkPosition> chunksShouldBeDestroyed;
     for(auto &pair : chunks_)
     {
@@ -84,8 +91,11 @@ void ChunkManager::SetCentreChunk(const ChunkPosition &chunkPosition)
             loader_->AddUnloadingTask(std::move(pair.second));
         }
     }
+
     for(auto &position : chunksShouldBeDestroyed)
+    {
         chunks_.erase(position);
+    }
 }
 
 void ChunkManager::SetBlockID(const Vec3i &globalBlock, BlockID id, BlockOrientation orientation)
@@ -98,7 +108,9 @@ void ChunkManager::SetBlockID(const Vec3i &globalBlock, BlockID id, BlockOrienta
     // 5. 包含被设置的block的section model以及与该block相邻的section model均需重新生成
 
     if(globalBlock.y < 0 || globalBlock.y >= CHUNK_SIZE_Y)
+    {
         return;
+    }
 
     auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk(globalBlock);
     Chunk *chunk = EnsureChunkExists(ckPos.x, ckPos.z);
@@ -110,13 +122,15 @@ void ChunkManager::SetBlockID(const Vec3i &globalBlock, BlockID id, BlockOrienta
     // 更新height map
 
     int oldHeight = chunk->GetHeight(blkPos.x, blkPos.z);
-    if(blkPos.y > oldHeight && id != BLOCK_ID_VOID)
+    if(blkPos.y > oldHeight &&id != BLOCK_ID_VOID)
     {
         // 最大高度提升了
 
         chunk->SetHeight(blkPos.x, blkPos.z, blkPos.y);
         for(int i = oldHeight; i < globalBlock.y; ++i)
-            blocksWithDirtyLight_.push({ globalBlock.x, i, globalBlock .z});
+        {
+            blocksWithDirtyLight_.push({ globalBlock.x, i, globalBlock.z });
+        }
     }
     else if(globalBlock.y == oldHeight && id == BLOCK_ID_VOID)
     {
@@ -124,11 +138,15 @@ void ChunkManager::SetBlockID(const Vec3i &globalBlock, BlockID id, BlockOrienta
 
         int newHeight = globalBlock.y;
         while(newHeight >= 0 && chunk->GetID({ blkPos.x, newHeight, blkPos.z }) == BLOCK_ID_VOID)
+        {
             --newHeight;
+        }
 
         chunk->SetHeight(blkPos.x, blkPos.z, newHeight);
         for(int i = newHeight; i <= globalBlock.y; ++i)
-            blocksWithDirtyLight_.push({ globalBlock.x, i, globalBlock .z });
+        {
+            blocksWithDirtyLight_.push({ globalBlock.x, i, globalBlock.z });
+        }
     }
 
     // 将消息告知loader pool
@@ -144,7 +162,9 @@ void ChunkManager::SetBlockID(const Vec3i &globalBlock, BlockID id, BlockOrienta
 void ChunkManager::SetBlockID(const Vec3i &globalBlock, uint16_t id, BlockOrientation orientation, BlockExtraData extraData)
 {
     if(globalBlock.y < 0 || globalBlock.y >= CHUNK_SIZE_Y)
+    {
         return;
+    }
     SetBlockID(globalBlock, id, orientation);
     *GetExtraData(globalBlock) = std::move(extraData);
 }
@@ -152,7 +172,9 @@ void ChunkManager::SetBlockID(const Vec3i &globalBlock, uint16_t id, BlockOrient
 BlockID ChunkManager::GetBlockID(const Vec3i &globalBlock)
 {
     if(globalBlock.y < 0 || globalBlock.y >= CHUNK_SIZE_Y)
+    {
         return BLOCK_ID_VOID;
+    }
     auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk(globalBlock);
     auto chunk = EnsureChunkExists(ckPos.x, ckPos.z);
     return chunk->GetID(blkPos);
@@ -160,7 +182,7 @@ BlockID ChunkManager::GetBlockID(const Vec3i &globalBlock)
 
 const BlockDescription *ChunkManager::GetBlockDesc(const Vec3i &globalBlock)
 {
-    return BlockDescriptionManager::GetInstance().GetBlockDescription(GetBlockID(globalBlock));
+    return BlockDescManager::GetInstance().GetBlockDescription(GetBlockID(globalBlock));
 }
 
 BlockExtraData *ChunkManager::GetExtraData(const Vec3i &globalBlock)
@@ -173,7 +195,9 @@ BlockExtraData *ChunkManager::GetExtraData(const Vec3i &globalBlock)
 BlockBrightness ChunkManager::GetBlockBrightness(const Vec3i &globalBlock)
 {
     if(globalBlock.y < 0 || globalBlock.y >= CHUNK_SIZE_Y)
+    {
         return BLOCK_BRIGHTNESS_MIN;
+    }
     auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk(globalBlock);
     auto chunk = EnsureChunkExists(ckPos.x, ckPos.z);
     return chunk->GetBrightness(blkPos);
@@ -199,7 +223,7 @@ bool ChunkManager::FindClosestIntersectedBlock(
     const Vec3 &o, const Vec3 &d, float maxDistance, Vec3i *pickedBlock, Direction *pickedFace,
     const std::function<bool(const BlockDescription*)> &blockFilter)
 {
-    auto &blockDescMgr = BlockDescriptionManager::GetInstance();
+    auto &blockDescMgr = BlockDescManager::GetInstance();
     Vec3i lastBlockPosition = Vec3i(std::numeric_limits<Vec3i::elem_t>::lowest());
 
     constexpr float STEP = 0.01f;
@@ -211,12 +235,16 @@ bool ChunkManager::FindClosestIntersectedBlock(
         t += STEP;
         Vec3i blockPosition = p.map([](float c) { return int(std::floor(c)); });
         if(blockPosition == lastBlockPosition)
+        {
             continue;
+        }
         lastBlockPosition = blockPosition;
 
         BlockID id = GetBlockID(blockPosition);
         if(id == BLOCK_ID_VOID)
+        {
             continue;
+        }
         const BlockDescription *desc = blockDescMgr.GetBlockDescription(id);
 
         // IMPROVE: block orientation
@@ -229,7 +257,9 @@ bool ChunkManager::FindClosestIntersectedBlock(
         if(desc->RayIntersect(localStart, d, 0, maxDistance, pickedFace) && blockFilter(desc))
         {
             if(pickedBlock)
+            {
                 *pickedBlock = blockPosition;
+            }
             return true;
         }
     }
@@ -247,9 +277,13 @@ bool ChunkManager::UpdateChunkData()
         ChunkPosition position = chunk->GetPosition();
         auto it = chunks_.find(position);
         if(it == chunks_.end() && !ShouldDestroy(position))
+        {
             chunks_[position] = std::move(chunk);
+        }
         else
+        {
             loader_->AddUnloadingTask(std::move(chunk));
+        }
     }
 
     return ret;
@@ -263,7 +297,9 @@ void ChunkManager::UpdateLight()
 bool ChunkManager::UpdateChunkModels()
 {
     if(sectionsWithDirtyModel_.empty())
+    {
         return false;
+    }
 
     for(auto &secPos : sectionsWithDirtyModel_)
     {
@@ -271,7 +307,9 @@ bool ChunkManager::UpdateChunkModels()
 
         auto it = chunks_.find({ ckPos.x, ckPos.z});
         if(it == chunks_.end())
+        {
             continue;
+        }
 
         // EnsureChunkExists可能让it失效，因此在这里暂时记下chunk的地址
         auto chunk = it->second.get();
@@ -310,7 +348,9 @@ void ChunkManager::FillRenderer(ChunkRenderer &renderer)
                     {
                         auto &sectionModels = model.sectionModel(x, y, z);
                         for(auto &m : sectionModels->partialModels)
+                        {
                             renderer.AddPartialSectionModel(m);
+                        }
                     }
                 }
             }
@@ -321,7 +361,9 @@ void ChunkManager::FillRenderer(ChunkRenderer &renderer)
 Chunk *ChunkManager::EnsureChunkExists(int chunkX, int chunkZ)
 {
     if(auto it = chunks_.find({ chunkX, chunkZ }); it != chunks_.end())
+    {
         return it->second.get();
+    }
 
     loader_->AddLoadingTask({ chunkX, chunkZ });
     for(;;)
@@ -331,7 +373,9 @@ Chunk *ChunkManager::EnsureChunkExists(int chunkX, int chunkZ)
 
         auto it = chunks_.find({ chunkX, chunkZ });
         if(it != chunks_.end())
+        {
             return it->second.get();
+        }
     }
 }
 
@@ -351,7 +395,7 @@ bool ChunkManager::ShouldRender(const ChunkPosition &position) const noexcept
 
 void ChunkManager::UpdateLight(std::queue<Vec3i> &blocksQueue)
 {
-    auto &blockDescMgr = BlockDescriptionManager::GetInstance();
+    auto &blockDescMgr = BlockDescManager::GetInstance();
 
     auto addNeighborToQueue = [&](int x, int y, int z)
     {
@@ -370,7 +414,9 @@ void ChunkManager::UpdateLight(std::queue<Vec3i> &blocksQueue)
         blocksQueue.pop();
 
         if(y < 0 || y >= CHUNK_SIZE_Y)
+        {
             continue;
+        }
 
         auto desc = blockDescMgr.GetBlockDescription(GetBlockID(pos));
         BlockBrightness original = GetBlockBrightness(pos);
@@ -387,7 +433,9 @@ void ChunkManager::UpdateLight(std::queue<Vec3i> &blocksQueue)
 
         BlockBrightness directSkyLight;
         if(y > GetHeight_Unchecked(x, z))
+        {
             directSkyLight = BLOCK_BRIGHTNESS_SKY;
+        }
 
         BlockBrightness emission = desc->InitialBrightness();
         BlockBrightness attenuation = desc->LightAttenuation();

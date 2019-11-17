@@ -11,7 +11,7 @@
 
 VRPG_GAME_BEGIN
 
-class PartialSectionModelBuilderSet;
+class ModelBuilderSet;
 
 /**
  * @brief 表示具有相同类型的block的共有属性
@@ -20,7 +20,7 @@ class PartialSectionModelBuilderSet;
  */
 class BlockDescription
 {
-    friend class BlockDescriptionManager;
+    friend class BlockDescManager;
 
     BlockID blockID_ = 0;
 
@@ -43,7 +43,7 @@ public:
     /**
      * @brief 取得该方块指定面的可见性类型
      */
-    virtual FaceVisibilityProperty GetFaceVisibilityProperty(Direction direction) const noexcept = 0;
+    virtual FaceVisibilityType GetFaceVisibility(Direction direction) const noexcept = 0;
 
     /**
      * @brief 是否是一个可以被液体替代的方块
@@ -90,9 +90,7 @@ public:
      * 其中[i][j][k]是与被生成的方块相对位置为[i-1][j-1][k-1]的方块
      */
     virtual void AddBlockModel(
-        PartialSectionModelBuilderSet &modelBuilders,
-        const Vec3i &blockPosition,
-        const BlockNeighborhood blocks) const = 0;
+        ModelBuilderSet &modelBuilders, const Vec3i &blockPosition, const BlockNeighborhood blocks) const = 0;
 
     /**
      * @brief 射线与方块求交测试
@@ -117,12 +115,12 @@ public:
     /**
      * @brief 取得液体属性
      */
-    virtual const LiquidDescription *GetLiquidDescription() const noexcept;
+    virtual const LiquidDescription *GetLiquid() const noexcept;
 
     /**
      * @brief 是否是液体
      */
-    bool IsLiquid() const noexcept { return GetLiquidDescription()->isLiquid; }
+    bool IsLiquid() const noexcept { return GetLiquid()->isLiquid; }
 
     /**
      * @brief 是否是void
@@ -130,7 +128,7 @@ public:
     bool IsVoid() const noexcept { return blockID_ == BLOCK_ID_VOID; }
 };
 
-class BlockDescriptionManager : public Base::Singleton<BlockDescriptionManager>
+class BlockDescManager : public Base::Singleton<BlockDescManager>
 {
     std::vector<std::shared_ptr<BlockDescription>> blockDescriptions_;
     std::map<std::string, std::shared_ptr<BlockDescription>, std::less<>> name2Desc_;
@@ -138,7 +136,7 @@ class BlockDescriptionManager : public Base::Singleton<BlockDescriptionManager>
 
 public:
 
-    BlockDescriptionManager();
+    BlockDescManager();
 
     BlockID RegisterBlockDescription(std::shared_ptr<BlockDescription> desc);
 

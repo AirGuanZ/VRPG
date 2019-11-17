@@ -50,11 +50,11 @@ public:
     virtual const BlockEffect *GetBlockEffect() const noexcept = 0;
 };
 
-class PartialSectionModelBuilder
+class ModelBuilder
 {
 public:
 
-    virtual ~PartialSectionModelBuilder() = default;
+    virtual ~ModelBuilder() = default;
 
     virtual std::shared_ptr<const PartialSectionModel> Build() = 0;
 };

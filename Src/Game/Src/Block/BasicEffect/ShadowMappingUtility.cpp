@@ -38,12 +38,14 @@ ForwardShadowMapping::ForwardShadowMapping(UniformManager<SS_VS, SS_PS> *forward
         0, 1, D3D11_COMPARISON_LESS_EQUAL,
         shadowSamplerBorderColor);
     uniforms_->GetSamplerSlot<SS_PS>("ShadowSampler")->SetSampler(shadowSampler);
-    
-    nearShadowMapSlot_   = uniforms_->GetShaderResourceSlot<SS_PS>("NearShadowMap");
+
+    nearShadowMapSlot_ = uniforms_->GetShaderResourceSlot<SS_PS>("NearShadowMap");
     middleShadowMapSlot_ = uniforms_->GetShaderResourceSlot<SS_PS>("MiddleShadowMap");
-    farShadowMapSlot_    = uniforms_->GetShaderResourceSlot<SS_PS>("FarShadowMap");
+    farShadowMapSlot_ = uniforms_->GetShaderResourceSlot<SS_PS>("FarShadowMap");
     if(!nearShadowMapSlot_ || !middleShadowMapSlot_ || !farShadowMapSlot_)
+    {
         throw VRPGGameException("shader resource view slot not found in forward shadow mapping: Near/Middle/Far ShadowMap");
+    }
 }
 
 void ForwardShadowMapping::SetRenderParams(const BlockForwardRenderParams &params)

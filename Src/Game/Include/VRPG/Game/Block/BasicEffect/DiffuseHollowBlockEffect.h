@@ -92,7 +92,7 @@ public:
 
     void EndShadow() const override;
 
-    std::unique_ptr<PartialSectionModelBuilder> CreateModelBuilder(const Vec3i &globalSectionPosition) const override;
+    std::unique_ptr<ModelBuilder> CreateModelBuilder(const Vec3i &globalSectionPosition) const override;
 
     void SetForwardRenderParams(const BlockForwardRenderParams &params) const override;
 

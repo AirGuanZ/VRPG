@@ -83,11 +83,15 @@ inline void ChunkBlockData::SetID(const Vec3i &blockInChunk, BlockID id, BlockOr
     assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
     assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
 
-    auto desc = BlockDescriptionManager::GetInstance().GetBlockDescription(id);
+    auto desc = BlockDescManager::GetInstance().GetBlockDescription(id);
     if(desc->HasExtraData())
+    {
         extraData_[blockInChunk] = desc->CreateExtraData();
+    }
     else
+    {
         extraData_.erase(blockInChunk);
+    }
 
     blockID_[blockInChunk.x][blockInChunk.z][blockInChunk.y] = id;
     orientations_[blockInChunk.x][blockInChunk.z][blockInChunk.y] = orientation;
@@ -99,11 +103,15 @@ inline void ChunkBlockData::SetID(const Vec3i &blockInChunk, BlockID id, BlockOr
     assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
     assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
 
-    auto desc = BlockDescriptionManager::GetInstance().GetBlockDescription(id);
+    auto desc = BlockDescManager::GetInstance().GetBlockDescription(id);
     if(desc->HasExtraData())
+    {
         extraData_[blockInChunk] = std::move(extraData);
+    }
     else
+    {
         extraData_.erase(blockInChunk);
+    }
 
     blockID_[blockInChunk.x][blockInChunk.z][blockInChunk.y] = id;
     orientations_[blockInChunk.x][blockInChunk.z][blockInChunk.y] = orientation;
@@ -184,7 +192,7 @@ inline BlockInstance Chunk::GetBlock(const Vec3i &blockInChunk) const
     assert(0 <= blockInChunk.y && blockInChunk.y < CHUNK_SIZE_Y);
     assert(0 <= blockInChunk.z && blockInChunk.z < CHUNK_SIZE_Z);
     BlockInstance ret;
-    ret.desc = BlockDescriptionManager::GetInstance().GetBlockDescription(block_.GetID(blockInChunk));
+    ret.desc = BlockDescManager::GetInstance().GetBlockDescription(block_.GetID(blockInChunk));
     ret.extraData = ret.desc->HasExtraData() ? block_.GetExtraData(blockInChunk) : nullptr;
     ret.brightness = brightness_.GetBrightness(blockInChunk);
     ret.orientation = block_.GetOrientation(blockInChunk);

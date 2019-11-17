@@ -17,7 +17,7 @@ public:
 
     const char *GetName() const override;
 
-    FaceVisibilityProperty GetFaceVisibilityProperty(Direction direction) const noexcept override;
+    FaceVisibilityType GetFaceVisibility(Direction direction) const noexcept override;
 
     bool IsVisible() const noexcept override;
 
@@ -30,7 +30,7 @@ public:
     BlockBrightness InitialBrightness() const noexcept override;
 
     void AddBlockModel(
-        PartialSectionModelBuilderSet &modelBuilders,
+        ModelBuilderSet &modelBuilders,
         const Vec3i &blockPosition,
         const BlockNeighborhood blocks) const override;
 

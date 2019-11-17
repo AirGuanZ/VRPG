@@ -15,7 +15,9 @@ BlockEffectID BlockEffectManager::RegisterBlockEffect(std::shared_ptr<BlockEffec
     if(auto it = name2Effect_.find(effect->GetName()); it != name2Effect_.end())
     {
         if(it->second != effect)
+        {
             throw VRPGGameException("repeated block effect name: " + std::string(effect->GetName()));
+        }
         return effect->GetBlockEffectID();
     }
 

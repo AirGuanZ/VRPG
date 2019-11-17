@@ -22,9 +22,9 @@ const char *TransparentBoxDescription::GetName() const
     return name_.c_str();
 }
 
-FaceVisibilityProperty TransparentBoxDescription::GetFaceVisibilityProperty(Direction direction) const noexcept
+FaceVisibilityType TransparentBoxDescription::GetFaceVisibility(Direction direction) const noexcept
 {
-    return FaceVisibilityProperty::Transparent;
+    return FaceVisibilityType::Transparent;
 }
 
 bool TransparentBoxDescription::IsVisible() const noexcept
@@ -53,7 +53,7 @@ BlockBrightness TransparentBoxDescription::InitialBrightness() const noexcept
 }
 
 void TransparentBoxDescription::AddBlockModel(
-    PartialSectionModelBuilderSet &modelBuilders,
+    ModelBuilderSet &modelBuilders,
     const Vec3i &blockPosition,
     const BlockNeighborhood blocks) const
 {
@@ -64,8 +64,8 @@ void TransparentBoxDescription::AddBlockModel(
     {
         auto neiDesc = blocks[neiX][neiY][neiZ].desc;
         neiDir = blocks[neiX][neiY][neiZ].orientation.RotatedToOrigin(neiDir);
-        FaceVisibilityProperty neiVis = neiDesc->GetFaceVisibilityProperty(neiDir);
-        FaceVisibility vis = TestFaceVisibility(FaceVisibilityProperty::Transparent, neiVis);
+        FaceVisibilityType neiVis = neiDesc->GetFaceVisibility(neiDir);
+        FaceVisibility vis = TestFaceVisibility(FaceVisibilityType::Transparent, neiVis);
         return vis == FaceVisibility::Yes || (vis == FaceVisibility::Diff && neiDesc != this);
     };
     
@@ -107,7 +107,9 @@ void TransparentBoxDescription::AddBlockModel(
         };
         Vec3i neiIndex = ROT_DIR_TO_NEI_INDEX[int(rotDir)];
         if(!isFaceVisible(neiIndex.x, neiIndex.y, neiIndex.z, -rotDir))
+        {
             return;
+        }
 
         Vec3 position[4];
         GenerateBoxFaceDynamic(normalDirection, position);

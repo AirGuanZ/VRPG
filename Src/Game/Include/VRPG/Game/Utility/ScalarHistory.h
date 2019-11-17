@@ -29,14 +29,18 @@ public:
     {
         float sum = 0;
         for(auto v : history_)
+        {
             sum += v;
+        }
         return sum / history_.size();
     }
 
     void Clear()
     {
         for(auto &v : history_)
+        {
             v = 0;
+        }
     }
 };
 

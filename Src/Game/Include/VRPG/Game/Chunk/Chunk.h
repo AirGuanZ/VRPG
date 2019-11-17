@@ -8,9 +8,9 @@ VRPG_GAME_BEGIN
 
 class ChunkBlockData
 {
-    BlockID blockID_[CHUNK_SIZE_X][CHUNK_SIZE_Z][CHUNK_SIZE_Y] = { { { 0 } } };
+    BlockID          blockID_     [CHUNK_SIZE_X][CHUNK_SIZE_Z][CHUNK_SIZE_Y] = { { { 0 } } };
     BlockOrientation orientations_[CHUNK_SIZE_X][CHUNK_SIZE_Z][CHUNK_SIZE_Y];
-    int heightMap_[CHUNK_SIZE_X][CHUNK_SIZE_Z] = { { 0 } };
+    int              heightMap_   [CHUNK_SIZE_X][CHUNK_SIZE_Z] = { { 0 } };
 
     std::map<Vec3i, BlockExtraData> extraData_;
 

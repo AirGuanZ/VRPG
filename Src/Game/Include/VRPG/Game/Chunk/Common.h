@@ -9,7 +9,7 @@ class ChunkManager;
 class ChunkModel;
 class ChunkRenderer;
 class PartialSectionModel;
-class PartialSectionModelBuilderSet;
+class ModelBuilderSet;
 class SectionModel;
 
 /**

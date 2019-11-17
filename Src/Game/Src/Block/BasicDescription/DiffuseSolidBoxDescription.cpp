@@ -22,9 +22,9 @@ const char *DiffuseSolidBoxDescription::GetName() const
     return name_.c_str();
 }
 
-FaceVisibilityProperty DiffuseSolidBoxDescription::GetFaceVisibilityProperty(Direction direction) const noexcept
+FaceVisibilityType DiffuseSolidBoxDescription::GetFaceVisibility(Direction direction) const noexcept
 {
-    return FaceVisibilityProperty::Solid;
+    return FaceVisibilityType::Solid;
 }
 
 bool DiffuseSolidBoxDescription::IsVisible() const noexcept
@@ -53,7 +53,7 @@ BlockBrightness DiffuseSolidBoxDescription::InitialBrightness() const noexcept
 }
 
 void DiffuseSolidBoxDescription::AddBlockModel(
-    PartialSectionModelBuilderSet &modelBuilders,
+    ModelBuilderSet &modelBuilders,
     const Vec3i &blockPosition,
     const BlockNeighborhood blocks) const
 {
@@ -63,8 +63,8 @@ void DiffuseSolidBoxDescription::AddBlockModel(
     auto isFaceVisible = [&](int neiX, int neiY, int neiZ, Direction neiDir)
     {
         neiDir = blocks[neiX][neiY][neiZ].orientation.RotatedToOrigin(neiDir);
-        FaceVisibilityProperty neiVis = blocks[neiX][neiY][neiZ].desc->GetFaceVisibilityProperty(neiDir);
-        FaceVisibility visibility = TestFaceVisibility(FaceVisibilityProperty::Solid, neiVis);
+        FaceVisibilityType neiVis = blocks[neiX][neiY][neiZ].desc->GetFaceVisibility(neiDir);
+        FaceVisibility visibility = TestFaceVisibility(FaceVisibilityType::Solid, neiVis);
         return visibility == FaceVisibility::Yes;
     };
     
@@ -77,7 +77,6 @@ void DiffuseSolidBoxDescription::AddBlockModel(
         Vec4 lhtE = 0.25f * (lhtA + lhtB + lhtC + lhtD);
 
         VertexIndex vertexCount = VertexIndex(builder->GetVertexCount());
-
         Vec3 normal = cross(posB - posA, posC - posB).normalize();
 
         builder->AddVertex({ posA, BOX_FACE_TEXCOORD[0], normal, lhtA, textureIndexInEffect });
@@ -105,7 +104,9 @@ void DiffuseSolidBoxDescription::AddBlockModel(
         };
         Vec3i neiIndex = ROT_DIR_TO_NEI_INDEX[int(rotDir)];
         if(!isFaceVisible(neiIndex.x, neiIndex.y, neiIndex.z, -rotDir))
+        {
             return;
+        }
 
         Vec3 position[4];
         GenerateBoxFaceDynamic(normalDirection, position);

@@ -5,7 +5,7 @@
 #include <VRPG/Game/Block/BasicDescription/GrassLikeDescription.h>
 #include <VRPG/Game/Block/BasicDescription/TransparentBoxDescription.h>
 #include <VRPG/Game/Block/BasicDescription/TransparentLiquidDescription.h>
-#include <VRPG/Game/Block/BuiltinBlock/BuiltinBlock.h>
+#include <VRPG/Game/Block/BuiltinBlock.h>
 #include <VRPG/Game/Config/GlobalConfig.h>
 
 VRPG_GAME_BEGIN
@@ -76,7 +76,7 @@ namespace
 
 void BuiltinBlockTypeManager::RegisterBuiltinBlockTypes()
 {
-    auto &descMgr = BlockDescriptionManager::GetInstance();
+    auto &descMgr = BlockDescManager::GetInstance();
 
     DiffuseHollowBlockEffectGenerator diffuseHollowBlockEffectGenerator(32, 64);
     DiffuseSolidBlockEffectGenerator  diffuseSolidEffectGenerator      (32, 64);

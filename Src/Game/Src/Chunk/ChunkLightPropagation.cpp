@@ -17,7 +17,9 @@ namespace
     BlockBrightness GetLight(Chunk *(&chunks)[3][3], int x, int y, int z) noexcept
     {
         if(OutOfBound(x, y, z))
+        {
             return BlockBrightness{ 0, 0, 0, 0 };
+        }
         int chunkIndexX = x / CHUNK_SIZE_X, chunkIndexZ = z / CHUNK_SIZE_Z;
         int blockIndexX = x % CHUNK_SIZE_X, blockIndexZ = z % CHUNK_SIZE_Z;
         return chunks[chunkIndexX][chunkIndexZ]->GetBrightness({ blockIndexX, y, blockIndexZ });
@@ -26,7 +28,9 @@ namespace
     void SetLight(Chunk *(&chunks)[3][3], int x, int y, int z, BlockBrightness brightness) noexcept
     {
         if(OutOfBound(x, y, z))
+        {
             return;
+        }
         int chunkIndexX = x / CHUNK_SIZE_X, chunkIndexZ = z / CHUNK_SIZE_Z;
         int blockIndexX = x % CHUNK_SIZE_X, blockIndexZ = z % CHUNK_SIZE_Z;
         chunks[chunkIndexX][chunkIndexZ]->SetBrightness({ blockIndexX, y, blockIndexZ }, brightness);
@@ -35,7 +39,9 @@ namespace
     int GetHeight(Chunk *(&chunks)[3][3], int x, int z) noexcept
     {
         if(OutOfBound(x, 0, z))
+        {
             return 0;
+        }
         int chunkIndexX = x / CHUNK_SIZE_X, chunkIndexZ = z / CHUNK_SIZE_Z;
         int blockIndexX = x % CHUNK_SIZE_X, blockIndexZ = z % CHUNK_SIZE_Z;
         return chunks[chunkIndexX][chunkIndexZ]->GetHeight(blockIndexX, blockIndexZ);
@@ -44,7 +50,9 @@ namespace
     BlockID GetID(Chunk *(&chunks)[3][3], int x, int y, int z) noexcept
     {
         if(OutOfBound(x, y, z))
+        {
             return BLOCK_ID_VOID;
+        }
         int chunkIndexX = x / CHUNK_SIZE_X, chunkIndexZ = z / CHUNK_SIZE_Z;
         int blockIndexX = x % CHUNK_SIZE_X, blockIndexZ = z % CHUNK_SIZE_Z;
         return chunks[chunkIndexX][chunkIndexZ]->GetID({ blockIndexX, y, blockIndexZ });
@@ -55,14 +63,16 @@ void PropagateLightForCentreChunk(Chunk *(&chunks)[3][3])
 {
     // IMPROVE: 这里面有大量边界检查和下标计算都是冗余的
 
-    auto &blockDescMgr = BlockDescriptionManager::GetInstance();
+    auto &blockDescMgr = BlockDescManager::GetInstance();
     std::queue<Vec3i> propagationQueue;
 
     // 若一个位置在区块范围内，就将他加入propagationQueue
     auto addToQueue = [&](int x, int y, int z)
     {
         if(!OutOfBound(x, y, z))
+        {
             propagationQueue.push({ x, y, z });
+        }
     };
 
     // 将一个位置的六个相邻位置加入光照更新队列中
@@ -98,7 +108,9 @@ void PropagateLightForCentreChunk(Chunk *(&chunks)[3][3])
         BlockBrightness directSkyLight;
         int height = GetHeight(chunks, pos.x, pos.z);
         if(pos.y > height)
+        {
             directSkyLight = BLOCK_BRIGHTNESS_SKY;
+        }
 
         BlockBrightness emission = desc->InitialBrightness();
         BlockBrightness attenuation = desc->LightAttenuation();
@@ -140,11 +152,15 @@ void PropagateLightForCentreChunk(Chunk *(&chunks)[3][3])
             }
 
             for(int y = height + 1; y < CHUNK_SIZE_Y; ++y)
+            {
                 SetLight(chunks, x, y, z, BLOCK_BRIGHTNESS_SKY);
+            }
 
             int ySourceEnd = maxNeighborHeight + 1;
             for(int y = height + 1; y <= ySourceEnd; ++y)
+            {
                 addNeighborToQueue(x, y, z);
+            }
         }
     }
 

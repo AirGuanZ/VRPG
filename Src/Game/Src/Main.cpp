@@ -2,9 +2,9 @@
 
 #include <VRPG/Base/Base.h>
 
-#include <VRPG/Game/Block/BuiltinBlock/BuiltinBlock.h>
 #include <VRPG/Game/Block/BlockDescription.h>
 #include <VRPG/Game/Block/BlockEffect.h>
+#include <VRPG/Game/Block/BuiltinBlock.h>
 #include <VRPG/Game/Config/GlobalConfig.h>
 #include <VRPG/Game/Game.h>
 
@@ -34,7 +34,7 @@ int main()
             spdlog::info("destroy builtin block manager");
             BuiltinBlockTypeManager::GetInstance().Clear();
             BlockEffectManager     ::GetInstance().Clear();
-            BlockDescriptionManager::GetInstance().Clear();
+            BlockDescManager::GetInstance().Clear();
         });
 
         Game game(&window);

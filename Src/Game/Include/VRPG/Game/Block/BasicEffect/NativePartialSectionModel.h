@@ -11,12 +11,6 @@ VRPG_GAME_BEGIN
 template<typename Effect>
 class NativePartialSectionModel : public PartialSectionModel
 {
-    static_assert(std::is_base_of_v<BlockEffect, Effect>);
-
-    const Effect *effect_;
-    VertexBuffer<typename Effect::Vertex> vertexBuffer_;
-    IndexBuffer<VertexIndex> indexBuffer_;
-
 public:
 
     NativePartialSectionModel(
@@ -47,22 +41,22 @@ public:
     {
         return effect_;
     }
+
+private:
+
+    static_assert(std::is_base_of_v<BlockEffect, Effect>);
+
+    const Effect                         *effect_;
+    VertexBuffer<typename Effect::Vertex> vertexBuffer_;
+    IndexBuffer<VertexIndex>              indexBuffer_;
 };
 
 /**
  * @brief 用于构建NativePartialSectionModel的model builder
  */
 template<typename Effect>
-class NativePartialSectionModelBuilder : public PartialSectionModelBuilder
+class NativePartialSectionModelBuilder : public ModelBuilder
 {
-    static_assert(std::is_base_of_v<BlockEffect, Effect>);
-
-    Vec3i globalSectionPosition_;
-
-    std::vector<typename Effect::Vertex> vertices_;
-    std::vector<VertexIndex> indices_;
-    const Effect *effect_;
-
 public:
 
     explicit NativePartialSectionModelBuilder(const Vec3i &globalSectionPosition, const Effect *effect)
@@ -88,7 +82,9 @@ public:
     std::shared_ptr<const PartialSectionModel> Build() override
     {
         if(vertices_.empty() || indices_.empty())
+        {
             return nullptr;
+        }
 
         VertexBuffer<typename Effect::Vertex> vertexBuffer;
         vertexBuffer.Initialize(UINT(vertices_.size()), false, vertices_.data());
@@ -99,6 +95,16 @@ public:
         return std::make_shared<NativePartialSectionModel<Effect>>(
             globalSectionPosition_, effect_, std::move(vertexBuffer), std::move(indexBuffer));
     }
+
+private:
+
+    static_assert(std::is_base_of_v<BlockEffect, Effect>);
+
+    Vec3i globalSectionPosition_;
+
+    std::vector<typename Effect::Vertex> vertices_;
+    std::vector<VertexIndex>             indices_;
+    const Effect                        *effect_;
 };
 
 VRPG_GAME_END
