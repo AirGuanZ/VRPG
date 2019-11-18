@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <VRPG/Base/Event.h>
 #include <VRPG/Base/KeyCode.h>
@@ -44,9 +44,13 @@ class KeyboardEventManager
     void UpdateSingleKey(bool pressed, KeyCode keycode) noexcept
     {
         if(pressed && !IsKeyPressed(keycode))
+        {
             InvokeAllHandlers(KeyDownEvent{ keycode });
+        }
         else if(!pressed && IsKeyPressed(keycode))
+        {
             InvokeAllHandlers(KeyUpEvent{ keycode });
+        }
     }
 
 public:
@@ -105,7 +109,9 @@ public:
     void ClearState()
     {
         for(auto &k : isKeyPressed_)
+        {
             k = false;
+        }
     }
 };
 

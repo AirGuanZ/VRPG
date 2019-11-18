@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <VRPG/Base/D3D/D3DCreate.h>
 
@@ -23,27 +23,31 @@ public:
         else
         {
             if(!initData)
+            {
                 throw VRPGBaseException("initData is nullptr for immutable constant buffer");
+            }
             usage = D3D11_USAGE_IMMUTABLE;
             cpuAccessFlag = 0;
         }
 
         D3D11_BUFFER_DESC bufferDesc;
-        bufferDesc.Usage               = usage;
-        bufferDesc.BindFlags           = D3D11_BIND_CONSTANT_BUFFER;
-        bufferDesc.ByteWidth           = sizeof(Struct);
-        bufferDesc.CPUAccessFlags      = cpuAccessFlag;
-        bufferDesc.MiscFlags           = 0;
+        bufferDesc.Usage = usage;
+        bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        bufferDesc.ByteWidth = sizeof(Struct);
+        bufferDesc.CPUAccessFlags = cpuAccessFlag;
+        bufferDesc.MiscFlags = 0;
         bufferDesc.StructureByteStride = 0;
 
         D3D11_SUBRESOURCE_DATA subrscData;
-        subrscData.pSysMem          = initData;
-        subrscData.SysMemPitch      = 0;
+        subrscData.pSysMem = initData;
+        subrscData.SysMemPitch = 0;
         subrscData.SysMemSlicePitch = 0;
 
         buffer_ = CreateD3D11Buffer(bufferDesc, initData ? &subrscData : nullptr);
         if(!buffer_)
+        {
             throw VRPGBaseException("failed to create constant buffer");
+        }
     }
 
     bool IsAvailable() const noexcept
@@ -76,7 +80,9 @@ public:
         D3D11_MAPPED_SUBRESOURCE mappedSubrsc;
         HRESULT hr = gDeviceContext->Map(buffer_.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubrsc);
         if(FAILED(hr))
+        {
             throw VRPGBaseException("failed to map constant buffer to memory");
+        }
         std::memcpy(mappedSubrsc.pData, &data, sizeof(Struct));
         gDeviceContext->Unmap(buffer_.Get(), 0);
     }

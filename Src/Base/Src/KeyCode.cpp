@@ -1,4 +1,4 @@
-#include <VRPG/Base/KeyCode.h>
+﻿#include <VRPG/Base/KeyCode.h>
 
 VRPG_BASE_BEGIN
 
@@ -11,13 +11,19 @@ namespace
         VK2KeyCodeTable()
         {
             for(auto &kc : table)
+            {
                 kc = KEY_UNKNOWN;
+            }
 
             for(int i = 'A'; i <= 'Z'; ++i)
+            {
                 table[i] = KeyCode(i);
+            }
 
             for(int i = '0'; i <= '9'; ++i)
+            {
                 table[i] = KeyCode(i);
+            }
 
             table[VK_TAB]      = KEY_TAB;
             table[VK_RETURN]   = KEY_ENTER;

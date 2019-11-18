@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <thread>
 
 #include <ImGui/imgui.h>
@@ -32,10 +32,8 @@ namespace Impl
     {
         static int ToImGuiMouseButton(MouseButton mb) noexcept
         {
-            if(mb == MouseButton::Left)
-                return 0;
-            if(mb == MouseButton::Right)
-                return 1;
+            if(mb == MouseButton::Left)  return 0;
+            if(mb == MouseButton::Right) return 1;
             return 2;
         }
 
@@ -160,7 +158,9 @@ void Window::Initialize(const WindowDesc &windowDesc)
     wc.lpszClassName = data_->windowClassName.c_str();
     wc.hIconSm       = nullptr;
     if(!RegisterClassExW(&wc))
+    {
         throw VRPGBaseException("failed to register window class");
+    }
 
     // style, rect size and title
 
@@ -175,7 +175,9 @@ void Window::Initialize(const WindowDesc &windowDesc)
 
     RECT winRect = { 0, 0, clientWidth, clientHeight };
     if(!AdjustWindowRect(&winRect, dwStyle, FALSE))
+    {
         throw VRPGBaseException("failed to adjust window size");
+    }
 
     int realWinWidth  = winRect.right - winRect.left;
     int realWinHeight = winRect.bottom - winRect.top;
@@ -191,7 +193,9 @@ void Window::Initialize(const WindowDesc &windowDesc)
         dwStyle, realWinLeft, realWinTop, realWinWidth, realWinHeight,
         nullptr, nullptr, data_->hInstance, nullptr);
     if(!data_->hWindow)
+    {
         throw VRPGBaseException("failed to create win32 window");
+    }
 
     ShowWindow(data_->hWindow, SW_SHOW);
     UpdateWindow(data_->hWindow);
@@ -280,7 +284,9 @@ bool Window::IsAvailable() const noexcept
 void Window::Destroy()
 {
     if(!data_)
+    {
         return;
+    }
 
     ImGui_ImplDX11_Shutdown();
     ImGui_ImplWin32_Shutdown();
@@ -293,10 +299,14 @@ void Window::Destroy()
     ReleaseCOMObjects(data_->renderTargetView);
 
     if(data_->deviceContext)
+    {
         data_->deviceContext->ClearState();
+    }
 
     if(data_->swapChain)
+    {
         data_->swapChain->SetFullscreenState(FALSE, nullptr);
+    }
     ReleaseCOMObjects(data_->swapChain, data_->deviceContext);
 
 #ifdef AGZ_DEBUG
@@ -305,7 +315,9 @@ void Window::Destroy()
         ID3D11Debug *debug = nullptr;
         HRESULT hr = data_->device->QueryInterface<ID3D11Debug>(&debug);
         if(SUCCEEDED(hr))
+        {
             debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL | D3D11_RLDO_IGNORE_INTERNAL);
+        }
         ReleaseCOMObjects(debug);
     }
 #endif
@@ -317,7 +329,9 @@ void Window::Destroy()
         DestroyWindow(data_->hWindow);
     }
     if(!data_->windowClassName.empty())
+    {
         UnregisterClassW(data_->windowClassName.c_str(), data_->hInstance);
+    }
 
     eventMgr_.DetachAllTypes();
 
@@ -422,7 +436,9 @@ void Window::DoEvents(bool updateMouse, bool updateKeyboard)
     }
 
     if(updateKeyboard)
+    {
         data_->keyboard->Update();
+    }
 }
 
 void Window::WaitForFocus()
@@ -604,14 +620,18 @@ void Window::_key_down(KeyCode key)
 {
     assert(IsAvailable());
     if(key != KEY_UNKNOWN)
+    {
         data_->keyboard->InvokeAllHandlers(KeyDownEvent{ key });
+    }
 }
 
 void Window::_key_up(KeyCode key)
 {
     assert(IsAvailable());
     if(key != KEY_UNKNOWN)
+    {
         data_->keyboard->InvokeAllHandlers(KeyUpEvent{ key });
+    }
 }
 
 void Window::_char_input(uint32_t ch)
@@ -638,14 +658,18 @@ namespace Impl
     {
         auto winIt = HandleToWindow().find(hWindow);
         if(winIt == HandleToWindow().end())
+        {
             return DefWindowProc(hWindow, msg, wParam, lParam);
+        }
         auto win = winIt->second;
 
         switch(msg)
         {
         case WM_SIZE:
             if(wParam != SIZE_MINIMIZED)
+            {
                 win->_resize();
+            }
             break;
         case WM_CLOSE:
             win->_close();
@@ -691,7 +715,9 @@ namespace Impl
             return 0;
         case WM_CHAR:
             if(wParam > 0 && wParam < 0x10000)
+            {
                 win->_char_input(uint32_t(wParam));
+            }
             break;
         default:
             break;

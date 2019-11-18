@@ -1,4 +1,4 @@
-#include <Windows.h>
+﻿#include <Windows.h>
 
 #include <VRPG/Base/Mouse.h>
 #include <VRPG/Base/Window.h>
@@ -61,13 +61,15 @@ void MouseEventManager::ClearState()
     isButtonPressed_[0]          = isButtonPressed_[1]          = isButtonPressed_[2]          = false;
     isButtonDown_[0]             = isButtonDown_[1]             = isButtonDown_[2]             = false;
     isButtonUp_[0]               = isButtonUp_[1]               = isButtonUp_[2]               = false;
-
-    cursorX_ = cursorY_ = 0;
-    lastCursorX_ = lastCursorY_ = 0;
+    
+    cursorX_         = cursorY_         = 0;
+    lastCursorX_     = lastCursorY_     = 0;
     relativeCursorX_ = relativeCursorY_ = 0;
 
     isCursorLocked_ = false;
     if(!showCursor_)
+    {
         ShowCursor(true);
+    }
 }
 VRPG_BASE_END

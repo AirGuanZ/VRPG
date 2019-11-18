@@ -34,7 +34,8 @@ namespace
 
         BlockBrightness InitialBrightness() const noexcept override;
 
-        bool RayIntersect(const Vec3 &start, const Vec3 &invDir, float minT, float maxT, Direction *pickedFace) const noexcept override;
+        bool RayIntersect(
+            const Vec3 &start, const Vec3 &invDir, float minT, float maxT, Direction *pickedFace) const noexcept override;
     };
 }
 

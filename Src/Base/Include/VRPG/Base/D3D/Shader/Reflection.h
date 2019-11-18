@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <cassert>
 #include <map>
@@ -18,7 +18,9 @@ namespace Reflection
     {
         assert(byteCode);
         ComPtr<ID3D11ShaderReflection> reflection;
-        HRESULT hr = D3DReflect(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), IID_ID3D11ShaderReflection, (void **)reflection.GetAddressOf());
+        HRESULT hr = D3DReflect(
+            byteCode->GetBufferPointer(), byteCode->GetBufferSize(),
+            IID_ID3D11ShaderReflection, (void **)reflection.GetAddressOf());
         return SUCCEEDED(hr) ? reflection : nullptr;
     }
 
@@ -58,9 +60,9 @@ namespace Reflection
                 constantBufferInfo.insert(std::make_pair(
                     std::string(bdDesc.Name), ConstantBufferInfo{ bdDesc.BindPoint }));
             }
-            else if(bdDesc.Type == D3D_SIT_TEXTURE ||
-               bdDesc.Type == D3D_SIT_STRUCTURED ||
-               bdDesc.Type == D3D_SIT_BYTEADDRESS)
+            else if(bdDesc.Type == D3D_SIT_TEXTURE    ||
+                    bdDesc.Type == D3D_SIT_STRUCTURED ||
+                    bdDesc.Type == D3D_SIT_BYTEADDRESS)
             {
                 shaderResourceInfo.insert(std::make_pair(
                     std::string(bdDesc.Name), ShaderResourceInfo{ bdDesc.BindPoint, bdDesc.BindCount }));

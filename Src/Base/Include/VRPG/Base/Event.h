@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <cassert>
 #include <functional>
@@ -44,7 +44,9 @@ public:
     void InvokeAllHandlers(const Event &param) const
     {
         for(auto handler : handlers_)
+        {
             handler->Handle(param);
+        }
     }
 
     void Attach(EventHandler<Event> *handler)
@@ -64,7 +66,9 @@ public:
     void DetachAll()
     {
         while(!handlers_.empty())
+        {
             Detach(*handlers_.begin());
+        }
     }
 };
 
@@ -137,7 +141,9 @@ public:
     void Handle(const Event &param) override
     {
         if(func_)
+        {
             func_(param);
+        }
     }
 
 private:
@@ -177,7 +183,9 @@ public:
     void Handle(const Event &e) override
     {
         if(classInstance_ && memberFunc_)
+        {
             classInstance_->memberFunc(e);
+        }
     }
 
 private:

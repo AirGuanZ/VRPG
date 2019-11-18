@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <array>
 
@@ -25,7 +25,9 @@ class ShadowMap : public agz::misc::uncopyable_t
     void ReleaseOldCOMObjects()
     {
         for(auto &rt : oldRenderTargets_)
+        {
             ReleaseCOMObjects(rt);
+        }
         ReleaseCOMObjects(oldDepthStencilView_);
     }
 
@@ -76,7 +78,9 @@ inline ShadowMap::ShadowMap(int width, int height)
 
     ComPtr<ID3D11Texture2D> depth;
     if(FAILED(gDevice->CreateTexture2D(&texDesc, nullptr, depth.GetAddressOf())))
+    {
         throw VRPGBaseException("failed to create depth texture for shadow mapping");
+    }
 
     D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
     dsvDesc.Flags              = 0;
@@ -84,7 +88,9 @@ inline ShadowMap::ShadowMap(int width, int height)
     dsvDesc.ViewDimension      = D3D11_DSV_DIMENSION_TEXTURE2D;
     dsvDesc.Texture2D.MipSlice = 0;
     if(FAILED(gDevice->CreateDepthStencilView(depth.Get(), &dsvDesc, dsv_.GetAddressOf())))
+    {
         throw VRPGBaseException("failed to create depth stencil view for shadow mapping");
+    }
 
     D3D11_TEXTURE2D_DESC rtDesc;
     rtDesc.Width              = width;
@@ -101,14 +107,18 @@ inline ShadowMap::ShadowMap(int width, int height)
 
     ComPtr<ID3D11Texture2D> rt;
     if(FAILED(gDevice->CreateTexture2D(&rtDesc, nullptr, rt.GetAddressOf())))
+    {
         throw VRPGBaseException("failed to create render target texture for shadow mapping");
+    }
 
     D3D11_RENDER_TARGET_VIEW_DESC rtvDesc;
-    rtvDesc.Format = DXGI_FORMAT_R32_FLOAT;
-    rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+    rtvDesc.Format             = DXGI_FORMAT_R32_FLOAT;
+    rtvDesc.ViewDimension      = D3D11_RTV_DIMENSION_TEXTURE2D;
     rtvDesc.Texture2D.MipSlice = 0;
     if(FAILED(gDevice->CreateRenderTargetView(rt.Get(), &rtvDesc, rtv_.GetAddressOf())))
+    {
         throw VRPGBaseException("failed to create render target view for shadow mapping");
+    }
 
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
     srvDesc.Format                    = DXGI_FORMAT_R32_FLOAT;
@@ -116,7 +126,9 @@ inline ShadowMap::ShadowMap(int width, int height)
     srvDesc.Texture2D.MipLevels       = texDesc.MipLevels;
     srvDesc.Texture2D.MostDetailedMip = 0;
     if(FAILED(gDevice->CreateShaderResourceView(rt.Get(), &srvDesc, srv_.GetAddressOf())))
+    {
         throw VRPGBaseException("failed to create shader resource view for shadow mapping");
+    }
 }
 
 inline ShadowMap::~ShadowMap()

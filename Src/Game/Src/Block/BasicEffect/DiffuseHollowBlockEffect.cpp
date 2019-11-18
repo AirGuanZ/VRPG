@@ -7,8 +7,10 @@ VRPG_GAME_BEGIN
 
 void DiffuseHollowBlockEffectCommon::InitializeForward()
 {
-    forwardShader_.InitializeStageFromFile<SS_VS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseHollow"]["ForwardVertexShader"]);
-    forwardShader_.InitializeStageFromFile<SS_PS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseHollow"]["ForwardPixelShader"]);
+    forwardShader_.InitializeStageFromFile<SS_VS>(
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseHollow"]["ForwardVertexShader"]);
+    forwardShader_.InitializeStageFromFile<SS_PS>(
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseHollow"]["ForwardPixelShader"]);
     if(!forwardShader_.IsAllStagesAvailable())
     {
         throw VRPGGameException("failed to initialize diffuse hollow block effect shader");
@@ -45,8 +47,10 @@ void DiffuseHollowBlockEffectCommon::InitializeForward()
 
 void DiffuseHollowBlockEffectCommon::InitializeShadow()
 {
-    std::string vertexShaderSource = agz::file::read_txt_file(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseHollow"]["ShadowVertexShader"]);
-    std::string pixelShaderSource  = agz::file::read_txt_file(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseHollow"]["ShadowPixelShader"]);
+    std::string vertexShaderSource = agz::file::read_txt_file(
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseHollow"]["ShadowVertexShader"]);
+    std::string pixelShaderSource  = agz::file::read_txt_file(
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseHollow"]["ShadowPixelShader"]);
 
     shadowShader_.InitializeStage<SS_VS>(vertexShaderSource);
     shadowShader_.InitializeStage<SS_PS>(pixelShaderSource);
@@ -98,37 +102,37 @@ void DiffuseHollowBlockEffectCommon::SetShadowRenderParams(const BlockShadowRend
 
 void DiffuseHollowBlockEffectCommon::StartForward(ID3D11ShaderResourceView *textureArray)
 {
-    forwardShadowMapping_->Bind();
     forwardDiffuseTextureSlot_->SetShaderResourceView(textureArray);
-    forwardShader_.Bind();
-    forwardUniforms_.Bind();
-    forwardInputLayout_.Bind();
+    forwardShadowMapping_ ->Bind();
+    forwardShader_         .Bind();
+    forwardUniforms_       .Bind();
+    forwardInputLayout_    .Bind();
     forwardRasterizerState_.Bind();
 }
 
 void DiffuseHollowBlockEffectCommon::EndForward()
 {
     forwardRasterizerState_.Unbind();
-    forwardShader_.Unbind();
-    forwardUniforms_.Unbind();
-    forwardInputLayout_.Unbind();
-    forwardShadowMapping_->Unbind();
+    forwardShader_         .Unbind();
+    forwardUniforms_       .Unbind();
+    forwardInputLayout_    .Unbind();
+    forwardShadowMapping_ ->Unbind();
 }
 
 void DiffuseHollowBlockEffectCommon::StartShadow(ID3D11ShaderResourceView *textureArray)
 {
     shadowDiffuseTextureSlot_->SetShaderResourceView(textureArray);
-    shadowShader_.Bind();
-    shadowUniforms_.Bind();
-    shadowInputLayout_.Bind();
+    shadowShader_         .Bind();
+    shadowUniforms_       .Bind();
+    shadowInputLayout_    .Bind();
     shadowRasterizerState_.Bind();
 }
 
 void DiffuseHollowBlockEffectCommon::EndShadow()
 {
-    shadowShader_.Unbind();
-    shadowUniforms_.Unbind();
-    shadowInputLayout_.Unbind();
+    shadowShader_         .Unbind();
+    shadowUniforms_       .Unbind();
+    shadowInputLayout_    .Unbind();
     shadowRasterizerState_.Unbind();
 }
 

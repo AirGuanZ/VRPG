@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <VRPG/Base/D3D/ComObjectHolder.h>
 #include <VRPG/Base/D3D/D3DCreate.h>
@@ -41,7 +41,9 @@ public:
 
         obj_ = CreateSamplerState(desc);
         if(!obj_)
+        {
             throw VRPGBaseException("failed to create d3d sampler state");
+        }
     }
 };
 

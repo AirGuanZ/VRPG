@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <VRPG/Base/D3D/D3DCreate.h>
 
@@ -30,7 +30,9 @@ public:
 
         state_ = CreateDepthStencilState(desc);
         if(!state_)
+        {
             throw VRPGBaseException("failed to create d3d11 depth stencil state");
+        }
     }
 
     bool IsAvailable() const noexcept

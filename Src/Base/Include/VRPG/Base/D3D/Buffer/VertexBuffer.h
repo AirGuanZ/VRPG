@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <VRPG/Base/D3D/ComObjectHolder.h>
 #include <VRPG/Base/D3D/D3DCreate.h>
@@ -26,7 +26,9 @@ public:
         else
         {
             if(!initData)
+            {
                 throw VRPGBaseException("initData is nullptr for immutable vertex buffer");
+            }
             usage = D3D11_USAGE_IMMUTABLE;
             cpuAccessFlag = 0;
         }
@@ -46,7 +48,9 @@ public:
 
         obj_ = CreateD3D11Buffer(bufferDesc, initData ? &subrscData : nullptr);
         if(!obj_)
+        {
             throw VRPGBaseException("failed to create vertex buffer");
+        }
         vertexCount_ = vertexCount;
     }
 

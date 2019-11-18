@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <VRPG/Base/D3D/D3DCreate.h>
 
@@ -36,7 +36,9 @@ public:
 
         rasterizerState_ = CreateRasterizerState(desc);
         if(!rasterizerState_)
+        {
             throw VRPGBaseException("failed to create rasterizer state");
+        }
     }
 
     bool IsAvailable() const noexcept

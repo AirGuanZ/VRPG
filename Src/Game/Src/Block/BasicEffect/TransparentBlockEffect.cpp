@@ -130,20 +130,20 @@ bool TransparentBlockEffect::IsTransparent() const noexcept
 void TransparentBlockEffect::StartForward() const
 {
     forwardShadowMapping_->Bind();
-    shader_.Bind();
-    uniforms_.Bind();
+    shader_     .Bind();
+    uniforms_   .Bind();
     inputLayout_.Bind();
-    blendState_.Bind();
-    depthState_.Bind();
+    blendState_ .Bind();
+    depthState_ .Bind();
 }
 
 void TransparentBlockEffect::EndForward() const
 {
-    depthState_.Unbind();
-    blendState_.Unbind();
+    depthState_ .Unbind();
+    blendState_ .Unbind();
     inputLayout_.Unbind();
-    uniforms_.Unbind();
-    shader_.Unbind();
+    uniforms_   .Unbind();
+    shader_     .Unbind();
     forwardShadowMapping_->Unbind();
 }
 
@@ -163,8 +163,10 @@ void TransparentBlockEffect::Initialize(int textureSize, const std::vector<agz::
 {
     assert(!textureArrayData.empty());
 
-    shader_.InitializeStageFromFile<SS_VS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Transparent"]["ForwardVertexShader"]);
-    shader_.InitializeStageFromFile<SS_PS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Transparent"]["ForwardPixelShader"]);
+    shader_.InitializeStageFromFile<SS_VS>(
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Transparent"]["ForwardVertexShader"]);
+    shader_.InitializeStageFromFile<SS_PS>(
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Transparent"]["ForwardPixelShader"]);
     if(!shader_.IsAllStagesAvailable())
         throw VRPGGameException("failed to initialize transparent box block effect");
 

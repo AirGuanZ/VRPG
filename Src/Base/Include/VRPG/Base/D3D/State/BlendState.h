@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <VRPG/Base/D3D/D3DCreate.h>
 
@@ -57,7 +57,9 @@ public:
         ComPtr<ID3D11BlendState> blendState;
         HRESULT hr = gDevice->CreateBlendState(&desc_, blendState.GetAddressOf());
         if(FAILED(hr))
+        {
             throw VRPGBaseException("failed to create d3d11 blend state");
+        }
         return blendState;
     }
 };

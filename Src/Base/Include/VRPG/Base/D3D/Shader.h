@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <agz/utility/file.h>
 #include <agz/utility/misc.h>

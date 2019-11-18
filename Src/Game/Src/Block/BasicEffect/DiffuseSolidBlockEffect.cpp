@@ -7,8 +7,10 @@ VRPG_GAME_BEGIN
 
 void DiffuseSolidBlockEffectCommon::InitializeForward()
 {
-    forwardShader.InitializeStageFromFile<SS_VS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseSolid"]["ForwardVertexShader"]);
-    forwardShader.InitializeStageFromFile<SS_PS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseSolid"]["ForwardPixelShader"]);
+    forwardShader.InitializeStageFromFile<SS_VS>(
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseSolid"]["ForwardVertexShader"]);
+    forwardShader.InitializeStageFromFile<SS_PS>(
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseSolid"]["ForwardPixelShader"]);
     if(!forwardShader.IsAllStagesAvailable())
     {
         throw VRPGGameException("failed to initialize diffuse solid block effect shader (forward)");
@@ -17,10 +19,10 @@ void DiffuseSolidBlockEffectCommon::InitializeForward()
     forwardUniforms = forwardShader.CreateUniformManager();
 
     forwardInputLayout = InputLayoutBuilder
-    ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, offsetof(DiffuseSolidBlockEffect::Vertex, position))
-        ("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, offsetof(DiffuseSolidBlockEffect::Vertex, normal))
-        ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, offsetof(DiffuseSolidBlockEffect::Vertex, texCoord))
-        ("TEXINDEX", 0, DXGI_FORMAT_R32_UINT, offsetof(DiffuseSolidBlockEffect::Vertex, texIndex))
+        ("POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT,    offsetof(DiffuseSolidBlockEffect::Vertex, position))
+        ("NORMAL",     0, DXGI_FORMAT_R32G32B32_FLOAT,    offsetof(DiffuseSolidBlockEffect::Vertex, normal))
+        ("TEXCOORD",   0, DXGI_FORMAT_R32G32_FLOAT,       offsetof(DiffuseSolidBlockEffect::Vertex, texCoord))
+        ("TEXINDEX",   0, DXGI_FORMAT_R32_UINT,           offsetof(DiffuseSolidBlockEffect::Vertex, texIndex))
         ("BRIGHTNESS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, offsetof(DiffuseSolidBlockEffect::Vertex, brightness))
         .Build(forwardShader.GetVertexShaderByteCode());
 
@@ -43,8 +45,10 @@ void DiffuseSolidBlockEffectCommon::InitializeForward()
 
 void DiffuseSolidBlockEffectCommon::InitializeShadow()
 {
-    std::string vertexShaderSource = agz::file::read_txt_file(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseSolid"]["ShadowVertexShader"]);
-    std::string pixelShaderSource  = agz::file::read_txt_file(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseSolid"]["ShadowPixelShader"]);
+    std::string vertexShaderSource = agz::file::read_txt_file(
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseSolid"]["ShadowVertexShader"]);
+    std::string pixelShaderSource  = agz::file::read_txt_file(
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseSolid"]["ShadowPixelShader"]);
 
     shadowShader.InitializeStage<SS_VS>(vertexShaderSource);
     shadowShader.InitializeStage<SS_PS>(pixelShaderSource);
@@ -91,15 +95,15 @@ void DiffuseSolidBlockEffectCommon::StartForward(ID3D11ShaderResourceView *diffu
     forwardShadowMapping->Bind();
 
     forwardDiffuseTextureSlot->SetShaderResourceView(diffuseTextureArray);
-    forwardShader.Bind();
-    forwardUniforms.Bind();
+    forwardShader     .Bind();
+    forwardUniforms   .Bind();
     forwardInputLayout.Bind();
 }
 
 void DiffuseSolidBlockEffectCommon::EndForward() const
 {
-    forwardShader.Unbind();
-    forwardUniforms.Unbind();
+    forwardShader     .Unbind();
+    forwardUniforms   .Unbind();
     forwardInputLayout.Unbind();
 
     forwardShadowMapping->Unbind();
@@ -107,17 +111,17 @@ void DiffuseSolidBlockEffectCommon::EndForward() const
 
 void DiffuseSolidBlockEffectCommon::StartShadow() const
 {
-    shadowShader.Bind();
-    shadowUniforms.Bind();
-    shadowInputLayout.Bind();
+    shadowShader         .Bind();
+    shadowUniforms       .Bind();
+    shadowInputLayout    .Bind();
     shadowRasterizerState.Bind();
 }
 
 void DiffuseSolidBlockEffectCommon::EndShadow() const
 {
-    shadowShader.Unbind();
-    shadowUniforms.Unbind();
-    shadowInputLayout.Unbind();
+    shadowShader         .Unbind();
+    shadowUniforms       .Unbind();
+    shadowInputLayout    .Unbind();
     shadowRasterizerState.Unbind();
 }
 

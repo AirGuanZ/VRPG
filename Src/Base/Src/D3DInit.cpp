@@ -1,4 +1,4 @@
-#include <agz/utility/misc.h>
+﻿#include <agz/utility/misc.h>
 #include <agz/utility/system.h>
 
 #include "D3DInit.h"
@@ -24,7 +24,9 @@ std::pair<ID3D11Device*, ID3D11DeviceContext*> CreateD3D11Device()
         nullptr,
         &deviceContext);
     if(FAILED(hr))
+    {
         throw VRPGBaseException("failed to create d3d11 device");
+    }
 
     return { device, deviceContext };
 }
@@ -46,9 +48,13 @@ IDXGISwapChain *CreateD3D11SwapChain(
     UINT sampleQualityEnd;
     HRESULT hr = device->CheckMultisampleQualityLevels(swapChainBufferFormat, UINT(sampleCount), &sampleQualityEnd);
     if(FAILED(hr))
+    {
         throw VRPGBaseException("failed to check multisample quality levels");
+    }
     if(sampleQualityEnd <= UINT(sampleQuality))
+    {
         throw VRPGBaseException("unsupported sampleCount/sampleQuality combination");
+    }
 
     DXGI_SWAP_CHAIN_DESC desc;
     desc.BufferDesc         = bufDesc;
@@ -64,25 +70,33 @@ IDXGISwapChain *CreateD3D11SwapChain(
     IDXGIDevice* dxgiDevice;
     hr = device->QueryInterface<IDXGIDevice>(&dxgiDevice);
     if(FAILED(hr))
+    {
         throw VRPGBaseException("failed to get dxgi device");
+    }
 
     IDXGIAdapter* dxgiAdapter = nullptr;
     hr = dxgiDevice->GetParent(__uuidof(IDXGIAdapter), (void**)&dxgiAdapter);
     ReleaseCOMObjects(dxgiDevice);
     if(FAILED(hr))
+    {
         throw VRPGBaseException("failed to get dxgi adapter");
+    }
 
     IDXGIFactory* dxgiFactory = nullptr;
     hr = dxgiAdapter->GetParent(__uuidof(IDXGIFactory), (void**)&dxgiFactory);
     ReleaseCOMObjects(dxgiAdapter);
     if(FAILED(hr))
+    {
         throw VRPGBaseException("failed to get dxgi factory");
+    }
 
     IDXGISwapChain* swap_chain;
     hr = dxgiFactory->CreateSwapChain(device, &desc, &swap_chain);
     ReleaseCOMObjects(dxgiFactory);
     if(FAILED(hr))
+    {
         throw VRPGBaseException("failed to create dxgi swap chain");
+    }
 
     return swap_chain;
 }
@@ -92,13 +106,17 @@ ID3D11RenderTargetView *CreateD3D11RenderTargetView(IDXGISwapChain *swapChain, I
     ID3D11Texture2D *backgroundBuffer;
     HRESULT hr = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)(&backgroundBuffer));
     if(FAILED(hr))
+    {
         throw VRPGBaseException("failed to get dxgi swap chain buffer");
+    }
 
     ID3D11RenderTargetView* renderTargetView;
     hr = device->CreateRenderTargetView(backgroundBuffer, nullptr, &renderTargetView);
     ReleaseCOMObjects(backgroundBuffer);
     if(FAILED(hr))
+    {
         throw VRPGBaseException("failed to create d3d11 render target view");
+    }
 
     return renderTargetView;
 }
@@ -123,7 +141,9 @@ std::pair<ID3D11Texture2D*, ID3D11DepthStencilView*> CreateD3D11DepthStencilBuff
     ID3D11Texture2D *buffer;
     HRESULT hr = device->CreateTexture2D(&buffer_desc, nullptr, &buffer);
     if(FAILED(hr))
+    {
         throw VRPGBaseException("failed to create d3d11 depth stencil buffer");
+    }
     agz::misc::scope_guard_t buffer_guard([&] { ReleaseCOMObjects(buffer); });
 
     D3D11_DEPTH_STENCIL_VIEW_DESC view_desc;
@@ -135,7 +155,9 @@ std::pair<ID3D11Texture2D*, ID3D11DepthStencilView*> CreateD3D11DepthStencilBuff
     ID3D11DepthStencilView *view;
     hr = device->CreateDepthStencilView(buffer, &view_desc, &view);
     if(FAILED(hr))
+    {
         throw VRPGBaseException("failed to create d3d11 depth stencil view");
+    }
 
     buffer_guard.dismiss();
     return { buffer, view };

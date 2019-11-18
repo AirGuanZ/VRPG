@@ -26,32 +26,32 @@ bool DefaultBlockEffect::IsTransparent() const noexcept
 void DefaultBlockEffect::StartForward() const
 {
     forwardShadowMapping_->Bind();
-    forwardShader_.Bind();
-    forwardUniforms_.Bind();
-    forwardInputLayout_.Bind();
+    forwardShader_        .Bind();
+    forwardUniforms_      .Bind();
+    forwardInputLayout_   .Bind();
 }
 
 void DefaultBlockEffect::EndForward() const
 {
-    forwardInputLayout_.Unbind();
-    forwardUniforms_.Unbind();
-    forwardShader_.Unbind();
+    forwardInputLayout_   .Unbind();
+    forwardUniforms_      .Unbind();
+    forwardShader_        .Unbind();
     forwardShadowMapping_->Unbind();
 }
 
 void DefaultBlockEffect::StartShadow() const
 {
-    shadowShader_.Bind();
-    shadowUniforms_.Bind();
-    shadowInputLayout_.Bind();
+    shadowShader_         .Bind();
+    shadowUniforms_       .Bind();
+    shadowInputLayout_    .Bind();
     shadowRasterizerState_.Bind();
 }
 
 void DefaultBlockEffect::EndShadow() const
 {
-    shadowShader_.Unbind();
-    shadowUniforms_.Unbind();
-    shadowInputLayout_.Unbind();
+    shadowShader_         .Unbind();
+    shadowUniforms_       .Unbind();
+    shadowInputLayout_    .Unbind();
     shadowRasterizerState_.Unbind();
 }
 
@@ -74,8 +74,10 @@ void DefaultBlockEffect::SetShadowRenderParams(const BlockShadowRenderParams &pa
 
 void DefaultBlockEffect::InitializeForward()
 {
-    forwardShader_.InitializeStageFromFile<SS_VS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Default"]["ForwardVertexShader"]);
-    forwardShader_.InitializeStageFromFile<SS_PS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Default"]["ForwardPixelShader"]);
+    forwardShader_.InitializeStageFromFile<SS_VS>(
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Default"]["ForwardVertexShader"]);
+    forwardShader_.InitializeStageFromFile<SS_PS>(
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Default"]["ForwardPixelShader"]);
     if(!forwardShader_.IsAllStagesAvailable())
     {
         throw VRPGGameException("failed to initialize default block effect shader");
@@ -98,8 +100,10 @@ void DefaultBlockEffect::InitializeForward()
 
 void DefaultBlockEffect::InitializeShadow()
 {
-    std::string vertexShaderSource = agz::file::read_txt_file(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Default"]["ShadowVertexShader"]);
-    std::string pixelShaderSource  = agz::file::read_txt_file(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Default"]["ShadowPixelShader"]);
+    std::string vertexShaderSource = agz::file::read_txt_file(
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Default"]["ShadowVertexShader"]);
+    std::string pixelShaderSource  = agz::file::read_txt_file(
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Default"]["ShadowPixelShader"]);
 
     shadowShader_.InitializeStage<SS_VS>(vertexShaderSource);
     shadowShader_.InitializeStage<SS_PS>(pixelShaderSource);

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <map>
 #include <string>
@@ -90,7 +90,9 @@ public:
     bool Add(std::string name, UINT slot)
     {
         if(table_.find(name) != table_.end())
+        {
             return false;
+        }
         table_.insert(std::make_pair(
             std::move(name), Record{ SamplerSlot<STAGE>(slot) }));
         return true;
@@ -111,13 +113,17 @@ public:
     void Bind() const
     {
         for(auto &it : table_)
+        {
             it.second.samplerSlot.Bind();
+        }
     }
 
     void Unbind() const
     {
         for(auto &it : table_)
+        {
             it.second.samplerSlot.Unbind();
+        }
     }
 
 private:

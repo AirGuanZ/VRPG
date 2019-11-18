@@ -7,8 +7,10 @@ VRPG_GAME_BEGIN
 
 void GrassLikeEffectCommon::InitializeForward()
 {
-    forwardShader_.InitializeStageFromFile<SS_VS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["GrassLike"]["ForwardVertexShader"]);
-    forwardShader_.InitializeStageFromFile<SS_PS>(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["GrassLike"]["ForwardPixelShader"]);
+    forwardShader_.InitializeStageFromFile<SS_VS>(
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["GrassLike"]["ForwardVertexShader"]);
+    forwardShader_.InitializeStageFromFile<SS_PS>(
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["GrassLike"]["ForwardPixelShader"]);
     if(!forwardShader_.IsAllStagesAvailable())
     {
         throw VRPGGameException("failed to initialize diffuse hollow block effect shader");
@@ -17,10 +19,10 @@ void GrassLikeEffectCommon::InitializeForward()
     forwardUniforms_ = forwardShader_.CreateUniformManager();
 
     forwardInputLayout_ = InputLayoutBuilder
-    ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, offsetof(GrassLikeEffect::Vertex, position))
-        ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, offsetof(GrassLikeEffect::Vertex, texCoord))
-        ("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, offsetof(GrassLikeEffect::Vertex, normal))
-        ("TEXINDEX", 0, DXGI_FORMAT_R32_UINT, offsetof(GrassLikeEffect::Vertex, texIndex))
+        ("POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT,    offsetof(GrassLikeEffect::Vertex, position))
+        ("TEXCOORD",   0, DXGI_FORMAT_R32G32_FLOAT,       offsetof(GrassLikeEffect::Vertex, texCoord))
+        ("NORMAL",     0, DXGI_FORMAT_R32G32B32_FLOAT,    offsetof(GrassLikeEffect::Vertex, normal))
+        ("TEXINDEX",   0, DXGI_FORMAT_R32_UINT,           offsetof(GrassLikeEffect::Vertex, texIndex))
         ("BRIGHTNESS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, offsetof(GrassLikeEffect::Vertex, brightness))
         .Build(forwardShader_.GetVertexShaderByteCode());
 
@@ -43,8 +45,10 @@ void GrassLikeEffectCommon::InitializeForward()
 
 void GrassLikeEffectCommon::InitializeShadow()
 {
-    std::string vertexShaderSource = agz::file::read_txt_file(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["GrassLike"]["ShadowVertexShader"]);
-    std::string pixelShaderSource  = agz::file::read_txt_file(GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["GrassLike"]["ShadowPixelShader"]);
+    std::string vertexShaderSource = agz::file::read_txt_file(
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["GrassLike"]["ShadowVertexShader"]);
+    std::string pixelShaderSource  = agz::file::read_txt_file(
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["GrassLike"]["ShadowPixelShader"]);
 
     shadowShader_.InitializeStage<SS_VS>(vertexShaderSource);
     shadowShader_.InitializeStage<SS_PS>(pixelShaderSource);
@@ -109,15 +113,15 @@ void GrassLikeEffectCommon::StartForward(ID3D11ShaderResourceView *textureArray)
 {
     forwardShadowMapping_->Bind();
     forwardDiffuseTextureSlot_->SetShaderResourceView(textureArray);
-    forwardShader_.Bind();
-    forwardUniforms_.Bind();
+    forwardShader_     .Bind();
+    forwardUniforms_   .Bind();
     forwardInputLayout_.Bind();
 }
 
 void GrassLikeEffectCommon::EndForward()
 {
-    forwardShader_.Unbind();
-    forwardUniforms_.Unbind();
+    forwardShader_     .Unbind();
+    forwardUniforms_   .Unbind();
     forwardInputLayout_.Unbind();
     forwardShadowMapping_->Unbind();
 }
@@ -125,17 +129,17 @@ void GrassLikeEffectCommon::EndForward()
 void GrassLikeEffectCommon::StartShadow(ID3D11ShaderResourceView *textureArray)
 {
     shadowDiffuseTextureSlot_->SetShaderResourceView(textureArray);
-    shadowShader_.Bind();
-    shadowUniforms_.Bind();
-    shadowInputLayout_.Bind();
+    shadowShader_         .Bind();
+    shadowUniforms_       .Bind();
+    shadowInputLayout_    .Bind();
     shadowRasterizerState_.Bind();
 }
 
 void GrassLikeEffectCommon::EndShadow()
 {
-    shadowShader_.Unbind();
-    shadowUniforms_.Unbind();
-    shadowInputLayout_.Unbind();
+    shadowShader_         .Unbind();
+    shadowUniforms_       .Unbind();
+    shadowInputLayout_    .Unbind();
     shadowRasterizerState_.Unbind();
 }
 

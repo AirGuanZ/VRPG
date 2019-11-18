@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <vector>
 
@@ -41,7 +41,9 @@ public:
         inputLayout_.Reset();
         HRESULT hr = gDevice->CreateInputLayout(desc, UINT(descCount), shaderByteCode->GetBufferPointer(), shaderByteCode->GetBufferSize(), inputLayout_.GetAddressOf());
         if(FAILED(hr))
+        {
             throw VRPGBaseException("failed to create input layout");
+        }
     }
 
     bool IsAvailable() const noexcept
@@ -188,7 +190,9 @@ public:
             shaderByteCode->GetBufferSize(),
             inputLayout.GetAddressOf());
         if(FAILED(hr))
+        {
             throw VRPGBaseException("failed to create input layout");
+        }
         return inputLayout;
     }
 };

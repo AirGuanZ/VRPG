@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <VRPG/Base/Event.h>
 
@@ -69,7 +69,9 @@ public:
     ~MouseEventManager()
     {
         if(!showCursor_)
+        {
             ShowCursor(true);
+        }
     }
 
     void InvokeAllHandlers(const MouseButtonDownEvent &e)

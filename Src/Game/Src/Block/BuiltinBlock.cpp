@@ -49,6 +49,7 @@ namespace
             }
             return c;
         });
+
         Vec3 avg = count == 0 ? Vec3() : 1.0f / count * sum;
 
         // 利用avg填充透明像素的颜色，但不改变其alpha

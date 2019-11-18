@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <VRPG/Base/D3D/ComObjectHolder.h>
 #include <VRPG/Base/D3D/D3DCreate.h>
@@ -46,7 +46,9 @@ public:
         else
         {
             if(!initData)
+            {
                 throw VRPGBaseException("initData is nullptr for immutable index buffer");
+            }
             usage = D3D11_USAGE_IMMUTABLE;
             cpuFlag = 0;
         }
@@ -66,7 +68,9 @@ public:
 
         obj_ = D3D::CreateD3D11Buffer(bufferDesc, initData ? &subrscData : nullptr);
         if(!obj_)
+        {
             throw VRPGBaseException("failed to create index buffer");
+        }
         indexCount_ = indexCount;
     }
 

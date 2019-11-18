@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <VRPG/Base/D3D/Buffer/ConstantBuffer.h>
 #include <VRPG/Base/D3D/Buffer/VertexBuffer.h>
@@ -137,7 +137,9 @@ inline Immediate2D::DrawTexture::DrawTexture()
     shader.InitializeStage<SS_VS>(vertexShaderSource);
     shader.InitializeStage<SS_PS>(pixelShaderSource);
     if(!shader.IsAllStagesAvailable())
+    {
         throw VRPGBaseException("failed to initialize stages for Immediate2D.drawTexture.shader");
+    }
 
     uniforms = shader.CreateUniformManager();
 
@@ -166,7 +168,9 @@ inline Immediate2D::DrawRectangle::DrawRectangle()
     shader.InitializeStage<SS_VS>(vertexShaderSource);
     shader.InitializeStage<SS_PS>(pixelShaderSource);
     if(!shader.IsAllStagesAvailable())
+    {
         throw VRPGBaseException("failed to initialize stages for Immediate2D.drawRectangle.shader");
+    }
 
     inputLayout = InputLayoutBuilder
         ("POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, offsetof(Vertex, position))

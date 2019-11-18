@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <cassert>
 #include <map>
@@ -20,7 +20,9 @@ class ShaderResourceSlot
         for(auto srv : srvs_)
         {
             if(srv)
+            {
                 srv->AddRef();
+            }
         }
     }
 
@@ -29,7 +31,9 @@ class ShaderResourceSlot
         for(auto srv : srvs_)
         {
             if(srv)
+            {
                 srv->Release();
+            }
         }
     }
 
@@ -94,17 +98,23 @@ public:
         assert(0 <= index && index < GetSRVCount());
         auto &dst = srvs_[index];
         if(dst)
+        {
             dst->Release();
+        }
         dst = srv;
         if(srv)
+        {
             srv->AddRef();
+        }
     }
 
     void SetShaderResourceView(int start, int count, ID3D11ShaderResourceView **srvs)
     {
         assert(0 <= start && 0 < count && start + count < GetSRVCount());
         for(int i = 0, j = start; i < count; ++i, ++j)
+        {
             SetShaderResourceView(j, srvs[i]);
+        }
     }
 
     void Bind() const
@@ -166,7 +176,9 @@ public:
     bool Add(std::string name, UINT slot, UINT count)
     {
         if(table_.find(name) != table_.end())
+        {
             return false;
+        }
         table_.insert(std::make_pair(
             std::move(name), Record{ ShaderResourceSlot<STAGE>(slot, count) }));
         return true;
@@ -187,13 +199,17 @@ public:
     void Bind() const
     {
         for(auto &it : table_)
+        {
             it.second.shaderResourceViewSlot.Bind();
+        }
     }
 
     void Unbind() const
     {
         for(auto &it : table_)
+        {
             it.second.shaderResourceViewSlot.Unbind();
+        }
     }
 
 private:

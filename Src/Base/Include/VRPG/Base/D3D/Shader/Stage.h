@@ -62,9 +62,7 @@ namespace Impl
             assert(compiledShader && length);
             ComPtr<D3DShaderType> shader;
             HRESULT hr = gDevice->CreateVertexShader(compiledShader, length, nullptr, shader.GetAddressOf());
-            if(FAILED(hr))
-                return nullptr;
-            return shader;
+            return FAILED(hr) ? nullptr : shader;
         }
 
         static void BindShader(D3DShaderType *shader)
@@ -101,9 +99,7 @@ namespace Impl
             assert(compiledShader && length);
             ComPtr<D3DShaderType> shader;
             HRESULT hr = gDevice->CreateHullShader(compiledShader, length, nullptr, shader.GetAddressOf());
-            if(FAILED(hr))
-                return nullptr;
-            return shader;
+            return FAILED(hr) ? nullptr : shader;
         }
 
         static void BindShader(D3DShaderType *shader)
@@ -140,9 +136,7 @@ namespace Impl
             assert(compiledShader && length);
             ComPtr<D3DShaderType> shader;
             HRESULT hr = gDevice->CreateDomainShader(compiledShader, length, nullptr, shader.GetAddressOf());
-            if(FAILED(hr))
-                return nullptr;
-            return shader;
+            return FAILED(hr) ? nullptr : shader;
         }
 
         static void BindShader(D3DShaderType *shader)
@@ -178,9 +172,7 @@ namespace Impl
             assert(compiledShader && length);
             ComPtr<D3DShaderType> shader = nullptr;
             HRESULT hr = gDevice->CreateGeometryShader(compiledShader, length, nullptr, shader.GetAddressOf());
-            if(FAILED(hr))
-                return nullptr;
-            return shader;
+            return FAILED(hr) ? nullptr : shader;
         }
 
         static void BindShader(D3DShaderType *shader)
@@ -217,9 +209,7 @@ namespace Impl
             assert(compiledShader && length);
             ComPtr<D3DShaderType> shader;
             HRESULT hr = gDevice->CreatePixelShader(compiledShader, length, nullptr, shader.GetAddressOf());
-            if(FAILED(hr))
-                return nullptr;
-            return shader;
+            return FAILED(hr) ? nullptr : shader;
         }
 
         static void BindShader(D3DShaderType *shader)
@@ -244,7 +234,9 @@ class Stage : public agz::misc::uncopyable_t
     {
         ComPtr<ID3D11ShaderReflection> reflection = Reflection::GetShaderReflection(byteCode_.Get());
         if(!reflection)
+        {
             throw VRPGBaseException("failed to get shader reflection");
+        }
 
         std::map<std::string, Reflection::ConstantBufferInfo> constantBuffers;
         std::map<std::string, Reflection::ShaderResourceInfo> shaderResources;
@@ -252,7 +244,9 @@ class Stage : public agz::misc::uncopyable_t
         GetShaderInfo(reflection.Get(), constantBuffers, shaderResources, samplers);
 
         for(auto &it : constantBuffers)
+        {
             constantBufferTable_[it.first] = { ConstantBufferSlot<STAGE>(it.second.slot) };
+        }
 
         auto deleteArraySyntax = [](const std::string &name)
         {
@@ -265,7 +259,9 @@ class Stage : public agz::misc::uncopyable_t
         }
 
         for(auto &it : samplers)
+        {
             samplerTable_[it.first] = { SamplerSlot<STAGE>(it.second.slot) };
+        }
     }
 
 public:
@@ -281,7 +277,9 @@ public:
         std::string errMsg;
         byteCode_ = SpecImpl::CompileShader(source, sourceName, target, entry, errMsg);
         if(!byteCode_)
+        {
             throw VRPGBaseException("failed to compile shader source: " + errMsg);
+        }
 
         shader_ = SpecImpl::CreateShader(byteCode_->GetBufferPointer(), byteCode_->GetBufferSize());
 
@@ -297,7 +295,9 @@ public:
         std::string errMsg;
         byteCode_ = SpecImpl::CompileShader(source, target, entry, errMsg);
         if(!byteCode_)
+        {
             throw VRPGBaseException("failed to compile shader source: " + errMsg);
+        }
 
         shader_ = SpecImpl::CreateShader(byteCode_->GetBufferPointer(), byteCode_->GetBufferSize());
 
@@ -314,7 +314,9 @@ public:
         std::string errMsg;
         byteCode_ = shaderByteCode;
         if(!byteCode_)
+        {
             throw VRPGBaseException("failed to compile shader source: " + errMsg);
+        }
 
         shader_ = SpecImpl::CreateShader(byteCode_->GetBufferPointer(), byteCode_->GetBufferSize());
 
