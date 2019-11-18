@@ -30,7 +30,8 @@ inline bool RayIntersectStdBox(const Vec3 &start, const Vec3 &dir, float minT, f
     if(pickedFace)
     {
         Vec3 inct = start + tMin * dir;
-        Direction face = PositiveX; float dis = std::abs(1 - inct.x);
+        Direction face = PositiveX;
+        float dis = std::abs(1 - inct.x);
         auto update = [&](float newDis, Direction newFace)
         {
             if(newDis < dis)
@@ -39,11 +40,11 @@ inline bool RayIntersectStdBox(const Vec3 &start, const Vec3 &dir, float minT, f
                 face = newFace;
             }
         };
-        update(std::abs(inct.x),         NegativeX);
+        update(std::abs(inct.x),     NegativeX);
         update(std::abs(1 - inct.y), PositiveY);
-        update(std::abs(inct.y),         NegativeY);
+        update(std::abs(inct.y),     NegativeY);
         update(std::abs(1 - inct.z), PositiveZ);
-        update(std::abs(inct.z),         NegativeZ);
+        update(std::abs(inct.z),     NegativeZ);
         *pickedFace = face;
     }
 

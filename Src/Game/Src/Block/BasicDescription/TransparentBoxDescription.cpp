@@ -1,4 +1,5 @@
-﻿#include <VRPG/Game/Block/BasicDescription/TransparentBoxDescription.h>
+﻿#include <VRPG/Game/Block/BasicCollision/BoxCollision.h>
+#include <VRPG/Game/Block/BasicDescription/TransparentBoxDescription.h>
 #include <VRPG/Game/Utility/BoxModel.h>
 
 VRPG_GAME_BEGIN
@@ -136,6 +137,12 @@ void TransparentBoxDescription::AddBlockModel(
     generateFace(NegativeY);
     generateFace(PositiveZ);
     generateFace(NegativeZ);
+}
+
+const BlockCollision *TransparentBoxDescription::GetCollision() const noexcept
+{
+    static const BoxBlockCollision ret;
+    return &ret;
 }
 
 VRPG_GAME_END

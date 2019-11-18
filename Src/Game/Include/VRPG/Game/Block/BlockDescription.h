@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <VRPG/Base/Singleton.h>
+#include <VRPG/Game/Block/BlockCollision.h>
 #include <VRPG/Game/Block/BlockInstance.h>
 #include <VRPG/Game/Block/BlockVisibility.h>
 #include <VRPG/Game/Block/LiquidDescription.h>
@@ -93,16 +94,6 @@ public:
         ModelBuilderSet &modelBuilders, const Vec3i &blockPosition, const BlockNeighborhood blocks) const = 0;
 
     /**
-     * @brief 射线与方块求交测试
-     *
-     * 输入为参数化线段 o + t * d (t \in [minT, maxT])，射线位于方块的局部坐标系中（即假设方块位于[0, 1]^3）
-     *
-     * （可选）输出与射线首先相交的面的法线
-     */
-    virtual bool RayIntersect(
-        const Vec3 &start, const Vec3 &dir, float minT, float maxT, Direction *pickedFace = nullptr) const noexcept;
-
-    /**
      * @brief 是否需携带额外数据
      */
     virtual bool HasExtraData() const  noexcept;
@@ -111,6 +102,13 @@ public:
      * @brief 创建新额外数据
      */
     virtual BlockExtraData CreateExtraData() const;
+
+    /**
+     * @brief 取得碰撞体属性
+     * 
+     * 默认无碰撞体积
+     */
+    virtual const BlockCollision *GetCollision() const noexcept;
 
     /**
      * @brief 取得液体属性

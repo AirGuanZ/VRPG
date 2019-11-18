@@ -35,9 +35,6 @@ public:
         const Vec3i &blockPosition,
         const BlockNeighborhood blocks) const override;
 
-    bool RayIntersect(
-        const Vec3 &start, const Vec3 &dir, float minT, float maxT, Direction *pickedFace) const noexcept override;
-
     bool HasExtraData() const noexcept override;
 
     BlockExtraData CreateExtraData() const override;

@@ -33,6 +33,8 @@ public:
         const Vec3i &blockPosition,
         const BlockNeighborhood blocks) const override;
 
+    const BlockCollision *GetCollision() const noexcept override;
+
 private:
 
     std::string name_;

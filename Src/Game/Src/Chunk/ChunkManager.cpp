@@ -276,8 +276,10 @@ bool ChunkManager::FindClosestIntersectedBlock(
         Vec3 rotatedLocalStart     = RotateLocalPosition(orien, localStart);
         Vec3 rotatedLocalDirection = RotateLocalPosition(orien, d);
 
-        const BlockDescription *desc = blockDescMgr.GetBlockDescription(id);
-        if(desc->RayIntersect(rotatedLocalStart, rotatedLocalDirection, 0, maxDistance, pickedFace) && blockFilter(desc))
+        const BlockDescription *desc      = blockDescMgr.GetBlockDescription(id);
+        const BlockCollision   *collision = desc->GetCollision();
+        Collision::Ray ray{ rotatedLocalStart, rotatedLocalDirection, 0, maxDistance };
+        if(collision->IntersectWith(ray, pickedFace) && blockFilter(desc))
         {
             if(pickedBlock)
             {

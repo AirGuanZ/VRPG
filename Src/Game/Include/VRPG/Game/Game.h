@@ -8,6 +8,7 @@
 #include <VRPG/Game/Misc/CascadeShadowMapping.h>
 #include <VRPG/Game/Misc/ChosenWireframe.h>
 #include <VRPG/Game/Misc/Crosshair.h>
+#include <VRPG/Game/Player/Player.h>
 #include <VRPG/Game/World/BlockUpdater.h>
 
 VRPG_GAME_BEGIN
@@ -53,7 +54,7 @@ private:
 
     std::unique_ptr<CascadeShadowMapping> CSM_;
 
-    std::unique_ptr<DefaultCamera> camera_;
+    std::unique_ptr<Player>        player_;
     std::unique_ptr<ChunkRenderer> chunkRenderer_;
     std::unique_ptr<ChunkManager>  chunkManager_;
 

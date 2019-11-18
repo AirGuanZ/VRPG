@@ -1,6 +1,18 @@
+#include <agz/utility/string.h>
+
 #include <VRPG/Game/Config/GlobalConfig.h>
 
 VRPG_GAME_BEGIN
+
+namespace
+{
+    template<typename T>
+    void PrintItem(const char *str, const T &value)
+    {
+        std::string fmtStr = agz::stdstr::align_left(str, 36, ' ') + "= {}";
+        spdlog::info(fmtStr, value);
+    }
+}
 
 GlobalConfig GLOBAL_CONFIG;
 
@@ -19,15 +31,13 @@ void ShadowMapConfig::Load(const libconfig::Setting &setting)
 
 void ShadowMapConfig::Print()
 {
-    spdlog::info("ShadowMap::Resolution[0] = {}", resolution[0]);
-    spdlog::info("ShadowMap::Resolution[1] = {}", resolution[1]);
-    spdlog::info("ShadowMap::Resolution[2] = {}", resolution[2]);
-
-    spdlog::info("ShadowMap::DepthBias      = {}", depthBias);
-    spdlog::info("ShadowMap::DepthBiasClamp = {}", depthBiasClamp);
-    spdlog::info("ShadowMap::DepthSlope     = {}", depthSlope);
-
-    spdlog::info("ShadowMap::Distance       = {}", distance);
+    PrintItem("ShadowMap::Resolution[0]",  resolution[0]);
+    PrintItem("ShadowMap::Resolution[1]",  resolution[1]);
+    PrintItem("ShadowMap::Resolution[2]",  resolution[2]);
+    PrintItem("ShadowMap::DepthBias",      depthBias);
+    PrintItem("ShadowMap::DepthBiasClamp", depthBiasClamp);
+    PrintItem("ShadowMap::DepthSlope",     depthSlope);
+    PrintItem("ShadowMap::Distance",       distance);
 }
 
 void ChunkManagerConfig::Load(const libconfig::Setting &setting)
@@ -42,11 +52,11 @@ void ChunkManagerConfig::Load(const libconfig::Setting &setting)
 
 void ChunkManagerConfig::Print()
 {
-    spdlog::info("ChunkManager::RenderDistance        = {}", renderDistance);
-    spdlog::info("ChunkManager::LoadDistance          = {}", loadDistance);
-    spdlog::info("ChunkManager::UnloadDistance        = {}", unloadDistance);
-    spdlog::info("ChunkManager::BackgroundPoolSize    = {}", backgroundPoolSize);
-    spdlog::info("ChunkManager::BackgroundThreadCount = {}", backgroundThreadCount);
+    PrintItem("ChunkManager::RenderDistance",        renderDistance);
+    PrintItem("ChunkManager::LoadDistance",          loadDistance);
+    PrintItem("ChunkManager::UnloadDistance",        unloadDistance);
+    PrintItem("ChunkManager::BackgroundPoolSize",    backgroundPoolSize);
+    PrintItem("ChunkManager::BackgroundThreadCount", backgroundThreadCount);
 }
 
 void WindowConfig::Load(const libconfig::Setting &setting)
@@ -62,12 +72,12 @@ void WindowConfig::Load(const libconfig::Setting &setting)
 
 void WindowConfig::Print()
 {
-    spdlog::info("Window::Width       = {}", width);
-    spdlog::info("Window::Height      = {}", height);
-    spdlog::info("Window::Fullscreen  = {}", fullscreen);
-    spdlog::info("Window::VSync       = {}", vsync);
-    spdlog::info("Window::MSAACount   = {}", sampleCount);
-    spdlog::info("Window::MSAAQuality = {}", sampleQuality);
+    PrintItem("Window::Width",       width);
+    PrintItem("Window::Height",      height);
+    PrintItem("Window::Fullscreen",  fullscreen);
+    PrintItem("Window::VSync",       vsync);
+    PrintItem("Window::MSAACount",   sampleCount);
+    PrintItem("Window::MSAAQuality", sampleQuality);
 }
 
 void MiscConfig::Load(const libconfig::Setting &setting)
@@ -77,7 +87,7 @@ void MiscConfig::Load(const libconfig::Setting &setting)
 
 void MiscConfig::Print()
 {
-    spdlog::info("Misc::EnableChosenBlockWireframe = {}", enableChoseBlockWireframe);
+    PrintItem("Misc::EnableChosenBlockWireframe", enableChoseBlockWireframe);
 }
 
 GlobalConfig::GlobalConfig()

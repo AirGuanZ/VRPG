@@ -1,9 +1,9 @@
-﻿#include <VRPG/Game/Block/BasicDescription/DefaultBoxDescription.h>
+﻿#include <VRPG/Game/Block/BasicCollision/VoidCollision.h>
+#include <VRPG/Game/Block/BasicDescription/DefaultBoxDescription.h>
 #include <VRPG/Game/Block/BasicEffect/DefaultBlockEffect.h>
 #include <VRPG/Game/Block/BlockDescription.h>
 #include <VRPG/Game/Block/BlockEffect.h>
 #include <VRPG/Game/Block/LiquidDescription.h>
-#include <VRPG/Game/Utility/RayBoxIntersect.h>
 
 VRPG_GAME_BEGIN
 
@@ -33,16 +33,7 @@ namespace
         BlockBrightness LightAttenuation() const noexcept override;
 
         BlockBrightness InitialBrightness() const noexcept override;
-
-        bool RayIntersect(
-            const Vec3 &start, const Vec3 &invDir, float minT, float maxT, Direction *pickedFace) const noexcept override;
     };
-}
-
-bool BlockDescription::RayIntersect(
-    const Vec3 &start, const Vec3 &dir, float minT, float maxT, Direction *pickedFace) const noexcept
-{
-    return RayIntersectStdBox(start, dir, minT, maxT, pickedFace);
 }
 
 bool BlockDescription::HasExtraData() const  noexcept
@@ -53,6 +44,12 @@ bool BlockDescription::HasExtraData() const  noexcept
 BlockExtraData BlockDescription::CreateExtraData() const
 {
     return BlockExtraData();
+}
+
+const BlockCollision *BlockDescription::GetCollision() const noexcept
+{
+    static const VoidBlockCollision ret;
+    return &ret;
 }
 
 const LiquidDescription *BlockDescription::GetLiquid() const noexcept
@@ -104,11 +101,6 @@ BlockBrightness VoidBlockDescription::LightAttenuation() const noexcept
 BlockBrightness VoidBlockDescription::InitialBrightness() const noexcept
 {
     return { 0, 0, 0, 0 };
-}
-
-bool VoidBlockDescription::RayIntersect(const Vec3 &start, const Vec3 &invDir, float minT, float maxT, Direction *pickedFace) const noexcept
-{
-    return false;
 }
 
 BlockDescManager::BlockDescManager()

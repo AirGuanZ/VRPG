@@ -75,16 +75,6 @@ void Game::Initialize()
     spdlog::info("initialize crosshair painter");
     crosshairPainter_ = std::make_unique<Crosshair>();
 
-    spdlog::info("initialize camera");
-
-    camera_ = std::make_unique<DefaultCamera>();
-    camera_->SetMoveSpeed(7);
-    camera_->SetViewSpeed(0.002f);
-    camera_->SetWOverH(window_->GetClientAspectRatio());
-    camera_->SetPosition({ 0, 30, 0 });
-    camera_->SetFOVy(70);
-    camera_->SetClipDistance(0.1f, 1000.0f);
-
     spdlog::info("initialize shadow map");
     CSM_ = std::make_unique<CascadeShadowMapping>();
 
@@ -107,6 +97,19 @@ void Game::Initialize()
     spdlog::info("initialize chosen block wireframe renderer");
     chosenBlockWireframeRenderer_ = std::make_unique<ChosenWireframeRenderer>();
 
+    spdlog::info("initialize player");
+
+    DefaultCamera camera;
+
+    camera.SetMoveSpeed(7);
+    camera.SetViewSpeed(0.002f);
+    camera.SetWOverH(window_->GetClientAspectRatio());
+    camera.SetPosition({ 0, 40, 0 });
+    camera.SetFOVy(70);
+    camera.SetClipDistance(0.1f, 1000.0f);
+
+    player_ = std::make_unique<Player>(Player::PlayerParams{}, *chunkManager_, Vec3{ 0, 40, 0 }, camera);
+
     HideCursor();
     UpdateCentreChunk();
 }
@@ -120,8 +123,8 @@ void Game::Destroy()
     imm2D_.reset();
     crosshairPainter_.reset();
 
-    spdlog::info("destroy camera");
-    camera_.reset();
+    spdlog::info("destroy player");
+    player_.reset();
 
     spdlog::info("destroy shadow map");
     CSM_.reset();
@@ -138,8 +141,9 @@ void Game::PlayerTick(float deltaT)
     UpdateCamera(deltaT);
 
     Vec3i pickedBlockPosition; Direction pickedFace = PositiveX;
+    auto &camera = player_->GetCamera();
     if(chunkManager_->FindClosestIntersectedBlock(
-        camera_->GetPosition(), camera_->GetDirection(), 8.0f, &pickedBlockPosition, &pickedFace))
+        camera.GetPosition(), camera.GetDirection(), 8.0f, &pickedBlockPosition, &pickedFace))
     {
         chosenBlockPosition_ = pickedBlockPosition;
 
@@ -167,7 +171,7 @@ void Game::PlayerTick(float deltaT)
             {
                 /*auto waterDesc = BuiltinBlockTypeManager::GetInstance().GetDesc(BuiltinBlockType::Water);
                 auto waterID   = waterDesc->GetBlockID();
-                auto extraData = MakeLiquidExtraData(waterDesc->GetLiquidDescription()->sourceLevel);
+                auto extraData = MakeLiquidExtraData(waterDesc->GetLiquid()->sourceLevel);
                 chunkManager_->SetBlockID(
                     newBlockPosition, waterID, {}, std::move(extraData));
                 LiquidUpdater::AddUpdaterForNeighborhood(
@@ -191,7 +195,9 @@ void Game::WorldTick()
 
 void Game::ChunkTick()
 {
-    int cameraBlockX = int(camera_->GetPosition().x), cameraBlockZ = int(camera_->GetPosition().z);
+    auto &camera = player_->GetCamera();
+
+    int cameraBlockX = int(camera.GetPosition().x), cameraBlockZ = int(camera.GetPosition().z);
     chunkManager_->SetCentreChunk(GlobalBlockToChunk(cameraBlockX, cameraBlockZ));
 
     bool needToGenerateRenderer = false;
@@ -209,6 +215,8 @@ void Game::ChunkTick()
 
 void Game::Render(int fps)
 {
+    auto &camera = player_->GetCamera();
+
     constexpr auto WIN_FLAG =
         ImGuiWindowFlags_NoMove             |
         ImGuiWindowFlags_NoTitleBar         |
@@ -223,15 +231,15 @@ void Game::Render(int fps)
     {
         ImGui::Text("fps: %i", fps);
 
-        Vec3 position = camera_->GetPosition();
+        Vec3 position = camera.GetPosition();
         ImGui::Text("position: (%f, %f, %f)", position.x, position.y, position.z);
 
-        Vec3 direction = camera_->GetDirection();
+        Vec3 direction = camera.GetDirection();
         ImGui::Text("direction: (%f, %f, %f)", direction.x, direction.y, direction.z);
     }
     ImGui::End();
 
-    CSM_->RenderShadow(*camera_, *chunkRenderer_);
+    CSM_->RenderShadow(camera, *chunkRenderer_);
 
     static const Vec4 backgroundColor = Vec4(0.7f, 1, 1, 0).map(
         [](float x) { return std::pow(x, 1 / 2.2f); });
@@ -240,7 +248,7 @@ void Game::Render(int fps)
 
     {
         BlockForwardRenderParams params;
-        params.camera = camera_.get();
+        params.camera = &camera;
         params.skyLight = Vec3(1);
         CSM_->FillForwardParams(params);
         chunkRenderer_->RenderForward(params);
@@ -248,7 +256,7 @@ void Game::Render(int fps)
 
     if(GLOBAL_CONFIG.MISC.enableChoseBlockWireframe && chosenBlockPosition_)
     {
-        chosenBlockWireframeRenderer_->DrawBlockWireframeAt(*camera_, *chosenBlockPosition_);
+        chosenBlockWireframeRenderer_->DrawBlockWireframeAt(camera, *chosenBlockPosition_);
     }
 
     crosshairPainter_->Draw(*imm2D_);
@@ -268,24 +276,26 @@ void Game::HideCursor()
 
 void Game::UpdateCamera(float deltaT)
 {
-    DefaultCamera::Input cameraInput;
-    cameraInput.front = keyboard_->IsKeyPressed('W');
-    cameraInput.back  = keyboard_->IsKeyPressed('S');
-    cameraInput.left  = keyboard_->IsKeyPressed('A');
-    cameraInput.right = keyboard_->IsKeyPressed('D');
-    cameraInput.up    = keyboard_->IsKeyPressed(Base::KEY_SPACE);
-    cameraInput.down  = keyboard_->IsKeyPressed(Base::KEY_LSHIFT);
+    Player::UserInput input;
 
-    cameraInput.relativeCursorX = float(mouse_->GetRelativeCursorPositionX());
-    cameraInput.relativeCursorY = float(mouse_->GetRelativeCursorPositionY());
+    input.frontPressed = keyboard_->IsKeyPressed('W');
+    input.backPressed  = keyboard_->IsKeyPressed('S');
+    input.leftPressed  = keyboard_->IsKeyPressed('A');
+    input.rightPressed = keyboard_->IsKeyPressed('D');
+    input.jumpPressed  = keyboard_->IsKeyPressed(Base::KEY_SPACE);
 
-    camera_->SetWOverH(window_->GetClientAspectRatio());
-    camera_->Update(cameraInput, deltaT);
+    input.relativeCursorX = float(mouse_->GetRelativeCursorPositionX());
+    input.relativeCursorY = float(mouse_->GetRelativeCursorPositionY());
+
+    player_->SetCameraWOverH(window_->GetClientAspectRatio());
+    player_->HandleMovement(input, deltaT);
 }
 
 void Game::UpdateCentreChunk()
 {
-    int cameraBlockX = int(camera_->GetPosition().x), cameraBlockZ = int(camera_->GetPosition().z);
+    auto &camera = player_->GetCamera();
+
+    int cameraBlockX = int(camera.GetPosition().x), cameraBlockZ = int(camera.GetPosition().z);
     chunkManager_->SetCentreChunk(GlobalBlockToChunk(cameraBlockX, cameraBlockZ));
 }
 

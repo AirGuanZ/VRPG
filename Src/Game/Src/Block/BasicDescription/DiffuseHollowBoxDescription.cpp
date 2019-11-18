@@ -1,4 +1,5 @@
-﻿#include <VRPG/Game/Block/BasicDescription/DiffuseHollowBoxDescription.h>
+﻿#include <VRPG/Game/Block/BasicCollision/BoxCollision.h>
+#include <VRPG/Game/Block/BasicDescription/DiffuseHollowBoxDescription.h>
 #include <VRPG/Game/Utility/BoxModel.h>
 
 VRPG_GAME_BEGIN
@@ -135,6 +136,12 @@ void DiffuseHollowBoxDescription::AddBlockModel(
     generateFace(NegativeY);
     generateFace(PositiveZ);
     generateFace(NegativeZ);
+}
+
+const BlockCollision *DiffuseHollowBoxDescription::GetCollision() const noexcept
+{
+    static const BoxBlockCollision ret;
+    return &ret;
 }
 
 VRPG_GAME_END

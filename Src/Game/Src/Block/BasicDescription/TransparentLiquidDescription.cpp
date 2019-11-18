@@ -1,5 +1,5 @@
 ﻿#include <VRPG/Game/Block/BasicDescription/TransparentLiquidDescription.h>
-#include "VRPG/Game/Utility/BoxModel.h"
+#include <VRPG/Game/Utility/BoxModel.h>
 
 VRPG_GAME_BEGIN
 
@@ -224,12 +224,6 @@ void TransparentLiquidDescription::AddBlockModel(
     generateFace(NegativeY);
     generateFace(PositiveZ);
     generateFace(NegativeZ);
-}
-
-bool TransparentLiquidDescription::RayIntersect(
-    const Vec3 &start, const Vec3 &dir, float minT, float maxT, Direction *pickedFace) const noexcept
-{
-    return false;
 }
 
 bool TransparentLiquidDescription::HasExtraData() const noexcept

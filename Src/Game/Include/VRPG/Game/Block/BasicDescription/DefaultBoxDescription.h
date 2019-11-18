@@ -32,6 +32,8 @@ public:
         ModelBuilderSet &modelBuilders,
         const Vec3i &blockPosition,
         const BlockNeighborhood neighborhood) const override;
+
+    const BlockCollision *GetCollision() const noexcept override;
 };
 
 VRPG_GAME_END

@@ -1,4 +1,5 @@
-﻿#include <VRPG/Game/Block/BasicDescription/DefaultBoxDescription.h>
+﻿#include <VRPG/Game/Block/BasicCollision/BoxCollision.h>
+#include <VRPG/Game/Block/BasicDescription/DefaultBoxDescription.h>
 #include <VRPG/Game/Block/BasicEffect/DefaultBlockEffect.h>
 #include <VRPG/Game/Utility/BoxModel.h>
 
@@ -120,6 +121,12 @@ void DefaultBlockDescription::AddBlockModel(
     generateFace(NegativeY);
     generateFace(PositiveZ);
     generateFace(NegativeZ);
+}
+
+const BlockCollision *DefaultBlockDescription::GetCollision() const noexcept
+{
+    static const BoxBlockCollision ret;
+    return &ret;
 }
 
 VRPG_GAME_END

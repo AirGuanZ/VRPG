@@ -1,3 +1,4 @@
+#include <VRPG/Game/Block/BasicCollision/BoxCollision.h>
 #include <VRPG/Game/Block/BasicDescription/GrassLikeDescription.h>
 
 VRPG_GAME_BEGIN
@@ -82,6 +83,12 @@ void GrassLikeDescription::AddBlockModel(
 
     addFace({ 0, 0, 0 }, { 0, 1, 0 }, { 1, 1, 1 }, { 1, 0, 1 }, textureIndexInEffect_[0]);
     addFace({ 0, 0, 1 }, { 0, 1, 1 }, { 1, 1, 0 }, { 1, 0, 0 }, textureIndexInEffect_[1]);
+}
+
+const BlockCollision *GrassLikeDescription::GetCollision() const noexcept
+{
+    static const BoxBlockCollision ret;
+    return &ret;
 }
 
 VRPG_GAME_END

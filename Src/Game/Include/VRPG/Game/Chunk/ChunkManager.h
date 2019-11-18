@@ -176,10 +176,21 @@ public:
 
 private:
 
+    /**
+     * @brief 返回(chunkX, chunkZ)处的区块
+     *
+     * 必要时会阻塞地加载该区块
+     */
     Chunk *EnsureChunkExists(int chunkX, int chunkZ);
 
+    /**
+     * @brief 查询给定位置是否在unloadDistance之外
+     */
     bool ShouldDestroy(const ChunkPosition &position) const noexcept;
 
+    /**
+     * @brief 查询给定位置是否在renderDistance之内
+     */
     bool ShouldRender(const ChunkPosition &position) const noexcept;
 
     /**
