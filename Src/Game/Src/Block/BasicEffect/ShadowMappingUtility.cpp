@@ -74,31 +74,6 @@ void ForwardShadowMapping::SetRenderParams(const BlockForwardRenderParams &param
     farShadowMapSRV_    = params.cascadeShadowMaps[2].shadowMapSRV;
 }
 
-void ForwardShadowMapping::SetRenderParams(
-    const Vec3 &sunlightDirection, float shadowScale,
-    float nearPCFStep,   float middlePCFStep,   float farPCFStep,
-    float nearHomZLimit, float middleHomZLimit, float farHomZLimit,
-    ComPtr<ID3D11ShaderResourceView> nearShadowMapSRV,
-    ComPtr<ID3D11ShaderResourceView> middleShadowMapSRV,
-    ComPtr<ID3D11ShaderResourceView> farShadowMapSRV)
-{
-    psShadow_.SetValue({
-        sunlightDirection,
-        shadowScale,
-        nearPCFStep,
-        middlePCFStep,
-        farPCFStep,
-        0,
-        nearHomZLimit,
-        middleHomZLimit,
-        farHomZLimit,
-        0
-        });
-    nearShadowMapSRV_   = nearShadowMapSRV;
-    middleShadowMapSRV_ = middleShadowMapSRV;
-    farShadowMapSRV_    = farShadowMapSRV;
-}
-
 void ForwardShadowMapping::Bind()
 {
     nearShadowMapSlot_  ->SetShaderResourceView(nearShadowMapSRV_.Get());

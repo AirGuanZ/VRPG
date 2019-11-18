@@ -91,6 +91,20 @@ public:
     BlockID GetBlockID(const Vec3i &globalBlock);
 
     /**
+     * @brief 取得某个位置的block orientation
+     *
+     * 必要时会阻塞地加载该位置的区块
+     */
+    BlockOrientation GetBlockOrientation(const Vec3i &globalBlock);
+
+    /**
+     * @brief 取得某个位置的block id和orientation
+     *
+     * 必要时会阻塞地加载该位置的区块
+     */
+    std::pair<BlockID, BlockOrientation> GetBlockIDAndOrientation(const Vec3i &globalBlock);
+
+    /**
      * @brief 取得某个位置的block desc
      *
      * 必要时会阻塞地加载该位置的区块

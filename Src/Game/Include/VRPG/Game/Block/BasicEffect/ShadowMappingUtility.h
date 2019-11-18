@@ -50,14 +50,6 @@ public:
 
     void SetRenderParams(const BlockForwardRenderParams &params);
 
-    void SetRenderParams(
-        const Vec3 &sunlightDirection, float shadowScale,
-        float nearPCFStep,   float middlePCFStep,   float farPCFStep,
-        float nearHomZLimit, float middleHomZLimit, float farHomZLimit,
-        ComPtr<ID3D11ShaderResourceView> nearShadowMapSRV,
-        ComPtr<ID3D11ShaderResourceView> middleShadowMapSRV,
-        ComPtr<ID3D11ShaderResourceView> farShadowMapSRV);
-
     void Bind();
 
     void Unbind();

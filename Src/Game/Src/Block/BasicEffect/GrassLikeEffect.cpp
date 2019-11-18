@@ -87,18 +87,7 @@ GrassLikeEffectCommon::GrassLikeEffectCommon()
 
 void GrassLikeEffectCommon::SetForwardRenderParams(const BlockForwardRenderParams &params)
 {
-    forwardShadowMapping_->SetRenderParams(
-        params.sunlightDirection,
-        (std::min)(1.0f, 2.5f* params.shadowScale),
-        params.cascadeShadowMaps[0].PCFStep,
-        params.cascadeShadowMaps[1].PCFStep,
-        params.cascadeShadowMaps[2].PCFStep,
-        params.cascadeShadowMaps[0].homZLimit,
-        params.cascadeShadowMaps[1].homZLimit,
-        params.cascadeShadowMaps[2].homZLimit,
-        params.cascadeShadowMaps[0].shadowMapSRV,
-        params.cascadeShadowMaps[1].shadowMapSRV,
-        params.cascadeShadowMaps[2].shadowMapSRV);
+    forwardShadowMapping_->SetRenderParams(params);
     forwardVSTransform_.SetValue({
         params.camera->GetViewProjectionMatrix() });
     forwardPSPerFrame_.SetValue({ params.skyLight, 0 });

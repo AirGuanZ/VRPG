@@ -180,6 +180,28 @@ BlockID ChunkManager::GetBlockID(const Vec3i &globalBlock)
     return chunk->GetID(blkPos);
 }
 
+BlockOrientation ChunkManager::GetBlockOrientation(const Vec3i &globalBlock)
+{
+    if(globalBlock.y < 0 || globalBlock.y >= CHUNK_SIZE_Y)
+    {
+        return BlockOrientation{};
+    }
+    auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk(globalBlock);
+    auto chunk = EnsureChunkExists(ckPos.x, ckPos.z);
+    return chunk->GetOrientation(blkPos);
+}
+
+std::pair<BlockID, BlockOrientation> ChunkManager::GetBlockIDAndOrientation(const Vec3i &globalBlock)
+{
+    if(globalBlock.y < 0 || globalBlock.y >= CHUNK_SIZE_Y)
+    {
+        return { BLOCK_ID_VOID, BlockOrientation{} };
+    }
+    auto [ckPos, blkPos] = DecomposeGlobalBlockByChunk(globalBlock);
+    auto chunk = EnsureChunkExists(ckPos.x, ckPos.z);
+    return { chunk->GetID(blkPos), chunk->GetOrientation(blkPos) };
+}
+
 const BlockDescription *ChunkManager::GetBlockDesc(const Vec3i &globalBlock)
 {
     return BlockDescManager::GetInstance().GetBlockDescription(GetBlockID(globalBlock));
@@ -240,25 +262,30 @@ bool ChunkManager::FindClosestIntersectedBlock(
         }
         lastBlockPosition = blockPosition;
 
-        BlockID id = GetBlockID(blockPosition);
+        auto [id, orien] = GetBlockIDAndOrientation(blockPosition);
         if(id == BLOCK_ID_VOID)
         {
             continue;
         }
-        const BlockDescription *desc = blockDescMgr.GetBlockDescription(id);
 
-        // IMPROVE: block orientation
         Vec3 localStart = {
             o.x - blockPosition.x,
             o.y - blockPosition.y,
             o.z - blockPosition.z
         };
+        Vec3 rotatedLocalStart     = RotateLocalPosition(orien, localStart);
+        Vec3 rotatedLocalDirection = RotateLocalPosition(orien, d);
 
-        if(desc->RayIntersect(localStart, d, 0, maxDistance, pickedFace) && blockFilter(desc))
+        const BlockDescription *desc = blockDescMgr.GetBlockDescription(id);
+        if(desc->RayIntersect(rotatedLocalStart, rotatedLocalDirection, 0, maxDistance, pickedFace) && blockFilter(desc))
         {
             if(pickedBlock)
             {
                 *pickedBlock = blockPosition;
+            }
+            if(pickedFace)
+            {
+                *pickedFace = orien.RotatedToOrigin(*pickedFace);
             }
             return true;
         }
