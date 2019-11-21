@@ -84,13 +84,15 @@ class EventManager : public agz::misc::uncopyable_t
 {
     std::tuple<EventHandlerSet<Events>...> handlerSets_;
 
-public:
+protected:
 
     template<typename Event>
     void InvokeAllHandlers(const Event &param)
     {
         std::get<EventHandlerSet<Event>>(handlerSets_).InvokeAllHandlers(param);
     }
+
+public:
 
     template<typename Event>
     void Attach(EventHandler<Event> *handler)

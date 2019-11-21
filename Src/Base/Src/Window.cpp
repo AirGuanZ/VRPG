@@ -422,6 +422,11 @@ void Window::SwapBuffers()
 
 void Window::DoEvents(bool updateMouse, bool updateKeyboard)
 {
+    if(updateKeyboard)
+    {
+        data_->keyboard->UpdateBeforeDoEvents();
+    }
+
     MSG msg;
     while(PeekMessage(&msg, data_->hWindow, 0, 0, PM_REMOVE))
     {
@@ -437,7 +442,7 @@ void Window::DoEvents(bool updateMouse, bool updateKeyboard)
 
     if(updateKeyboard)
     {
-        data_->keyboard->Update();
+        data_->keyboard->UpdateAfterDoEvents();
     }
 }
 
@@ -598,24 +603,6 @@ void Window::_lostFocus()
     eventMgr_.InvokeAllHandlers(WindowLostFocusEvent{});
 }
 
-void Window::_mouse_button_down(MouseButton button)
-{
-    assert(IsAvailable());
-    data_->mouse->InvokeAllHandlers(MouseButtonDownEvent{ button });
-}
-
-void Window::_mouse_button_up(MouseButton button)
-{
-    assert(IsAvailable());
-    data_->mouse->InvokeAllHandlers(MouseButtonUpEvent{ button });
-}
-
-void Window::_wheel_scroll(int offset)
-{
-    assert(IsAvailable());
-    data_->mouse->InvokeAllHandlers(WheelScrollEvent{ offset });
-}
-
 void Window::_key_down(KeyCode key)
 {
     assert(IsAvailable());
@@ -663,6 +650,8 @@ namespace Impl
         }
         auto win = winIt->second;
 
+        win->GetMouse()->ProcessMessage(msg, wParam);
+
         switch(msg)
         {
         case WM_SIZE:
@@ -679,27 +668,6 @@ namespace Impl
             break;
         case WM_KILLFOCUS:
             win->_lostFocus();
-            break;
-        case WM_LBUTTONDOWN:
-            win->_mouse_button_down(MouseButton::Left);
-            break;
-        case WM_MBUTTONDOWN:
-            win->_mouse_button_down(MouseButton::Middle);
-            break;
-        case WM_RBUTTONDOWN:
-            win->_mouse_button_down(MouseButton::Right);
-            break;
-        case WM_LBUTTONUP:
-            win->_mouse_button_up(MouseButton::Left);
-            break;
-        case WM_MBUTTONUP:
-            win->_mouse_button_up(MouseButton::Middle);
-            break;
-        case WM_RBUTTONUP:
-            win->_mouse_button_up(MouseButton::Right);
-            break;
-        case WM_MOUSEWHEEL:
-            win->_wheel_scroll(GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA);
             break;
         case WM_KEYDOWN:
             win->_key_down(VK2KeyCode(int(wParam)));
@@ -724,6 +692,7 @@ namespace Impl
         }
         return DefWindowProc(hWindow, msg, wParam, lParam);
     }
+
 } // namespace Impl
 
 VRPG_BASE_END

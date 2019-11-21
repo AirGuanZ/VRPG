@@ -72,4 +72,41 @@ void MouseEventManager::ClearState()
         ShowCursor(true);
     }
 }
+
+void MouseEventManager::ProcessMessage(UINT msg, WPARAM wParam)
+{
+    switch(msg)
+    {
+    case WM_LBUTTONDOWN:
+        isButtonPressed_[int(MouseButton::Left)] = true;
+        InvokeAllHandlers(MouseButtonDownEvent{ MouseButton::Left });
+        break;
+    case WM_MBUTTONDOWN:
+        isButtonPressed_[int(MouseButton::Middle)] = true;
+        InvokeAllHandlers(MouseButtonDownEvent{ MouseButton::Middle });
+        break;
+    case WM_RBUTTONDOWN:
+        isButtonPressed_[int(MouseButton::Right)] = true;
+        InvokeAllHandlers(MouseButtonDownEvent{ MouseButton::Right });
+        break;
+    case WM_LBUTTONUP:
+        isButtonPressed_[int(MouseButton::Left)] = false;
+        InvokeAllHandlers(MouseButtonUpEvent{ MouseButton::Left });
+        break;
+    case WM_MBUTTONUP:
+        isButtonPressed_[int(MouseButton::Middle)] = false;
+        InvokeAllHandlers(MouseButtonUpEvent{ MouseButton::Middle });
+        break;
+    case WM_RBUTTONUP:
+        isButtonPressed_[int(MouseButton::Right)] = false;
+        InvokeAllHandlers(MouseButtonUpEvent{ MouseButton::Right });
+        break;
+    case WM_MOUSEWHEEL:
+        InvokeAllHandlers(WheelScrollEvent{ GET_WHEEL_DELTA_WPARAM(wParam) });
+        break;
+    default:
+        break;
+    }
+}
+
 VRPG_BASE_END

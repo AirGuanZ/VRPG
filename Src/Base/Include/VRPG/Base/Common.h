@@ -60,4 +60,6 @@ void ReleaseCOMObjects(T0 &&ptr0, T1 &&ptr1, Ts&&...ptrs)
 inline ID3D11Device        *gDevice        = nullptr;
 inline ID3D11DeviceContext *gDeviceContext = nullptr;
 
+class Window;
+
 VRPG_BASE_END

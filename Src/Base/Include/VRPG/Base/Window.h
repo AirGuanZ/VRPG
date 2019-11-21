@@ -11,6 +11,7 @@
 VRPG_BASE_BEGIN
 
 struct WindowImplData;
+class Window;
 
 struct WindowDesc
 {
@@ -40,8 +41,15 @@ struct WindowGetFocusEvent { };
 
 struct WindowLostFocusEvent { };
 
-using WindowEventManager  = EventManager<
-    WindowResizeEvent, WindowCloseEvent, WindowGetFocusEvent, WindowLostFocusEvent>;
+class WindowEventManager : public EventManager<
+    WindowResizeEvent, WindowCloseEvent, WindowGetFocusEvent, WindowLostFocusEvent>
+{
+    friend class Window;
+
+public:
+
+    using EventManager::EventManager;
+};
 
 using WindowResizeHandler    = FunctionalEventHandler<WindowResizeEvent>;
 using WindowCloseHandler     = FunctionalEventHandler<WindowCloseEvent>;
@@ -126,12 +134,6 @@ public:
     void _getFocus();
 
     void _lostFocus();
-
-    void _mouse_button_down(MouseButton button);
-
-    void _mouse_button_up(MouseButton button);
-
-    void _wheel_scroll(int offset);
 
     void _key_down(KeyCode key);
 

@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <bitset>
+
 #include <VRPG/Base/Event.h>
 #include <VRPG/Base/KeyCode.h>
 
@@ -39,7 +41,10 @@ using RawKeyUpHandler   = FunctionalEventHandler<RawKeyUpEvent>;
 class KeyboardEventManager
     : public EventManager<KeyDownEvent, KeyUpEvent, CharInputEvent, RawKeyDownEvent, RawKeyUpEvent>
 {
-    bool isKeyPressed_[KEY_MAX + 1] = { false };
+    friend class Window;
+    
+    std::bitset<KEY_MAX + 1> isKeyPressedLastFrame_;
+    std::bitset<KEY_MAX + 1> isKeyPressed_;
 
     void UpdateSingleKey(bool pressed, KeyCode keycode) noexcept
     {
@@ -52,8 +57,6 @@ class KeyboardEventManager
             InvokeAllHandlers(KeyUpEvent{ keycode });
         }
     }
-
-public:
 
     void InvokeAllHandlers(const KeyDownEvent &e)
     {
@@ -88,12 +91,29 @@ public:
         EventManager::InvokeAllHandlers(e);
     }
 
+public:
+
+    bool IsKeyDown(KeyCode key) const noexcept
+    {
+        return !isKeyPressedLastFrame_[key] && isKeyPressed_[key];
+    }
+
+    bool IsKeyUp(KeyCode key) const noexcept
+    {
+        return isKeyPressedLastFrame_[key] && !isKeyPressed_[key];
+    }
+
     bool IsKeyPressed(KeyCode key) const noexcept
     {
         return isKeyPressed_[key];
     }
 
-    void Update()
+    void UpdateBeforeDoEvents()
+    {
+        isKeyPressedLastFrame_ = isKeyPressed_;
+    }
+
+    void UpdateAfterDoEvents()
     {
         bool leftShiftPressed  = (GetAsyncKeyState(VK_LSHIFT)   & 0x8000) != 0;
         bool rightShiftPressed = (GetAsyncKeyState(VK_RSHIFT)   & 0x8000) != 0;
@@ -108,10 +128,8 @@ public:
 
     void ClearState()
     {
-        for(auto &k : isKeyPressed_)
-        {
-            k = false;
-        }
+        isKeyPressedLastFrame_.reset();
+        isKeyPressed_.reset();
     }
 };
 

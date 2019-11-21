@@ -74,28 +74,6 @@ public:
         }
     }
 
-    void InvokeAllHandlers(const MouseButtonDownEvent &e)
-    {
-        isButtonPressed_[int(e.button)] = true;
-        EventManager::InvokeAllHandlers(e);
-    }
-
-    void InvokeAllHandlers(const MouseButtonUpEvent &e)
-    {
-        isButtonPressed_[int(e.button)] = false;
-        EventManager::InvokeAllHandlers(e);
-    }
-
-    void InvokeAllHandlers(const CursorMoveEvent &e)
-    {
-        EventManager::InvokeAllHandlers(e);
-    }
-
-    void InvokeAllHandlers(const WheelScrollEvent &e)
-    {
-        EventManager::InvokeAllHandlers(e);
-    }
-
     bool IsMouseButtonPressed(MouseButton button) const noexcept { return isButtonPressed_[int(button)]; }
     bool IsMouseButtonDown   (MouseButton button) const noexcept { return isButtonDown_[int(button)]; }
     bool IsMouseButtonUp     (MouseButton button) const noexcept { return isButtonUp_[int(button)]; }
@@ -118,6 +96,8 @@ public:
     void Update();
 
     void ClearState();
+
+    void ProcessMessage(UINT msg, WPARAM wParam);
 };
 
 VRPG_BASE_END
