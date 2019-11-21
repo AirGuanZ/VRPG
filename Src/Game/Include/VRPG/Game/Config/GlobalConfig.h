@@ -9,6 +9,8 @@ VRPG_GAME_BEGIN
 
 struct ShadowMapConfig
 {
+    bool enable = true;
+
     int resolution[3] = { 4096, 4096, 4096 };
 
     UINT  depthBias      = 0;
@@ -31,6 +33,33 @@ struct ChunkManagerConfig
     int backgroundPoolSize    = 20;
     int backgroundThreadCount = 1;
 
+    void Load(const libconfig::Setting &setting);
+
+    void Print();
+};
+
+struct PlayerConfig
+{
+    float runningAccel          = 300.0f;   // 跑动自给水平加速度
+    float walkingAccel          = 200.0f;   // 行走自给水平加速度
+    float floatingAccel         = 200.0f;   // 浮空自给水平加速度
+
+    float runningMaxSpeed       = 8.5f;     // 跑动最大自给水平速度
+    float walkingMaxSpeed       = 6.5f;     // 行走最大自给水平速度
+    float floatingMaxSpeed      = 6.5f;     // 跳跃最大自给水平速度
+
+    float standingFrictionAccel = 80.0f;    // 站立外来阻力水平加速度
+    float runningFrictionAccel  = 80.0f;    // 跑动外来阻力水平加速度
+    float walkingFrictionAccel  = 80.0f;    // 行走外来阻力水平加速度
+    float floatingFrictionAccel = 10.0f;    // 跳跃外来阻力水平加速度
+
+    float jumpingInitVelocity   = 13.0f;    // 跳跃初始速度
+    float gravityAccel          = 30.0f;    // 重力加速度
+    float gravityMaxSpeed       = 30000.0f; // 最大下落速度
+
+    float cameraMoveXSpeed      = 0.002f;   // 摄像机水平灵敏度
+    float cameraMoveYSpeed      = 0.002f;   // 摄像机垂直灵敏度
+    
     void Load(const libconfig::Setting &setting);
 
     void Print();
@@ -70,6 +99,7 @@ public:
 
     const ChunkManagerConfig &CHUNK_MANAGER;
     const MiscConfig         &MISC;
+    const PlayerConfig       &PLAYER;
     const ShadowMapConfig    &SHADOW_MAP;
     const WindowConfig       &WINDOW;
 
@@ -79,6 +109,7 @@ private:
 
     ChunkManagerConfig chunkManager_;
     MiscConfig         misc_;
+    PlayerConfig       player_;
     ShadowMapConfig    shadowMap_;
     WindowConfig       window_;
 };

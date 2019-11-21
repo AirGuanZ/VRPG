@@ -20,11 +20,11 @@ class ForwardShadowMapping
         Vec3 sunlightDirection;
         float shadowScale   = 1;
 
+        float enableShadow  = 1;
         float nearPCFStep   = 1.0f / 4096;
         float moddlePCFStep = 1.0f / 4096;
         float farPCFStep    = 1.0f / 4096;
-        float pad0          = 0;
-
+        
         float nearHomZLimit   = 1;
         float middleHomZLimit = 2;
         float farHomZLimit    = 3;

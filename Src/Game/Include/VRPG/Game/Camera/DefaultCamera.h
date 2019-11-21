@@ -7,16 +7,10 @@ VRPG_GAME_BEGIN
 
 class DefaultCamera : public Camera
 {
-    ScalarHistory cursorHistoryX_;
-    ScalarHistory cursorHistoryY_;
-
     Vec3 position_;
 
     float verticalAngle_;
     float horizontalAngle_;
-
-    float moveSpeed_;
-    float viewSpeed_;
 
     float nearPlane_;
     float farPlane_;
@@ -33,19 +27,6 @@ class DefaultCamera : public Camera
 
 public:
 
-    struct Input
-    {
-        bool left  = false;
-        bool right = false;
-        bool front = false;
-        bool back  = false;
-        bool up    = false;
-        bool down  = false;
-
-        float relativeCursorX = 0;
-        float relativeCursorY = 0;
-    };
-
     DefaultCamera();
 
     void SetPosition(const Vec3 &position) noexcept;
@@ -57,12 +38,6 @@ public:
     void SetWOverH(float wOverH) noexcept;
 
     void SetClipDistance(float nearPlane, float farPlane) noexcept;
-
-    void SetMoveSpeed(float unitPerSecond) noexcept;
-
-    void SetViewSpeed(float radPerPixel) noexcept;
-
-    void Update(const Input &input, float deltaT) noexcept;
 
     Mat4 GetViewMatrix() const override;
 

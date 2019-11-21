@@ -262,7 +262,7 @@ void Player::UpdateState(const UserInput &userInput, float dt)
 void Player::UpdatePosition(float dt)
 {
     Vec3 deltaPosition = dt * velocity_;
-    Vec3 newPosition = position_ + dt * velocity_;
+    Vec3 newPosition = position_ + deltaPosition;
     Vec3 lowf  = newPosition - Vec3(params_.collisionRadius, 0, params_.collisionRadius)
                              - Vec3(0.2f);
     Vec3 highf = newPosition + Vec3(params_.collisionRadius,
@@ -327,9 +327,19 @@ void Player::UpdatePosition(float dt)
         return;
     }
 
+    if(enumerator.bestSolution.x != 0)
+    {
+        velocity_.x = 0;
+    }
+
     if(enumerator.bestSolution.y != 0)
     {
         velocity_.y = 0;
+    }
+
+    if(enumerator.bestSolution.z != 0)
+    {
+        velocity_.z = 0;
     }
 
     if(enumerator.bestSolution.y > 0)
@@ -426,7 +436,7 @@ Player::State Player::TransState_Running(const UserInput &userInput)
 
 Player::State Player::TransState_Floating(const UserInput &userInput)
 {
-    if(!onGround_ || userInput.jumpPressed)
+    if(!onGround_)
     {
         return State::Floating;
     }

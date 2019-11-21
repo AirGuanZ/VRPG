@@ -3,10 +3,10 @@ cbuffer Shadow
     float3 sunlightDirection;
     float shadowScale;
     
+    float enableShadow;
     float nearPCFStep;
     float middlePCFStep;
     float farPCFStep;
-    float _shadowPad0;
     
     float nearHomZLimit;
     float middleHomZLimit;
@@ -114,6 +114,8 @@ float computeShadowFactor_NoNormal(PSInput input)
 
 float computeShadowFactor(PSInput input, float3 normal)
 {
+    if(!enableShadow)
+        return 1;
     if(dot(sunlightDirection, normal) <= 0)
         return shadowScale;
     return computeShadowFactor_NoNormal(input);

@@ -41,7 +41,7 @@ private:
 
     void HideCursor();
 
-    void UpdateCamera(float deltaT);
+    void UpdatePlayer(float deltaT);
 
     void UpdateCentreChunk();
 

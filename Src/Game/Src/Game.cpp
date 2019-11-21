@@ -29,7 +29,7 @@ void Game::Run()
     bool exitMainloop = false;
     while(!exitMainloop)
     {
-        float deltaT = fpsCounter.elasped_microseconds() / 1000.0f;
+        float deltaT = static_cast<float>(fpsCounter.elasped_microseconds() / 1000000.0);
 
         window_->DoEvents();
         window_->WaitForFocus();
@@ -101,14 +101,29 @@ void Game::Initialize()
 
     DefaultCamera camera;
 
-    camera.SetMoveSpeed(7);
-    camera.SetViewSpeed(0.002f);
-    camera.SetWOverH(window_->GetClientAspectRatio());
-    camera.SetPosition({ 0, 40, 0 });
-    camera.SetFOVy(70);
+    camera.SetWOverH      (window_->GetClientAspectRatio());
+    camera.SetPosition    ({ 0, 40, 0 });
+    camera.SetFOVy        (70);
     camera.SetClipDistance(0.1f, 1000.0f);
 
-    player_ = std::make_unique<Player>(Player::PlayerParams{}, *chunkManager_, Vec3{ 0, 40, 0 }, camera);
+    Player::PlayerParams playerParams;
+    playerParams.runningAccel          = GLOBAL_CONFIG.PLAYER.runningAccel;
+    playerParams.walkingAccel          = GLOBAL_CONFIG.PLAYER.walkingAccel;
+    playerParams.floatingAccel         = GLOBAL_CONFIG.PLAYER.floatingAccel;
+    playerParams.runningMaxSpeed       = GLOBAL_CONFIG.PLAYER.runningMaxSpeed;
+    playerParams.walkingMaxSpeed       = GLOBAL_CONFIG.PLAYER.walkingMaxSpeed;
+    playerParams.floatingMaxSpeed      = GLOBAL_CONFIG.PLAYER.floatingMaxSpeed;
+    playerParams.standingFrictionAccel = GLOBAL_CONFIG.PLAYER.standingFrictionAccel;
+    playerParams.walkingFrictionAccel  = GLOBAL_CONFIG.PLAYER.walkingFrictionAccel;
+    playerParams.runningFrictionAccel  = GLOBAL_CONFIG.PLAYER.runningFrictionAccel;
+    playerParams.floatingFrictionAccel = GLOBAL_CONFIG.PLAYER.floatingFrictionAccel;
+    playerParams.jumpingInitVelocity   = GLOBAL_CONFIG.PLAYER.jumpingInitVelocity;
+    playerParams.gravityAccel          = GLOBAL_CONFIG.PLAYER.gravityAccel;
+    playerParams.gravityMaxSpeed       = GLOBAL_CONFIG.PLAYER.gravityMaxSpeed;
+    playerParams.cameraMoveXSpeed      = GLOBAL_CONFIG.PLAYER.cameraMoveXSpeed;
+    playerParams.cameraMoveYSpeed      = GLOBAL_CONFIG.PLAYER.cameraMoveYSpeed;
+
+    player_ = std::make_unique<Player>(playerParams, *chunkManager_, Vec3{ 0, 40, 0 }, camera);
 
     HideCursor();
     UpdateCentreChunk();
@@ -138,7 +153,7 @@ void Game::Destroy()
 
 void Game::PlayerTick(float deltaT)
 {
-    UpdateCamera(deltaT);
+    UpdatePlayer(deltaT);
 
     Vec3i pickedBlockPosition; Direction pickedFace = PositiveX;
     auto &camera = player_->GetCamera();
@@ -274,7 +289,7 @@ void Game::HideCursor()
     mouse_->Update();
 }
 
-void Game::UpdateCamera(float deltaT)
+void Game::UpdatePlayer(float deltaT)
 {
     Player::UserInput input;
 

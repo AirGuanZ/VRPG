@@ -59,10 +59,10 @@ void ForwardShadowMapping::SetRenderParams(const BlockForwardRenderParams &param
     psShadow_.SetValue({
         params.sunlightDirection,
         params.shadowScale,
+        GLOBAL_CONFIG.SHADOW_MAP.enable ? 1.0f : 0.0f,
         params.cascadeShadowMaps[0].PCFStep,
         params.cascadeShadowMaps[1].PCFStep,
         params.cascadeShadowMaps[2].PCFStep,
-        0,
         params.cascadeShadowMaps[0].homZLimit,
         params.cascadeShadowMaps[1].homZLimit,
         params.cascadeShadowMaps[2].homZLimit,

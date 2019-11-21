@@ -18,6 +18,8 @@ GlobalConfig GLOBAL_CONFIG;
 
 void ShadowMapConfig::Load(const libconfig::Setting &setting)
 {
+    setting.lookupValue("Enable", enable);
+
     setting.lookupValue("Resolution0", resolution[0]);
     setting.lookupValue("Resolution1", resolution[1]);
     setting.lookupValue("Resolution2", resolution[2]);
@@ -31,6 +33,7 @@ void ShadowMapConfig::Load(const libconfig::Setting &setting)
 
 void ShadowMapConfig::Print()
 {
+    PrintItem("ShadowMap::Enable",         enable);
     PrintItem("ShadowMap::Resolution[0]",  resolution[0]);
     PrintItem("ShadowMap::Resolution[1]",  resolution[1]);
     PrintItem("ShadowMap::Resolution[2]",  resolution[2]);
@@ -57,6 +60,48 @@ void ChunkManagerConfig::Print()
     PrintItem("ChunkManager::UnloadDistance",        unloadDistance);
     PrintItem("ChunkManager::BackgroundPoolSize",    backgroundPoolSize);
     PrintItem("ChunkManager::BackgroundThreadCount", backgroundThreadCount);
+}
+
+void PlayerConfig::Load(const libconfig::Setting &setting)
+{
+    setting.lookupValue("RunningAccel",  runningAccel);
+    setting.lookupValue("WalkingAccel",  walkingAccel);
+    setting.lookupValue("FloatingAccel", floatingAccel);
+
+    setting.lookupValue("RunningMaxSpeed",  runningMaxSpeed);
+    setting.lookupValue("WalkingMaxSpeed",  walkingMaxSpeed);
+    setting.lookupValue("FloatingMaxSpeed", floatingMaxSpeed);
+
+    setting.lookupValue("StandingFricAccel", standingFrictionAccel);
+    setting.lookupValue("RunningFricAccel",  runningFrictionAccel);
+    setting.lookupValue("WalkingFricAccel",  walkingFrictionAccel);
+    setting.lookupValue("FloatingFricAccel", floatingFrictionAccel);
+
+    setting.lookupValue("JumpingInitVelocity", jumpingInitVelocity);
+    setting.lookupValue("GravityAccel",        gravityAccel);
+    setting.lookupValue("GravityMaxSpeed",  gravityMaxSpeed);
+
+    setting.lookupValue("CameraMoveXSpeed", cameraMoveXSpeed);
+    setting.lookupValue("CameraMoveYSpeed", cameraMoveYSpeed);
+}
+
+void PlayerConfig::Print()
+{
+    PrintItem("Player::RunningAccel",        runningAccel);
+    PrintItem("Player::WalkingAccel",        walkingAccel);
+    PrintItem("Player::FloatingAccel",       floatingAccel);
+    PrintItem("Player::RunningMaxSpeed",     runningMaxSpeed);
+    PrintItem("Player::WalkingMaxSpeed",     walkingMaxSpeed);
+    PrintItem("Player::FloatingMaxSpeed",    floatingMaxSpeed);
+    PrintItem("Player::StandingFricAccel",   standingFrictionAccel);
+    PrintItem("Player::WalkingFricAccel",    walkingFrictionAccel);
+    PrintItem("Player::RunningFricAccel",    runningFrictionAccel);
+    PrintItem("Player::FloatingFricAccel",   floatingFrictionAccel);
+    PrintItem("Player::JumpingInitVelocity", jumpingInitVelocity);
+    PrintItem("Player::GravityAccel",        gravityAccel);
+    PrintItem("Player::GravityMaxSpeed",     gravityMaxSpeed);
+    PrintItem("Player::CameraMoveXSpeed",    cameraMoveXSpeed);
+    PrintItem("Player::CameraMoveYSpeed",    cameraMoveYSpeed);
 }
 
 void WindowConfig::Load(const libconfig::Setting &setting)
@@ -91,7 +136,7 @@ void MiscConfig::Print()
 }
 
 GlobalConfig::GlobalConfig()
-    : CHUNK_MANAGER(chunkManager_), MISC(misc_), SHADOW_MAP(shadowMap_), WINDOW(window_)
+    : CHUNK_MANAGER(chunkManager_), MISC(misc_), PLAYER(player_), SHADOW_MAP(shadowMap_), WINDOW(window_)
 {
     
 }
@@ -111,6 +156,11 @@ void GlobalConfig::LoadFromFile(const char *configFilename)
         misc_.Load(config.lookup("Misc"));
     }
 
+    if(config.exists("Player"))
+    {
+        player_.Load(config.lookup("Player"));
+    }
+
     if(config.exists("ShadowMap"))
     {
         shadowMap_.Load(config.lookup("ShadowMap"));
@@ -123,6 +173,7 @@ void GlobalConfig::LoadFromFile(const char *configFilename)
 
     chunkManager_.Print();
     misc_        .Print();
+    player_      .Print();
     shadowMap_   .Print();
     window_      .Print();
 }

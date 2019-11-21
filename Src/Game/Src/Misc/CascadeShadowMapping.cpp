@@ -6,6 +6,11 @@ VRPG_GAME_BEGIN
 CascadeShadowMapping::CascadeShadowMapping()
     : cascadeZLimit_{ 1, 1, 1 }
 {
+    if(!GLOBAL_CONFIG.SHADOW_MAP.enable)
+    {
+        return;
+    }
+
     nearSM_ = std::make_unique<Base::ShadowMap>(
         GLOBAL_CONFIG.SHADOW_MAP.resolution[0], GLOBAL_CONFIG.SHADOW_MAP.resolution[0]);
     middleSM_ = std::make_unique<Base::ShadowMap>(
@@ -16,6 +21,11 @@ CascadeShadowMapping::CascadeShadowMapping()
 
 void CascadeShadowMapping::RenderShadow(const Camera &camera, const ChunkRenderer &chunkRenderer)
 {
+    if(!GLOBAL_CONFIG.SHADOW_MAP.enable)
+    {
+        return;
+    }
+
     UpdateViewProj(camera, viewProj_, cascadeZLimit_);
 
     nearSM_->Begin();
@@ -33,6 +43,11 @@ void CascadeShadowMapping::RenderShadow(const Camera &camera, const ChunkRendere
 
 void CascadeShadowMapping::FillForwardParams(BlockForwardRenderParams &params)
 {
+    if(!GLOBAL_CONFIG.SHADOW_MAP.enable)
+    {
+        return;
+    }
+
     params.shadowScale = 0.2f;
     params.sunlightDirection = Vec3(5, 6, 7).normalize();
 
@@ -55,6 +70,11 @@ void CascadeShadowMapping::FillForwardParams(BlockForwardRenderParams &params)
 
 void CascadeShadowMapping::UpdateViewProj(const Camera &camera, Mat4 viewProj[3], float cascadeZLimit[3])
 {
+    if(!GLOBAL_CONFIG.SHADOW_MAP.enable)
+    {
+        return;
+    }
+
     Vec3 cameraPosition = camera.GetPosition();
     float FOVy = camera.GetFOVy();
     float wOverH = camera.GetWOverH();

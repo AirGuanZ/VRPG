@@ -15,22 +15,22 @@ public:
     // 用于控制角色行动速度和碰撞的参数
     struct PlayerParams
     {
-        float runningAccel  = 0.0008f;         // 跑动自给水平加速度
-        float walkingAccel  = 0.0007f;         // 行走自给水平加速度
-        float floatingAccel = 0.0007f;         // 浮空自给水平加速度
+        float runningAccel  = 300.0f;         // 跑动自给水平加速度
+        float walkingAccel  = 200.0f;         // 行走自给水平加速度
+        float floatingAccel = 30.0f;         // 浮空自给水平加速度
 
-        float runningMaxSpeed  = 0.0085f;      // 跑动最大自给水平速度
-        float walkingMaxSpeed  = 0.0065f;      // 行走最大自给水平速度
-        float floatingMaxSpeed = 0.0065f;      // 跳跃最大自给水平速度
+        float runningMaxSpeed  = 8.5f;      // 跑动最大自给水平速度
+        float walkingMaxSpeed  = 6.5f;      // 行走最大自给水平速度
+        float floatingMaxSpeed = 6.5f;      // 跳跃最大自给水平速度
 
-        float standingFrictionAccel  = 0.0003f; // 站立外来阻力水平加速度
-        float runningFrictionAccel   = 0.0003f; // 跑动外来阻力水平加速度
-        float walkingFrictionAccel   = 0.0003f; // 行走外来阻力水平加速度
-        float floatingFrictionAccel  = 0.0000f; // 跳跃外来阻力水平加速度
+        float standingFrictionAccel  = 80.0f; // 站立外来阻力水平加速度
+        float runningFrictionAccel   = 80.0f; // 跑动外来阻力水平加速度
+        float walkingFrictionAccel   = 80.0f; // 行走外来阻力水平加速度
+        float floatingFrictionAccel  = 10.0f; // 跳跃外来阻力水平加速度
 
-        float jumpingInitVelocity = 0.013f;    // 跳跃初始速度
-        float gravityAccel        = 0.000038f; // 重力加速度
-        float gravityMaxSpeed     = 0.03f;     // 最大下落速度
+        float jumpingInitVelocity = 10.0f;    // 跳跃初始速度
+        float gravityAccel        = 30.0;    // 重力加速度
+        float gravityMaxSpeed     = 120.0f; // 最大下落速度
 
         float cameraMoveXSpeed   = 0.002f;     // 摄像机水平灵敏度
         float cameraMoveYSpeed   = 0.002f;     // 摄像机垂直灵敏度
