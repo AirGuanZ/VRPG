@@ -7,10 +7,12 @@ VRPG_GAME_BEGIN
 
 void GrassLikeEffectCommon::InitializeForward()
 {
+    D3D_SHADER_MACRO macros[2] = { GetShadowMappingEnableMacro(), { nullptr, nullptr } };
+
     forwardShader_.InitializeStageFromFile<SS_VS>(
-        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["GrassLike"]["ForwardVertexShader"]);
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["GrassLike"]["ForwardVertexShader"], macros);
     forwardShader_.InitializeStageFromFile<SS_PS>(
-        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["GrassLike"]["ForwardPixelShader"]);
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["GrassLike"]["ForwardPixelShader"], macros);
     if(!forwardShader_.IsAllStagesAvailable())
     {
         throw VRPGGameException("failed to initialize diffuse hollow block effect shader");
@@ -82,7 +84,8 @@ GrassLikeEffectCommon::GrassLikeEffectCommon()
 {
     InitializeForward();
     InitializeShadow();
-    forwardShadowMapping_ = std::make_unique<ForwardShadowMapping>(&forwardUniforms_);
+
+    forwardShadowMapping_ = CreateForwardshadowMapping(&forwardUniforms_);
 }
 
 void GrassLikeEffectCommon::SetForwardRenderParams(const BlockForwardRenderParams &params)

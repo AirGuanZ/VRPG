@@ -25,43 +25,47 @@ public:
     void InitializeStage(
         std::string_view source,
         const std::string &sourceName,
+        D3D_SHADER_MACRO *macros = nullptr,
         const char *entry = "main",
         const char *target = Stage<STAGE>::SpecImpl::DefaultCompileTarget())
     {
         auto &stage = std::get<Stage<STAGE>>(stages_);
-        stage.Initialize(source, sourceName.c_str(), entry, target);
+        stage.Initialize(source, sourceName.c_str(), entry, target, macros);
     }
 
     template<ShaderStage STAGE>
     void InitializeStage(
         std::string_view source,
         const char *sourceName,
+        D3D_SHADER_MACRO *macros = nullptr,
         const char *entry = "main",
         const char *target = Stage<STAGE>::SpecImpl::DefaultCompileTarget())
     {
         auto &stage = std::get<Stage<STAGE>>(stages_);
-        stage.Initialize(source, sourceName, entry, target);
+        stage.Initialize(source, sourceName, entry, target, macros);
     }
 
     template<ShaderStage STAGE>
     void InitializeStageFromFile(
         const std::string &filename,
+        D3D_SHADER_MACRO *macros = nullptr,
         const char *entry = "main",
         const char *target = Stage<STAGE>::SpecImpl::DefaultCompileTarget())
     {
         auto source = agz::file::read_txt_file(filename);
         auto &stage = std::get<Stage<STAGE>>(stages_);
-        stage.Initialize(source, filename.c_str(), entry, target);
+        stage.Initialize(source, filename.c_str(), entry, target, macros);
     }
 
     template<ShaderStage STAGE>
     void InitializeStage(
         std::string_view source,
+        D3D_SHADER_MACRO *macros = nullptr,
         const char *entry = "main",
         const char *target = Stage<STAGE>::SpecImpl::DefaultCompileTarget())
     {
         auto &stage = std::get<Stage<STAGE>>(stages_);
-        stage.Initialize(source, entry, target);
+        stage.Initialize(source, entry, target, macros);
     }
 
     template<ShaderStage STAGE>

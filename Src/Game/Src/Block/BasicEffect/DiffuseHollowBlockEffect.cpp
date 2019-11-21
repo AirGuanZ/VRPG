@@ -7,10 +7,12 @@ VRPG_GAME_BEGIN
 
 void DiffuseHollowBlockEffectCommon::InitializeForward()
 {
+    D3D_SHADER_MACRO macros[2] = { GetShadowMappingEnableMacro(), { nullptr, nullptr } };
+
     forwardShader_.InitializeStageFromFile<SS_VS>(
-        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseHollow"]["ForwardVertexShader"]);
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseHollow"]["ForwardVertexShader"], macros);
     forwardShader_.InitializeStageFromFile<SS_PS>(
-        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseHollow"]["ForwardPixelShader"]);
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseHollow"]["ForwardPixelShader"], macros);
     if(!forwardShader_.IsAllStagesAvailable())
     {
         throw VRPGGameException("failed to initialize diffuse hollow block effect shader");
@@ -85,7 +87,7 @@ DiffuseHollowBlockEffectCommon::DiffuseHollowBlockEffectCommon()
     InitializeForward();
     InitializeShadow();
 
-    forwardShadowMapping_ = std::make_unique<ForwardShadowMapping>(&forwardUniforms_);
+    forwardShadowMapping_ = CreateForwardshadowMapping(&forwardUniforms_);
 }
 
 void DiffuseHollowBlockEffectCommon::SetForwardRenderParams(const BlockForwardRenderParams &params)

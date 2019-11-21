@@ -163,10 +163,12 @@ void TransparentBlockEffect::Initialize(int textureSize, const std::vector<agz::
 {
     assert(!textureArrayData.empty());
 
+    D3D_SHADER_MACRO macros[2] = { GetShadowMappingEnableMacro(), { nullptr, nullptr } };
+
     shader_.InitializeStageFromFile<SS_VS>(
-        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Transparent"]["ForwardVertexShader"]);
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Transparent"]["ForwardVertexShader"], macros);
     shader_.InitializeStageFromFile<SS_PS>(
-        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Transparent"]["ForwardPixelShader"]);
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Transparent"]["ForwardPixelShader"], macros);
     if(!shader_.IsAllStagesAvailable())
         throw VRPGGameException("failed to initialize transparent box block effect");
 
@@ -252,7 +254,8 @@ void TransparentBlockEffect::Initialize(int textureSize, const std::vector<agz::
     }
 
     uniforms_.GetShaderResourceSlot<SS_PS>("TransparentTexture")->SetShaderResourceView(ShaderResourceView(srv));
-    forwardShadowMapping_ = std::make_unique<ForwardShadowMapping>(&uniforms_);
+
+    forwardShadowMapping_ = CreateForwardshadowMapping(&uniforms_);
 }
 
 TransparentBlockEffectGenerator::TransparentBlockEffectGenerator(int textureSize)

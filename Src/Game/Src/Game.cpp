@@ -76,7 +76,7 @@ void Game::Initialize()
     crosshairPainter_ = std::make_unique<Crosshair>();
 
     spdlog::info("initialize shadow map");
-    CSM_ = std::make_unique<CascadeShadowMapping>();
+    CSM_ = CreateCascadeShadowMapping();
 
     spdlog::info("initialize chunk renderer");
     chunkRenderer_ = std::make_unique<ChunkRenderer>();

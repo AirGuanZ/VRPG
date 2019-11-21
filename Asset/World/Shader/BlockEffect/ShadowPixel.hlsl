@@ -1,3 +1,8 @@
+// max light value
+#define MAX_BLOCK_LIGHT 2
+
+#if ENABLE_SHADOW == 1
+
 cbuffer Shadow
 {
     float3 sunlightDirection;
@@ -13,9 +18,6 @@ cbuffer Shadow
     float farHomZLimit;
     float _shadowPad1;
 };
-
-// max light value
-#define MAX_BLOCK_LIGHT 2
 
 // about shadow mapping
 
@@ -120,3 +122,17 @@ float computeShadowFactor(PSInput input, float3 normal)
         return shadowScale;
     return computeShadowFactor_NoNormal(input);
 }
+
+#else
+
+float computeShadowFactor_NoNormal(PSInput input)
+{
+    return 1;
+}
+
+float computeShadowFactor(PSInput input, float3 normal)
+{
+    return 1;
+}
+
+#endif

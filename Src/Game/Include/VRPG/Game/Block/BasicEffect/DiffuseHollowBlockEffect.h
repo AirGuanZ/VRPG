@@ -3,8 +3,8 @@
 #include <agz/utility/texture.h>
 
 #include <VRPG/Game/Block/BasicEffect/NativePartialSectionModel.h>
-#include <VRPG/Game/Block/BasicEffect/ShadowMappingUtility.h>
 #include <VRPG/Game/Block/BlockEffect.h>
+#include <VRPG/Game/Misc/CascadeShadowMapping.h>
 
 VRPG_GAME_BEGIN
 

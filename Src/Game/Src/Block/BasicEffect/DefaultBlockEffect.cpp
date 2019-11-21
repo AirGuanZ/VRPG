@@ -10,7 +10,7 @@ DefaultBlockEffect::DefaultBlockEffect()
     InitializeForward();
     InitializeShadow();
 
-    forwardShadowMapping_ = std::make_unique<ForwardShadowMapping>(&forwardUniforms_);
+    forwardShadowMapping_ = CreateForwardshadowMapping(&forwardUniforms_);
 }
 
 const char *DefaultBlockEffect::GetName() const
@@ -74,10 +74,12 @@ void DefaultBlockEffect::SetShadowRenderParams(const BlockShadowRenderParams &pa
 
 void DefaultBlockEffect::InitializeForward()
 {
+    D3D_SHADER_MACRO macros[2] = { GetShadowMappingEnableMacro(), { nullptr, nullptr } };
+
     forwardShader_.InitializeStageFromFile<SS_VS>(
-        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Default"]["ForwardVertexShader"]);
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Default"]["ForwardVertexShader"], macros);
     forwardShader_.InitializeStageFromFile<SS_PS>(
-        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Default"]["ForwardPixelShader"]);
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["Default"]["ForwardPixelShader"], macros);
     if(!forwardShader_.IsAllStagesAvailable())
     {
         throw VRPGGameException("failed to initialize default block effect shader");

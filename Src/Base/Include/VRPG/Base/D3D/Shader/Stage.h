@@ -29,11 +29,11 @@ namespace Impl
         }
 
         static ComPtr<ID3D10Blob> CompileShader(
-            std::string_view source, const char *sourceName, const char *target, const char *entry, std::string &errMsg)
+            std::string_view source, const char *sourceName, const char *target, const char *entry, D3D_SHADER_MACRO *macros, std::string &errMsg)
         {
             ComPtr<ID3D10Blob> ret, err;
             HRESULT hr = D3DCompile(
-                source.data(), source.size(), sourceName, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+                source.data(), source.size(), sourceName, macros, D3D_COMPILE_STANDARD_FILE_INCLUDE,
                 entry, target, 0, 0, ret.GetAddressOf(), err.GetAddressOf());
             if(FAILED(hr))
             {
@@ -43,11 +43,11 @@ namespace Impl
             return ret;
         }
 
-        static ComPtr<ID3D10Blob> CompileShader(std::string_view source, const char *target, const char *entry, std::string &errMsg)
+        static ComPtr<ID3D10Blob> CompileShader(std::string_view source, const char *target, const char *entry, D3D_SHADER_MACRO *macros, std::string &errMsg)
         {
             ComPtr<ID3D10Blob> ret, err;
             HRESULT hr = D3DCompile(
-                source.data(), source.size(), nullptr, nullptr, nullptr,
+                source.data(), source.size(), nullptr, macros, nullptr,
                 entry, target, 0, 0, ret.GetAddressOf(), err.GetAddressOf());
             if(FAILED(hr))
             {
@@ -84,14 +84,14 @@ namespace Impl
         }
 
         static ComPtr<ID3D10Blob> CompileShader(
-            std::string_view source, const char *sourceName, const char *target, const char *entry, std::string &errMsg)
+            std::string_view source, const char *sourceName, const char *target, const char *entry, D3D_SHADER_MACRO *macros, std::string &errMsg)
         {
-            return StageSpecificImpl<ShaderStage::VS>::CompileShader(source, sourceName, target, entry, errMsg);
+            return StageSpecificImpl<ShaderStage::VS>::CompileShader(source, sourceName, target, entry, macros, errMsg);
         }
 
-        static ComPtr<ID3D10Blob> CompileShader(std::string_view source, const char *target, const char *entry, std::string &errMsg)
+        static ComPtr<ID3D10Blob> CompileShader(std::string_view source, const char *target, const char *entry, D3D_SHADER_MACRO *macros, std::string &errMsg)
         {
-            return StageSpecificImpl<ShaderStage::VS>::CompileShader(source, target, entry, errMsg);
+            return StageSpecificImpl<ShaderStage::VS>::CompileShader(source, target, entry, macros, errMsg);
         }
 
         static ComPtr<D3DShaderType> CreateShader(void *compiledShader, SIZE_T length)
@@ -121,14 +121,14 @@ namespace Impl
         }
 
         static ComPtr<ID3D10Blob> CompileShader(
-            std::string_view source, const char *sourceName, const char *target, const char *entry, std::string &errMsg)
+            std::string_view source, const char *sourceName, const char *target, const char *entry, D3D_SHADER_MACRO *macros, std::string &errMsg)
         {
-            return StageSpecificImpl<ShaderStage::VS>::CompileShader(source, sourceName, target, entry, errMsg);
+            return StageSpecificImpl<ShaderStage::VS>::CompileShader(source, sourceName, target, entry, macros, errMsg);
         }
 
-        static ComPtr<ID3D10Blob> CompileShader(std::string_view source, const char *target, const char *entry, std::string &errMsg)
+        static ComPtr<ID3D10Blob> CompileShader(std::string_view source, const char *target, const char *entry, D3D_SHADER_MACRO *macros, std::string &errMsg)
         {
-            return StageSpecificImpl<ShaderStage::VS>::CompileShader(source, target, entry, errMsg);
+            return StageSpecificImpl<ShaderStage::VS>::CompileShader(source, target, entry, macros, errMsg);
         }
 
         static ComPtr<D3DShaderType> CreateShader(void *compiledShader, SIZE_T length)
@@ -157,14 +157,14 @@ namespace Impl
         }
 
         static ComPtr<ID3D10Blob> CompileShader(
-            std::string_view source, const char *sourceName, const char *target, const char *entry, std::string &errMsg)
+            std::string_view source, const char *sourceName, const char *target, const char *entry, D3D_SHADER_MACRO *macros, std::string &errMsg)
         {
-            return StageSpecificImpl<ShaderStage::VS>::CompileShader(source, sourceName, target, entry, errMsg);
+            return StageSpecificImpl<ShaderStage::VS>::CompileShader(source, sourceName, target, entry, macros, errMsg);
         }
 
-        static ComPtr<ID3D10Blob> CompileShader(std::string_view source, const char *target, const char *entry, std::string &errMsg)
+        static ComPtr<ID3D10Blob> CompileShader(std::string_view source, const char *target, const char *entry, D3D_SHADER_MACRO *macros, std::string &errMsg)
         {
-            return StageSpecificImpl<ShaderStage::VS>::CompileShader(source, target, entry, errMsg);
+            return StageSpecificImpl<ShaderStage::VS>::CompileShader(source, target, entry, macros, errMsg);
         }
 
         static ComPtr<D3DShaderType> CreateShader(void *compiledShader, SIZE_T length)
@@ -194,14 +194,14 @@ namespace Impl
         }
 
         static ComPtr<ID3D10Blob> CompileShader(
-            std::string_view source, const char *sourceName, const char *target, const char *entry, std::string &errMsg)
+            std::string_view source, const char *sourceName, const char *target, const char *entry, D3D_SHADER_MACRO *macros, std::string &errMsg)
         {
-            return StageSpecificImpl<ShaderStage::VS>::CompileShader(source, sourceName, target, entry, errMsg);
+            return StageSpecificImpl<ShaderStage::VS>::CompileShader(source, sourceName, target, entry, macros, errMsg);
         }
 
-        static ComPtr<ID3D10Blob> CompileShader(std::string_view source, const char *target, const char *entry, std::string &errMsg)
+        static ComPtr<ID3D10Blob> CompileShader(std::string_view source, const char *target, const char *entry, D3D_SHADER_MACRO *macros, std::string &errMsg)
         {
-            return StageSpecificImpl<ShaderStage::VS>::CompileShader(source, target, entry, errMsg);
+            return StageSpecificImpl<ShaderStage::VS>::CompileShader(source, target, entry, macros, errMsg);
         }
 
         static ComPtr<D3DShaderType> CreateShader(void *compiledShader, SIZE_T length)
@@ -270,12 +270,12 @@ public:
 
     static constexpr ShaderStage ShaderStageValue = STAGE;
 
-    void Initialize(std::string_view source, const char *sourceName, const char *entry, const char *target)
+    void Initialize(std::string_view source, const char *sourceName, const char *entry, const char *target, D3D_SHADER_MACRO *macros)
     {
         agz::misc::scope_guard_t initGuard([&] { this->Destroy(); });
 
         std::string errMsg;
-        byteCode_ = SpecImpl::CompileShader(source, sourceName, target, entry, errMsg);
+        byteCode_ = SpecImpl::CompileShader(source, sourceName, target, entry, macros, errMsg);
         if(!byteCode_)
         {
             throw VRPGBaseException("failed to compile shader source: " + errMsg);
@@ -288,12 +288,12 @@ public:
         initGuard.dismiss();
     }
 
-    void Initialize(std::string_view source, const char *entry, const char *target)
+    void Initialize(std::string_view source, const char *entry, const char *target, D3D_SHADER_MACRO *macros)
     {
         agz::misc::scope_guard_t initGuard([&] { this->Destroy(); });
 
         std::string errMsg;
-        byteCode_ = SpecImpl::CompileShader(source, target, entry, errMsg);
+        byteCode_ = SpecImpl::CompileShader(source, target, entry, macros, errMsg);
         if(!byteCode_)
         {
             throw VRPGBaseException("failed to compile shader source: " + errMsg);

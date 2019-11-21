@@ -7,10 +7,12 @@ VRPG_GAME_BEGIN
 
 void DiffuseSolidBlockEffectCommon::InitializeForward()
 {
+    D3D_SHADER_MACRO macros[2] = { GetShadowMappingEnableMacro(), { nullptr, nullptr } };
+
     forwardShader.InitializeStageFromFile<SS_VS>(
-        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseSolid"]["ForwardVertexShader"]);
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseSolid"]["ForwardVertexShader"], macros);
     forwardShader.InitializeStageFromFile<SS_PS>(
-        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseSolid"]["ForwardPixelShader"]);
+        GLOBAL_CONFIG.ASSET_PATH["BlockEffect"]["DiffuseSolid"]["ForwardPixelShader"], macros);
     if(!forwardShader.IsAllStagesAvailable())
     {
         throw VRPGGameException("failed to initialize diffuse solid block effect shader (forward)");
@@ -75,7 +77,7 @@ DiffuseSolidBlockEffectCommon::DiffuseSolidBlockEffectCommon()
     InitializeForward();
     InitializeShadow();
 
-    forwardShadowMapping = std::make_unique<ForwardShadowMapping>(&forwardUniforms);
+    forwardShadowMapping = CreateForwardshadowMapping(&forwardUniforms);
 }
 
 void DiffuseSolidBlockEffectCommon::SetForwardRenderParams(const BlockForwardRenderParams &params)
