@@ -1,6 +1,6 @@
 #pragma once
 
-#include <VRPG/Game/Camera/Camera.h>
+#include <VRPG/Game/Player/Camera/Camera.h>
 
 VRPG_GAME_BEGIN
 

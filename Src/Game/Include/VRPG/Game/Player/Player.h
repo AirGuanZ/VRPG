@@ -1,7 +1,8 @@
 #pragma once
 
-#include <VRPG/Game/Camera/DefaultCamera.h>
-#include <VRPG/Game/Utility/ScalarHistory.h>
+#include <VRPG/Game/Misc/ScalarHistory.h>
+#include <VRPG/Game/Physics/CollisionPrimitive.h>
+#include <VRPG/Game/Player/Camera/DefaultCamera.h>
 
 VRPG_GAME_BEGIN
 
@@ -37,26 +38,26 @@ public:
 
         // 飞行模式移动参数
 
-        float flyingAccel       = 300.0f;
-        float flyingFricAccel   = 30.0f;
+        float flyingAccel       = 300.0f;     // 飞行自给水平加速度
+        float flyingFricAccel   = 30.0f;      // 飞行外来阻力水平加速度
 
-        float flyingMaxSpeed     = 10.0f;
-        float fastFlyingMaxSpeed = 15.0f;
+        float flyingMaxSpeed     = 10.0f;     // 飞行最大自给水平速度
+        float fastFlyingMaxSpeed = 15.0f;     // 快速飞行最大自给水品速度
 
-        float flyingVertAccel     = 130.0f;
-        float flyingVertFricAccel = 70.0f;
-        float flyingVertMaxSpeed  = 10.0f;
+        float flyingVertAccel     = 130.0f;   // 飞行自给垂直加速度
+        float flyingVertFricAccel = 70.0f;    // 飞行外来阻力垂直加速度
+        float flyingVertMaxSpeed  = 10.0f;    // 飞行最大自给垂直速度
 
         // 其他
 
-        float cameraMoveXSpeed = 0.002f;       // 摄像机水平灵敏度
-        float cameraMoveYSpeed = 0.002f;       // 摄像机垂直灵敏度
+        float cameraMoveXSpeed = 0.002f;      // 摄像机水平灵敏度
+        float cameraMoveYSpeed = 0.002f;      // 摄像机垂直灵敏度
 
-        float cameraDownReOffset = 0.02f;      // 摄像机最小垂直夹角偏移
-        float cameraUpReOffset   = 0.02f;      // 摄像机最大垂直夹角偏移
+        float cameraDownReOffset = 0.02f;     // 摄像机最小垂直夹角偏移
+        float cameraUpReOffset   = 0.02f;     // 摄像机最大垂直夹角偏移
 
-        float collisionRadius = 0.25f;         // 角色碰撞半径（圆柱形碰撞体）
-        float collisionHeight = 1.8f;          // 角色碰撞高度（圆柱形碰撞体）
+        float collisionRadius = 0.25f;        // 角色碰撞半径（圆柱形碰撞体）
+        float collisionHeight = 1.8f;         // 角色碰撞高度（圆柱形碰撞体）
     };
 
     // 用户用于操作角色行为的输入
@@ -122,22 +123,22 @@ private:
     };
 
     void InitState_Standing  (const UserInput &userInput);
-    void InitState_Running   (const UserInput &userInput);
     void InitState_Walking   (const UserInput &userInput);
+    void InitState_Running   (const UserInput &userInput);
     void InitState_Floating  (const UserInput &userInput);
     void InitState_Flying    (const UserInput &userInput);
     void InitState_FastFlying(const UserInput &userInput);
     
-    State TransState_Standing  (const UserInput &userInput);
-    State TransState_Running   (const UserInput &userInput);
-    State TransState_Walking   (const UserInput &userInput);
-    State TransState_Floating  (const UserInput &userInput);
-    State TransState_Flying    (const UserInput &userInput);
-    State TransState_FastFlying(const UserInput &userInput);
+    State TransState_Standing  (const UserInput &userInput) const;
+    State TransState_Walking   (const UserInput &userInput) const;
+    State TransState_Running   (const UserInput &userInput) const;
+    State TransState_Floating  (const UserInput &userInput) const;
+    State TransState_Flying    (const UserInput &userInput) const;
+    State TransState_FastFlying(const UserInput &userInput) const;
     
     void ApplyState_Standing  (const UserInput &userInput, float dt);
-    void ApplyState_Running   (const UserInput &userInput, float dt);
     void ApplyState_Walking   (const UserInput &userInput, float dt);
+    void ApplyState_Running   (const UserInput &userInput, float dt);
     void ApplyState_Floating  (const UserInput &userInput, float dt);
     void ApplyState_Flying    (const UserInput &userInput, float dt);
     void ApplyState_FastFlying(const UserInput &userInput, float dt);

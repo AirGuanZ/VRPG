@@ -1,10 +1,10 @@
 ﻿#include <ImGui/imgui.h>
 
-#include <VRPG/Game/Block/BuiltinBlock.h>
 #include <VRPG/Game/Config/GlobalConfig.h>
-#include <VRPG/Game/Land/FlatLandGenerator.h>
-#include <VRPG/Game/World/BlockUpdater/LiquidUpdater.h>
 #include <VRPG/Game/Game.h>
+#include <VRPG/Game/World/Block/BuiltinBlock.h>
+#include <VRPG/Game/World/Land/FlatLandGenerator.h>
+#include <VRPG/Game/World/BlockUpdater/LiquidUpdater.h>
 
 VRPG_GAME_BEGIN
 
@@ -99,7 +99,7 @@ void Game::Initialize()
 
     spdlog::info("initialize player");
 
-    DefaultCamera camera;
+    Player::PlayerCamera camera;
 
     camera.SetWOverH      (window_->GetClientAspectRatio());
     camera.SetPosition    ({ 0, 40, 0 });

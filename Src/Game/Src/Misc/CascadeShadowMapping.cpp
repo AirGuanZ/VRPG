@@ -1,5 +1,6 @@
 #include <VRPG/Game/Config/GlobalConfig.h>
 #include <VRPG/Game/Misc/CascadeShadowMapping.h>
+#include <VRPG/Game/World/Chunk/ChunkRenderer.h>
 
 VRPG_GAME_BEGIN
 

@@ -2,14 +2,13 @@
 
 #include <agz/utility/time.h>
 
-#include <VRPG/Game/Camera/DefaultCamera.h>
-#include <VRPG/Game/Chunk/ChunkManager.h>
-#include <VRPG/Game/Chunk/ChunkRenderer.h>
 #include <VRPG/Game/Misc/CascadeShadowMapping.h>
 #include <VRPG/Game/Misc/ChosenWireframe.h>
 #include <VRPG/Game/Misc/Crosshair.h>
 #include <VRPG/Game/Player/Player.h>
-#include <VRPG/Game/World/BlockUpdater.h>
+#include <VRPG/Game/World/BlockUpdater/BlockUpdater.h>
+#include <VRPG/Game/World/Chunk/ChunkManager.h>
+#include <VRPG/Game/World/Chunk/ChunkRenderer.h>
 
 VRPG_GAME_BEGIN
 

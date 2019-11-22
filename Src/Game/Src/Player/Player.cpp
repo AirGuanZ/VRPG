@@ -1,6 +1,6 @@
-#include <VRPG/Game/Block/BlockCollision.h>
-#include <VRPG/Game/Chunk/ChunkManager.h>
 #include <VRPG/Game/Player/Player.h>
+#include <VRPG/Game/World/Block/BlockCollision.h>
+#include <VRPG/Game/World/Chunk/ChunkManager.h>
 
 VRPG_GAME_BEGIN
 
@@ -233,11 +233,11 @@ void Player::UpdateState(const UserInput &userInput, float dt)
     State newState = State::Standing;
     switch(state_)
     {
-    case State::Standing: newState = TransState_Standing    (userInput); break;
-    case State::Walking:  newState = TransState_Walking     (userInput); break;
-    case State::Running:  newState = TransState_Running     (userInput); break;
-    case State::Floating: newState = TransState_Floating    (userInput); break;
-    case State::Flying:   newState = TransState_Flying      (userInput); break;
+    case State::Standing:   newState = TransState_Standing    (userInput); break;
+    case State::Walking:    newState = TransState_Walking     (userInput); break;
+    case State::Running:    newState = TransState_Running     (userInput); break;
+    case State::Floating:   newState = TransState_Floating    (userInput); break;
+    case State::Flying:     newState = TransState_Flying      (userInput); break;
     case State::FastFlying: newState = TransState_FastFlying(userInput); break;
     }
 
@@ -416,7 +416,7 @@ void Player::InitState_FastFlying(const UserInput &userInput)
     enableRunning_ = false;
 }
 
-Player::State Player::TransState_Standing(const UserInput &userInput)
+Player::State Player::TransState_Standing(const UserInput &userInput) const
 {
     if(userInput.flyDown || !enableCollision_)
     {
@@ -436,7 +436,7 @@ Player::State Player::TransState_Standing(const UserInput &userInput)
     return State::Standing;
 }
 
-Player::State Player::TransState_Walking(const UserInput &userInput)
+Player::State Player::TransState_Walking(const UserInput &userInput) const
 {
     if(userInput.flyDown || !enableCollision_)
     {
@@ -456,7 +456,7 @@ Player::State Player::TransState_Walking(const UserInput &userInput)
     return State::Standing;
 }
 
-Player::State Player::TransState_Running(const UserInput &userInput)
+Player::State Player::TransState_Running(const UserInput &userInput) const
 {
     if(userInput.flyDown || !enableCollision_)
     {
@@ -476,7 +476,7 @@ Player::State Player::TransState_Running(const UserInput &userInput)
     return State::Standing;
 }
 
-Player::State Player::TransState_Floating(const UserInput &userInput)
+Player::State Player::TransState_Floating(const UserInput &userInput) const
 {
     if(userInput.flyDown || !enableCollision_)
     {
@@ -496,7 +496,7 @@ Player::State Player::TransState_Floating(const UserInput &userInput)
     return State::Standing;
 }
 
-Player::State Player::TransState_Flying(const UserInput &userInput)
+Player::State Player::TransState_Flying(const UserInput &userInput) const
 {
     if(userInput.flyDown)
     {
@@ -511,7 +511,7 @@ Player::State Player::TransState_Flying(const UserInput &userInput)
     return State::Flying;
 }
 
-Player::State Player::TransState_FastFlying(const UserInput &userInput)
+Player::State Player::TransState_FastFlying(const UserInput &userInput) const
 {
     if(userInput.flyDown)
     {

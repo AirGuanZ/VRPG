@@ -1,7 +1,7 @@
-﻿#include <VRPG/Game/Block/BlockDescription.h>
-#include <VRPG/Game/Block/LiquidDescription.h>
-#include <VRPG/Game/Chunk/ChunkManager.h>
+﻿#include <VRPG/Game/World/Block/BlockDescription.h>
+#include <VRPG/Game/World/Block/LiquidDescription.h>
 #include <VRPG/Game/World/BlockUpdater/LiquidUpdater.h>
+#include <VRPG/Game/World/Chunk/ChunkManager.h>
 
 VRPG_GAME_BEGIN
 

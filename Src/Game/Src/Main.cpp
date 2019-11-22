@@ -2,11 +2,11 @@
 
 #include <VRPG/Base/Base.h>
 
-#include <VRPG/Game/Block/BlockDescription.h>
-#include <VRPG/Game/Block/BlockEffect.h>
-#include <VRPG/Game/Block/BuiltinBlock.h>
 #include <VRPG/Game/Config/GlobalConfig.h>
 #include <VRPG/Game/Game.h>
+#include <VRPG/Game/World/Block/BlockDescription.h>
+#include <VRPG/Game/World/Block/BlockEffect.h>
+#include <VRPG/Game/World/Block/BuiltinBlock.h>
 
 int main()
 {

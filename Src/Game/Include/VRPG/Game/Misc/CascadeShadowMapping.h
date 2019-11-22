@@ -1,8 +1,7 @@
 #pragma once
 
-#include <VRPG/Game/Block/BlockEffect.h>
-#include <VRPG/Game/Camera/Camera.h>
-#include <VRPG/Game/Chunk/ChunkRenderer.h>
+#include <VRPG/Game/Player/Camera/Camera.h>
+#include <VRPG/Game/World/Block/BlockEffect.h>
 
 /*
 实现shadow mapping的辅助类

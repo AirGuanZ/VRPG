@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <VRPG/Game/World/BlockUpdater.h>
+#include <VRPG/Game/World/BlockUpdater/BlockUpdater.h>
 
 VRPG_GAME_BEGIN
 

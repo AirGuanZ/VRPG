@@ -2,7 +2,6 @@
 
 #include <libconfig.h++>
 
-#include <VRPG/Game/Common.h>
 #include <VRPG/Game/Config/AssetPathManager.h>
 
 VRPG_GAME_BEGIN
