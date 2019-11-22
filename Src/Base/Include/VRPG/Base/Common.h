@@ -31,6 +31,8 @@ using Mat4 = agz::math::mat4f_c;
 
 using Trans4 = Mat4::right_transform;
 
+using Quaternion = agz::math::tquaternion_t<float>;
+
 class VRPGBaseException : public std::runtime_error
 {
 public:
