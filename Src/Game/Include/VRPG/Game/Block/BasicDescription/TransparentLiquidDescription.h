@@ -41,6 +41,8 @@ public:
 
     const LiquidDescription *GetLiquid() const noexcept override;
 
+    const BlockCollision *GetCollision() const noexcept override;
+
 private:
 
     std::string name_;

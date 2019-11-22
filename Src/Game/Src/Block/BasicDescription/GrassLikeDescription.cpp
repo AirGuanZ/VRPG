@@ -64,15 +64,31 @@ void GrassLikeDescription::AddBlockModel(
         VertexIndex vertexCount = VertexIndex(builder->GetVertexCount());
         Vec3 normal = cross(posB - posA, posC - posB).normalize();
 
-        builder->AddVertex({ posA + positionBase, { 0, 1 }, normal, light, static_cast<uint32_t>(textureIndexInEffect) });
-        builder->AddVertex({ posB + positionBase, { 0, 0 }, normal, light, static_cast<uint32_t>(textureIndexInEffect) });
-        builder->AddVertex({ posC + positionBase, { 1, 0 }, normal, light, static_cast<uint32_t>(textureIndexInEffect) });
-        builder->AddVertex({ posD + positionBase, { 1, 1 }, normal, light, static_cast<uint32_t>(textureIndexInEffect) });
+        builder->AddVertex({
+            posA + positionBase, { 0, 1 }, normal, light,
+            static_cast<uint32_t>(textureIndexInEffect) });
+        builder->AddVertex({
+            posB + positionBase, { 0, 0 }, normal, light,
+            static_cast<uint32_t>(textureIndexInEffect) });
+        builder->AddVertex({
+            posC + positionBase, { 1, 0 }, normal, light,
+            static_cast<uint32_t>(textureIndexInEffect) });
+        builder->AddVertex({
+            posD + positionBase, { 1, 1 }, normal, light,
+            static_cast<uint32_t>(textureIndexInEffect) });
 
-        builder->AddVertex({ posA + positionBase, { 0, 1 }, -normal, light, static_cast<uint32_t>(textureIndexInEffect) });
-        builder->AddVertex({ posB + positionBase, { 0, 0 }, -normal, light, static_cast<uint32_t>(textureIndexInEffect) });
-        builder->AddVertex({ posC + positionBase, { 1, 0 }, -normal, light, static_cast<uint32_t>(textureIndexInEffect) });
-        builder->AddVertex({ posD + positionBase, { 1, 1 }, -normal, light, static_cast<uint32_t>(textureIndexInEffect) });
+        builder->AddVertex({
+    posA + positionBase, { 0, 1 }, -normal, light,
+            static_cast<uint32_t>(textureIndexInEffect) });
+        builder->AddVertex({
+    posB + positionBase, { 0, 0 }, -normal, light,
+            static_cast<uint32_t>(textureIndexInEffect) });
+        builder->AddVertex({
+    posC + positionBase, { 1, 0 }, -normal, light,
+            static_cast<uint32_t>(textureIndexInEffect) });
+        builder->AddVertex({
+            posD + positionBase, { 1, 1 }, -normal, light,
+            static_cast<uint32_t>(textureIndexInEffect) });
 
         builder->AddIndexedTriangle(vertexCount + 0, vertexCount + 1, vertexCount + 2);
         builder->AddIndexedTriangle(vertexCount + 0, vertexCount + 2, vertexCount + 3);
@@ -87,7 +103,7 @@ void GrassLikeDescription::AddBlockModel(
 
 const BlockCollision *GrassLikeDescription::GetCollision() const noexcept
 {
-    static const BoxBlockCollision ret;
+    static const BoxBlockCollision ret(false);
     return &ret;
 }
 

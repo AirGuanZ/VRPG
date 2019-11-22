@@ -107,6 +107,7 @@ void Game::Initialize()
     camera.SetClipDistance(0.1f, 1000.0f);
 
     Player::PlayerParams playerParams;
+
     playerParams.runningAccel          = GLOBAL_CONFIG.PLAYER.runningAccel;
     playerParams.walkingAccel          = GLOBAL_CONFIG.PLAYER.walkingAccel;
     playerParams.floatingAccel         = GLOBAL_CONFIG.PLAYER.floatingAccel;
@@ -120,6 +121,15 @@ void Game::Initialize()
     playerParams.jumpingInitVelocity   = GLOBAL_CONFIG.PLAYER.jumpingInitVelocity;
     playerParams.gravityAccel          = GLOBAL_CONFIG.PLAYER.gravityAccel;
     playerParams.gravityMaxSpeed       = GLOBAL_CONFIG.PLAYER.gravityMaxSpeed;
+
+    playerParams.flyingAccel           = GLOBAL_CONFIG.PLAYER.flyingAccel;
+    playerParams.flyingFricAccel       = GLOBAL_CONFIG.PLAYER.flyingFricAccel;
+    playerParams.flyingMaxSpeed        = GLOBAL_CONFIG.PLAYER.flyingMaxSpeed;
+    playerParams.fastFlyingMaxSpeed    = GLOBAL_CONFIG.PLAYER.fastFlyingMaxSpeed;
+    playerParams.flyingVertAccel       = GLOBAL_CONFIG.PLAYER.flyingVertAccel;
+    playerParams.flyingVertFricAccel   = GLOBAL_CONFIG.PLAYER.flyingVertFricAccel;
+    playerParams.flyingVertMaxSpeed    = GLOBAL_CONFIG.PLAYER.flyingVertMaxSpeed;
+
     playerParams.cameraMoveXSpeed      = GLOBAL_CONFIG.PLAYER.cameraMoveXSpeed;
     playerParams.cameraMoveYSpeed      = GLOBAL_CONFIG.PLAYER.cameraMoveYSpeed;
 
@@ -155,8 +165,9 @@ void Game::PlayerTick(float deltaT)
 {
     UpdatePlayer(deltaT);
 
-    Vec3i pickedBlockPosition; Direction pickedFace = PositiveX;
     auto &camera = player_->GetCamera();
+
+    Vec3i pickedBlockPosition; Direction pickedFace = PositiveX;
     if(chunkManager_->FindClosestIntersectedBlock(
         camera.GetPosition(), camera.GetDirection(), 8.0f, &pickedBlockPosition, &pickedFace))
     {
@@ -192,8 +203,15 @@ void Game::PlayerTick(float deltaT)
                 LiquidUpdater::AddUpdaterForNeighborhood(
                     newBlockPosition, *blockUpdaterManager_, *chunkManager_, StdClock::now());*/
 
-                auto stoneID = BuiltinBlockTypeManager::GetInstance().GetID(BuiltinBlockType::Stone);
-                chunkManager_->SetBlockID(newBlockPosition, stoneID, {});
+                auto stoneDesc = BuiltinBlockTypeManager::GetInstance().GetDesc(BuiltinBlockType::Stone);
+                auto stoneCollision = stoneDesc->GetCollision();
+                auto playerCollision = player_->GetCollision();
+
+                playerCollision.lowCentre -= newBlockPosition.map([](int i) { return static_cast<float>(i); });
+                if(!stoneCollision->HasCollisionWith({}, playerCollision))
+                {
+                    chunkManager_->SetBlockID(newBlockPosition, stoneDesc->GetBlockID(), {});
+                }
             }
         }
     }
@@ -298,6 +316,13 @@ void Game::UpdatePlayer(float deltaT)
     input.leftPressed  = keyboard_->IsKeyPressed('A');
     input.rightPressed = keyboard_->IsKeyPressed('D');
     input.jumpPressed  = keyboard_->IsKeyPressed(Base::KEY_SPACE);
+
+    input.runDown             = keyboard_->IsKeyDown(Base::KEY_LCTRL);
+    input.switchCollisionDown = keyboard_->IsKeyDown(Base::KEY_F1);
+
+    input.flyDown     = keyboard_->IsKeyDown(Base::KEY_F2);
+    input.downPressed = keyboard_->IsKeyPressed(Base::KEY_LSHIFT);
+    input.upPressed   = keyboard_->IsKeyPressed(Base::KEY_SPACE);
 
     input.relativeCursorX = float(mouse_->GetRelativeCursorPositionX());
     input.relativeCursorY = float(mouse_->GetRelativeCursorPositionY());

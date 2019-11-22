@@ -40,6 +40,8 @@ struct ChunkManagerConfig
 
 struct PlayerConfig
 {
+    // 重力模式移动参数
+
     float runningAccel          = 300.0f;   // 跑动自给水平加速度
     float walkingAccel          = 200.0f;   // 行走自给水平加速度
     float floatingAccel         = 200.0f;   // 浮空自给水平加速度
@@ -56,6 +58,20 @@ struct PlayerConfig
     float jumpingInitVelocity   = 13.0f;    // 跳跃初始速度
     float gravityAccel          = 30.0f;    // 重力加速度
     float gravityMaxSpeed       = 30000.0f; // 最大下落速度
+
+    // 飞行模式移动参数
+
+    float flyingAccel           = 300.0f;   // 飞行自给水平加速度
+    float flyingFricAccel       = 30.0f;    // 飞行外来阻力水平加速度
+
+    float flyingMaxSpeed        = 10.0f;    // 飞行最大自给水平速度
+    float fastFlyingMaxSpeed    = 15.0f;    // 快速飞行最大自给水品速度
+
+    float flyingVertAccel       = 130.0f;   // 飞行自给垂直加速度
+    float flyingVertFricAccel   = 70.0f;    // 飞行外来阻力垂直加速度
+    float flyingVertMaxSpeed    = 10.0f;    // 飞行最大自给垂直速度
+
+    // 其他
 
     float cameraMoveXSpeed      = 0.002f;   // 摄像机水平灵敏度
     float cameraMoveYSpeed      = 0.002f;   // 摄像机垂直灵敏度

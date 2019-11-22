@@ -4,8 +4,19 @@ VRPG_GAME_BEGIN
 
 constexpr float EPS = 1e-3f;
 
+BoxBlockCollision::BoxBlockCollision(bool enableCollision)
+    : enableCollision_(enableCollision)
+{
+    
+}
+
 bool BoxBlockCollision::HasCollisionWith(BlockOrientation blockOrientation, const Collision::AACylinder &cylinder) const noexcept
 {
+    if(!enableCollision_)
+    {
+        return false;
+    }
+
     if(cylinder.lowCentre.y >= 1 || cylinder.lowCentre.y + cylinder.height <= 0)
     {
         return false;
@@ -21,6 +32,11 @@ bool BoxBlockCollision::ResolveCollisionWith(
     const Collision::AACylinder &cylinder, const Vec3 &newLowCentre, ResolveCollisionResult *result) const noexcept
 {
     assert(result);
+
+    if(!enableCollision_)
+    {
+        return false;
+    }
 
     // +/-y
 

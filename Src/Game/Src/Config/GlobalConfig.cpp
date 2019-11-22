@@ -81,6 +81,14 @@ void PlayerConfig::Load(const libconfig::Setting &setting)
     setting.lookupValue("GravityAccel",        gravityAccel);
     setting.lookupValue("GravityMaxSpeed",  gravityMaxSpeed);
 
+    setting.lookupValue("FlyingAccel",         flyingAccel);
+    setting.lookupValue("FlyingFricAccel",     flyingFricAccel);
+    setting.lookupValue("FlyingMaxSpeed",      flyingMaxSpeed);
+    setting.lookupValue("FastFlyingMaxSpeed",  fastFlyingMaxSpeed);
+    setting.lookupValue("FlyingVertAccel",     flyingVertAccel);
+    setting.lookupValue("FlyingVertFricAccel", flyingVertFricAccel);
+    setting.lookupValue("FlyingVertMaxSpeed",  flyingVertMaxSpeed);
+
     setting.lookupValue("CameraMoveXSpeed", cameraMoveXSpeed);
     setting.lookupValue("CameraMoveYSpeed", cameraMoveYSpeed);
 }
@@ -100,6 +108,13 @@ void PlayerConfig::Print()
     PrintItem("Player::JumpingInitVelocity", jumpingInitVelocity);
     PrintItem("Player::GravityAccel",        gravityAccel);
     PrintItem("Player::GravityMaxSpeed",     gravityMaxSpeed);
+    PrintItem("FlyingAccel",                 flyingAccel);
+    PrintItem("FlyingFricAccel",             flyingFricAccel);
+    PrintItem("FlyingMaxSpeed",              flyingMaxSpeed);
+    PrintItem("FastFlyingMaxSpeed",          fastFlyingMaxSpeed);
+    PrintItem("FlyingVertAccel",             flyingVertAccel);
+    PrintItem("FlyingVertFricAccel",         flyingVertFricAccel);
+    PrintItem("FlyingVertMaxSpeed",          flyingVertMaxSpeed);
     PrintItem("Player::CameraMoveXSpeed",    cameraMoveXSpeed);
     PrintItem("Player::CameraMoveYSpeed",    cameraMoveYSpeed);
 }

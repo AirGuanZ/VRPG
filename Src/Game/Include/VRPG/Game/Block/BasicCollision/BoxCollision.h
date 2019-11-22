@@ -7,7 +7,11 @@ VRPG_GAME_BEGIN
 
 class BoxBlockCollision : public BlockCollision
 {
+    bool enableCollision_;
+
 public:
+
+    BoxBlockCollision(bool enableCollision = true);
 
     bool HasCollisionWith(BlockOrientation blockOrientation, const Collision::AACylinder &cylinder) const noexcept override;
 

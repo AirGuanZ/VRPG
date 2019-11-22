@@ -34,29 +34,6 @@ namespace
         return (origin - oriDirLen * dir) + newDirLen * dir;
     }
 
-    /*
-     * 将origin长度减少fric
-     */
-    Vec3 ApplyFriction(const Vec3 &origin, float fric)
-    {
-        float len = origin.length();
-        if(len < 0.001f)
-        {
-            return Vec3();
-        }
-        Vec3 rt = origin / len;
-        return (std::max)(0.0f, origin.length() - fric) * rt;
-    }
-
-    /*
-     * 将origin在xz平面上分量的长度减少fric
-     */
-    Vec3 ApplyFrictionXZ(const Vec3 &ori, float fric)
-    {
-        Vec3 rtHor = ApplyFriction(Vec3(ori.x, 0.0f, ori.z), fric);
-        return Vec3(rtHor.x, ori.y, rtHor.z);
-    }
-
     Vec3 ComputeXZMoveDirection(const Player::UserInput &userInput, const Vec3 &cameraDirection) noexcept
     {
         int front = static_cast<int>(userInput.frontPressed) - static_cast<int>(userInput.backPressed);
@@ -168,6 +145,12 @@ Player::Player(
     position_         = initPosition;
     verticalRadian_   = 0;
     horizontalRadian_ = 0;
+
+    enableRunning_   = false;
+    enableCollision_ = true;
+
+    cursorXHistory_ = ScalarHistory(4);
+    cursorYHistory_ = ScalarHistory(4);
 }
 
 Vec3 Player::GetPosition() const noexcept
@@ -188,6 +171,11 @@ Vec3 Player::GetDirection() const noexcept
         std::sin(horizontalRadian_));
 }
 
+Collision::AACylinder Player::GetCollision() const noexcept
+{
+    return { position_, params_.collisionRadius, params_.collisionHeight };
+}
+
 bool Player::IsOnGround() const noexcept
 {
     return onGround_;
@@ -205,6 +193,11 @@ void Player::SetCameraWOverH(float wOverH) noexcept
 
 void Player::HandleMovement(const UserInput &userInput, float dt)
 {
+    if(userInput.switchCollisionDown)
+    {
+        enableCollision_ = !enableCollision_;
+    }
+
     UpdateDirection(userInput);
     UpdateState(userInput, dt);
     UpdatePosition(dt);
@@ -216,8 +209,11 @@ void Player::UpdateDirection(const UserInput &userInput)
     constexpr float PI = agz::math::PI_f;
     constexpr float PI_2 = 2 * PI;
 
-    verticalRadian_   -= params_.cameraMoveYSpeed * userInput.relativeCursorY;
-    horizontalRadian_ -= params_.cameraMoveXSpeed * userInput.relativeCursorX;
+    cursorXHistory_.Update(userInput.relativeCursorX);
+    cursorYHistory_.Update(userInput.relativeCursorY);
+
+    verticalRadian_   -= params_.cameraMoveYSpeed * cursorYHistory_.MeanValue();
+    horizontalRadian_ -= params_.cameraMoveXSpeed * cursorXHistory_.MeanValue();
 
     verticalRadian_ = agz::math::clamp(
         verticalRadian_, -PI / 2 + params_.cameraDownReOffset, PI / 2 - params_.cameraUpReOffset);
@@ -229,33 +225,44 @@ void Player::UpdateDirection(const UserInput &userInput)
 
 void Player::UpdateState(const UserInput &userInput, float dt)
 {
+    if(userInput.runDown)
+    {
+        enableRunning_ = !enableRunning_;
+    }
+
     State newState = State::Standing;
     switch(state_)
     {
-    case State::Standing: newState = TransState_Standing(userInput); break;
-    case State::Walking:  newState = TransState_Walking (userInput); break;
-    case State::Running:  newState = TransState_Running (userInput); break;
-    case State::Floating: newState = TransState_Floating(userInput); break;
+    case State::Standing: newState = TransState_Standing    (userInput); break;
+    case State::Walking:  newState = TransState_Walking     (userInput); break;
+    case State::Running:  newState = TransState_Running     (userInput); break;
+    case State::Floating: newState = TransState_Floating    (userInput); break;
+    case State::Flying:   newState = TransState_Flying      (userInput); break;
+    case State::FastFlying: newState = TransState_FastFlying(userInput); break;
     }
 
     if(newState != state_)
     {
         switch(newState)
         {
-        case State::Standing: InitState_Standing(userInput); break;
-        case State::Walking:  InitState_Walking (userInput); break;
-        case State::Running:  InitState_Running (userInput); break;
-        case State::Floating: InitState_Floating(userInput); break;
+        case State::Standing:   InitState_Standing(userInput); break;
+        case State::Walking:    InitState_Walking (userInput); break;
+        case State::Running:    InitState_Running (userInput); break;
+        case State::Floating:   InitState_Floating(userInput); break;
+        case State::Flying:     InitState_Flying  (userInput); break;
+        case State::FastFlying: InitState_FastFlying(userInput); break;
         }
         state_ = newState;
     }
 
     switch(state_)
     {
-    case State::Standing: ApplyState_Standing(userInput, dt); break;
-    case State::Walking:  ApplyState_Walking (userInput, dt); break;
-    case State::Running:  ApplyState_Running (userInput, dt); break;
-    case State::Floating: ApplyState_Floating(userInput, dt); break;
+    case State::Standing:   ApplyState_Standing(userInput, dt); break;
+    case State::Walking:    ApplyState_Walking (userInput, dt); break;
+    case State::Running:    ApplyState_Running (userInput, dt); break;
+    case State::Floating:   ApplyState_Floating(userInput, dt); break;
+    case State::Flying:     ApplyState_Flying(userInput, dt);   break;
+    case State::FastFlying: ApplyState_FastFlying(userInput, dt); break;
     }
 }
 
@@ -263,6 +270,13 @@ void Player::UpdatePosition(float dt)
 {
     Vec3 deltaPosition = dt * velocity_;
     Vec3 newPosition = position_ + deltaPosition;
+
+    if(!enableCollision_)
+    {
+        position_ = newPosition;
+        return;
+    }
+
     Vec3 lowf  = newPosition - Vec3(params_.collisionRadius, 0, params_.collisionRadius)
                              - Vec3(0.2f);
     Vec3 highf = newPosition + Vec3(params_.collisionRadius,
@@ -370,6 +384,7 @@ bool Player::HasMoving(const UserInput &userInput) noexcept
 
 void Player::InitState_Standing(const UserInput &userInput)
 {
+    enableRunning_ = false;
     velocity_.y = 0;
 }
 
@@ -386,11 +401,28 @@ void Player::InitState_Running(const UserInput &userInput)
 void Player::InitState_Floating(const UserInput &userInput)
 {
     if(onGround_ && userInput.jumpPressed)
+    {
         velocity_.y = params_.jumpingInitVelocity;
+    }
+}
+
+void Player::InitState_Flying(const UserInput &userInput)
+{
+    enableRunning_ = false;
+}
+
+void Player::InitState_FastFlying(const UserInput &userInput)
+{
+    enableRunning_ = false;
 }
 
 Player::State Player::TransState_Standing(const UserInput &userInput)
 {
+    if(userInput.flyDown || !enableCollision_)
+    {
+        return enableRunning_ ? State::FastFlying : State::Flying;
+    }
+
     if(!onGround_ || userInput.jumpPressed)
     {
         return State::Floating;
@@ -398,7 +430,7 @@ Player::State Player::TransState_Standing(const UserInput &userInput)
 
     if(HasMoving(userInput))
     {
-        return State::Walking;
+        return enableRunning_ ? State::Running : State::Walking;
     }
 
     return State::Standing;
@@ -406,6 +438,11 @@ Player::State Player::TransState_Standing(const UserInput &userInput)
 
 Player::State Player::TransState_Walking(const UserInput &userInput)
 {
+    if(userInput.flyDown || !enableCollision_)
+    {
+        return enableRunning_ ? State::FastFlying : State::Flying;
+    }
+
     if(!onGround_ || userInput.jumpPressed)
     {
         return State::Floating;
@@ -413,7 +450,7 @@ Player::State Player::TransState_Walking(const UserInput &userInput)
 
     if(HasMoving(userInput))
     {
-        return State::Walking;
+        return enableRunning_ ? State::Running : State::Walking;
     }
 
     return State::Standing;
@@ -421,6 +458,11 @@ Player::State Player::TransState_Walking(const UserInput &userInput)
 
 Player::State Player::TransState_Running(const UserInput &userInput)
 {
+    if(userInput.flyDown || !enableCollision_)
+    {
+        return enableRunning_ ? State::FastFlying : State::Flying;
+    }
+
     if(!onGround_ || userInput.jumpPressed)
     {
         return State::Floating;
@@ -428,7 +470,7 @@ Player::State Player::TransState_Running(const UserInput &userInput)
 
     if(HasMoving(userInput))
     {
-        return State::Walking;
+        return enableRunning_ ? State::Running : State::Walking;
     }
 
     return State::Standing;
@@ -436,6 +478,11 @@ Player::State Player::TransState_Running(const UserInput &userInput)
 
 Player::State Player::TransState_Floating(const UserInput &userInput)
 {
+    if(userInput.flyDown || !enableCollision_)
+    {
+        return enableRunning_ ? State::FastFlying : State::Flying;
+    }
+
     if(!onGround_)
     {
         return State::Floating;
@@ -443,16 +490,52 @@ Player::State Player::TransState_Floating(const UserInput &userInput)
 
     if(HasMoving(userInput))
     {
-        return State::Walking;
+        return enableRunning_ ? State::Running : State::Walking;
     }
 
     return State::Standing;
 }
 
+Player::State Player::TransState_Flying(const UserInput &userInput)
+{
+    if(userInput.flyDown)
+    {
+        return State::Floating;
+    }
+
+    if(userInput.runDown)
+    {
+        return State::FastFlying;
+    }
+
+    return State::Flying;
+}
+
+Player::State Player::TransState_FastFlying(const UserInput &userInput)
+{
+    if(userInput.flyDown)
+    {
+        return State::Floating;
+    }
+
+    if(userInput.runDown)
+    {
+        return State::Flying;
+    }
+
+    return State::FastFlying;
+}
+
 void Player::ApplyState_Standing(const UserInput &userInput, float dt)
 {
     velocity_ = CombineAccel(velocity_, Vec3(0, -1, 0), dt * params_.gravityAccel, params_.gravityMaxSpeed);
-    velocity_ = ApplyFrictionXZ(velocity_, dt * params_.standingFrictionAccel);
+
+    Vec3 fricDir = Vec3(velocity_.x, 0, velocity_.z);
+    if(fricDir.length() > 1e-5f)
+    {
+        fricDir = fricDir.normalize();
+        velocity_ = CombineFriction(velocity_, fricDir, dt * params_.standingFrictionAccel, 0);
+    }
 }
 
 void Player::ApplyState_Walking(const UserInput &userInput, float dt)
@@ -498,6 +581,60 @@ void Player::ApplyState_Floating(const UserInput &userInput, float dt)
 
     Vec3 horMove = ComputeXZMoveDirection(userInput, camera_.GetDirection());
     velocity_ = CombineAccel(velocity_, horMove, dt * params_.floatingAccel, params_.floatingMaxSpeed);
+}
+
+void Player::ApplyState_Flying(const UserInput &userInput, float dt)
+{
+    Vec3 horiFricDir = Vec3(velocity_.x, 0, velocity_.z);
+    if(horiFricDir.length() > 1e-5f)
+    {
+        horiFricDir = horiFricDir.normalize();
+        velocity_ = CombineFriction(velocity_, horiFricDir, dt * params_.flyingFricAccel, 0);
+    }
+
+    if(std::abs(velocity_.y) > 1e-5f)
+    {
+        Vec3 vertFricDir = Vec3(0, velocity_.y > 0 ? 1.0f : -1.0f, 0);
+        velocity_ = CombineFriction(velocity_, vertFricDir, dt * params_.flyingVertFricAccel, 0);
+    }
+
+    Vec3 horiMove = ComputeXZMoveDirection(userInput, camera_.GetDirection());
+    velocity_ = CombineAccel(velocity_, horiMove, dt * params_.flyingAccel, params_.flyingMaxSpeed);
+
+    if(userInput.upPressed ^ userInput.downPressed)
+    {
+        Vec3 vertMove;
+        vertMove.y = static_cast<float>(static_cast<int>(userInput.upPressed)
+                                      - static_cast<int>(userInput.downPressed));
+        velocity_ = CombineAccel(velocity_, vertMove, dt * params_.flyingVertAccel, params_.flyingVertMaxSpeed);
+    }
+}
+
+void Player::ApplyState_FastFlying(const UserInput &userInput, float dt)
+{
+    Vec3 horiFricDir = Vec3(velocity_.x, 0, velocity_.z);
+    if(horiFricDir.length() > 1e-5f)
+    {
+        horiFricDir = horiFricDir.normalize();
+        velocity_ = CombineFriction(velocity_, horiFricDir, dt * params_.flyingFricAccel, 0);
+    }
+
+    if(std::abs(velocity_.y) > 1e-5f)
+    {
+        Vec3 vertFricDir = Vec3(0, velocity_.y > 0 ? 1.0f : -1.0f, 0);
+        velocity_ = CombineFriction(velocity_, vertFricDir, dt * params_.flyingVertFricAccel, 0);
+    }
+
+    Vec3 horiMove = ComputeXZMoveDirection(userInput, camera_.GetDirection());
+    velocity_ = CombineAccel(velocity_, horiMove, dt * params_.flyingAccel, params_.fastFlyingMaxSpeed);
+
+    if(userInput.upPressed ^ userInput.downPressed)
+    {
+        Vec3 vertMove;
+        vertMove.y = static_cast<float>(static_cast<int>(userInput.upPressed)
+            - static_cast<int>(userInput.downPressed));
+        velocity_ = CombineAccel(velocity_, vertMove, dt * params_.flyingVertAccel, params_.flyingVertMaxSpeed);
+    }
 }
 
 VRPG_GAME_END

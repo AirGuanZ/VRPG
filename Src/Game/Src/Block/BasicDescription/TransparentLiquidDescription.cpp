@@ -1,4 +1,5 @@
-﻿#include <VRPG/Game/Block/BasicDescription/TransparentLiquidDescription.h>
+﻿#include <VRPG/Game/Block/BasicCollision/VoidCollision.h>
+#include <VRPG/Game/Block/BasicDescription/TransparentLiquidDescription.h>
 #include <VRPG/Game/Utility/BoxModel.h>
 
 VRPG_GAME_BEGIN
@@ -215,7 +216,8 @@ void TransparentLiquidDescription::AddBlockModel(
         Vec4 lhtC = vertexBrightness(normalDirection, posf[2]);
         Vec4 lhtD = vertexBrightness(normalDirection, posf[3]);
 
-        addFace(posf[0], posf[1], posf[2], posf[3], lhtA, lhtB, lhtC, lhtD, 0.25f * posSum);
+        addFace(posf[0], posf[1], posf[2], posf[3],
+                lhtA, lhtB, lhtC, lhtD, 0.25f * posSum);
     };
 
     generateFace(PositiveX);
@@ -239,6 +241,12 @@ BlockExtraData TransparentLiquidDescription::CreateExtraData() const
 const LiquidDescription *TransparentLiquidDescription::GetLiquid() const noexcept
 {
     return &liquid_;
+}
+
+const BlockCollision *TransparentLiquidDescription::GetCollision() const noexcept
+{
+    static const VoidBlockCollision ret;
+    return &ret;
 }
 
 VRPG_GAME_END
