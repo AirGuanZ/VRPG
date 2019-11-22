@@ -200,7 +200,28 @@ void Player::HandleMovement(const UserInput &userInput, float dt)
 
     UpdateDirection(userInput);
     UpdateState(userInput, dt);
-    UpdatePosition(dt);
+
+    float moveDt = dt;
+    bool onGround = false;
+    while(moveDt > 0)
+    {
+        float moveLen = velocity_.length() * moveDt;
+        if(moveLen > 0.48f)
+        {
+            float ddt = moveDt * 0.48f / moveLen;
+            UpdatePosition(ddt);
+            onGround |= onGround_;
+            moveDt = (std::max)(0.0f, moveDt - ddt);
+        }
+        else
+        {
+            UpdatePosition(moveDt);
+            onGround |= onGround_;
+            break;
+        }
+    }
+    onGround_ = onGround;
+
     camera_.SetPosition(position_ + Vec3(0, 1.6f, 0));
 }
 
