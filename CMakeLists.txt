@@ -19,6 +19,7 @@ ADD_DEFINITIONS(-D_UNICODE)
 
 SET(spdlog_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/Lib/spdlog/include")
 SET(libconfig_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/Lib/libconfig/lib")
+SET(Misc_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/Lib/Misc/Include")
 
 ADD_SUBDIRECTORY(Lib/agz-utils)
 ADD_SUBDIRECTORY(Lib/assimp)
@@ -27,6 +28,8 @@ ADD_SUBDIRECTORY(Lib/ImGui)
 
 ADD_SUBDIRECTORY(Src/Base)
 ADD_SUBDIRECTORY(Src/Mesh)
+ADD_SUBDIRECTORY(Src/MeshConverter)
+
 ADD_SUBDIRECTORY(Src/Game)
 
 SET_TARGET_PROPERTIES(AGZUtils ImGui libconfig++ assimp IrrXML zlib zlibstatic PROPERTIES FOLDER "ThirdParty")

@@ -229,7 +229,7 @@ void EnableCascadeShadowMapping::UpdateViewProj(const Camera &camera, Mat4 viewP
     float distance0 = camera.GetNearDistance();
     float distance1 = GLOBAL_CONFIG.SHADOW_MAP.distance;
     float distance2 = distance1 + 2 * (distance1 - distance0);
-    float distance3 = distance2 + 4 * (distance2 - distance1);
+    float distance3 = distance2 + 8 * (distance2 - distance1);
 
     auto computeHomZLimit = [proj = camera.GetProjMatrix()](float maxZ)
     {

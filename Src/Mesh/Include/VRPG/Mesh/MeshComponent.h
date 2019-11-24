@@ -1,10 +1,10 @@
 #pragma once
 
+#include <ostream>
+
 #include <VRPG/Mesh/Common.h>
 
 VRPG_MESH_BEGIN
-
-// 静态网格物体
 
 struct MeshVertex
 {
@@ -17,6 +17,10 @@ struct MeshComponent
 {
     std::vector<MeshVertex> vertices;
     std::vector<uint32_t>   indices;
+
+    void Write(std::ostream &out) const;
+
+    void Read(std::istream &in);
 };
 
 VRPG_MESH_END

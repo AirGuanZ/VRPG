@@ -23,4 +23,11 @@ using Trans4 = Base::Trans4;
 
 using Quaternion = Base::Quaternion;
 
+class VRPGMeshException : public std::runtime_error
+{
+public:
+
+    using runtime_error::runtime_error;
+};
+
 VRPG_MESH_END

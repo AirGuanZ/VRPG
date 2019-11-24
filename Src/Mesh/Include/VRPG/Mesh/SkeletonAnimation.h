@@ -1,11 +1,14 @@
 #pragma once
 
-#include <VRPG/Mesh/Common.h>
+#include <vector>
+
+#include <VRPG/Mesh/StaticSkeleton.h>
 
 VRPG_MESH_BEGIN
 
-// 骨骼动画
-
+/**
+ * @brief 单个骨骼的单帧变换
+ */
 struct BoneTransformKeyFrame
 {
     float timePoint = 0;
@@ -15,11 +18,17 @@ struct BoneTransformKeyFrame
     Quaternion rotate;
 };
 
-class BoneAnimationClip
+/**
+ * @brief 单个骨骼的单个动画
+ */
+class BoneAnimation
 {
 public:
 
-    explicit BoneAnimationClip(std::vector<BoneTransformKeyFrame> keyframes);
+    /**
+     * 传入空关键帧序列表示没有动画，此时transform matrix始终为identity
+     */
+    explicit BoneAnimation(std::vector<BoneTransformKeyFrame> keyframes = {});
 
     void ComputeTransformMatrix(float t, Mat4 &output) const noexcept;
 
@@ -27,54 +36,39 @@ public:
 
     float GetEndTime() const noexcept;
 
+    void Write(std::ostream &out) const;
+
+    void Read(std::istream &in);
+
 private:
 
     std::vector<BoneTransformKeyFrame> keyframes_;
-    float startTime_, endTime_;
 };
 
-class SkeletonAnimationClip
+/**
+ * @brief 骨架的单个动画
+ */
+class SkeletonAnimation
 {
 public:
 
-    explicit SkeletonAnimationClip(std::vector<BoneAnimationClip> boneAnimations);
+    explicit SkeletonAnimation(std::vector<BoneAnimation> boneAnimations);
 
-    void ComputeTransformMatrix(float t, Mat4 *output) const noexcept;
+    void ComputeTransformMatrix(const StaticSkeleton &staticSkeleton, float t, Mat4 *output) const;
 
     float GetStartTime() const noexcept;
 
     float GetEndTime() const noexcept;
 
+    void Write(std::ostream &out) const;
+
+    void Read(std::istream &in);
+
 private:
 
-    std::vector<BoneAnimationClip> boneAnimations_;
+    std::vector<BoneAnimation> boneAnimations_;
+
     float startTime_, endTime_;
-};
-
-class SkeletonAnimation
-{
-public:
-
-    using Map = std::map<std::string, SkeletonAnimationClip, std::less<>>;
-
-    void AddClip(std::string name, SkeletonAnimationClip clipData);
-
-    void InitializeTree(std::vector<int> parents);
-
-    bool ComputeTransformMatrix(std::string_view clipName, float t, Mat4 *output) const;
-
-    const SkeletonAnimationClip *GetAnimationClip(std::string_view clipName) const;
-
-    const Map &GetAllAnimationClips() const noexcept;
-
-    const std::vector<int> &GetTree() const noexcept;
-
-    SkeletonAnimation Scale(float timeRatio, float sizeRatio);
-
-private:
-
-    std::vector<int> tree_;
-    Map              animationClips_;
 };
 
 VRPG_MESH_END

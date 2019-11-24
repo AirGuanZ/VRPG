@@ -46,48 +46,6 @@
 cmake_minimum_required( VERSION 3.0 )
 SET( HEADER_PATH ../include/assimp )
 
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_X_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_AMF_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_MD3_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_MDL_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_MD2_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_ASE_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_HMP_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_SMD_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_MDC_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_MD5_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_LWO_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_DXF_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_NFF_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_RAW_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_SIB_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_OFF_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_AC_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_BVH_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_IRRMESH_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_IRR_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_Q3D_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_B3D_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_TERRAGEN_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_CSM_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_3D_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_LWS_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_OGRE_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_OPENGEX_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_MS3D_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_COB_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_BLEND_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_Q3BSP_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_NDO_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_XGL_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_ASSBIN_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_GLTF_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_3MF_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_X3D_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_MMD_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_STEP_IMPORTER)
-ADD_DEFINITIONS(-DASSIMP_BUILD_NO_IFC_IMPORTER)
-
 if(NOT ANDROID AND ASSIMP_ANDROID_JNIIOSYSTEM)
     message(WARNING "Requesting Android JNI I/O-System in non-Android toolchain. Resetting ASSIMP_ANDROID_JNIIOSYSTEM to OFF.")
     set(ASSIMP_ANDROID_JNIIOSYSTEM OFF)
@@ -249,13 +207,13 @@ SET( CApi_SRCS
 )
 SOURCE_GROUP(CApi FILES ${CApi_SRCS})
 
-#SET( STEPParser_SRCS
-#  Importer/STEPParser/STEPFileReader.h
-#  Importer/STEPParser/STEPFileReader.cpp
-#  Importer/STEPParser/STEPFileEncoding.cpp
-#  Importer/STEPParser/STEPFileEncoding.h
-#)
-#SOURCE_GROUP(STEPParser FILES ${STEPParser_SRCS})
+SET( STEPParser_SRCS
+  Importer/STEPParser/STEPFileReader.h
+  Importer/STEPParser/STEPFileReader.cpp
+  Importer/STEPParser/STEPFileEncoding.cpp
+  Importer/STEPParser/STEPFileEncoding.h
+)
+SOURCE_GROUP(STEPParser FILES ${STEPParser_SRCS})
 
 IF ( ASSIMP_BUILD_NONFREE_C4D_IMPORTER )
   SET( C4D_SRCS
@@ -331,15 +289,15 @@ SET(ASSIMP_EXPORTER_SRCS "")
 SET(ASSIMP_EXPORTERS_ENABLED "") # list of enabled exporters
 SET(ASSIMP_EXPORTERS_DISABLED "") # disabled exporters list (used to print)
 
-#ADD_ASSIMP_IMPORTER( AMF
-#  AMF/AMFImporter.hpp
-#  AMF/AMFImporter_Macro.hpp
-#  AMF/AMFImporter_Node.hpp
-#  AMF/AMFImporter.cpp
-#  AMF/AMFImporter_Geometry.cpp
-#  AMF/AMFImporter_Material.cpp
-#  AMF/AMFImporter_Postprocess.cpp
-#)
+ADD_ASSIMP_IMPORTER( AMF
+  AMF/AMFImporter.hpp
+  AMF/AMFImporter_Macro.hpp
+  AMF/AMFImporter_Node.hpp
+  AMF/AMFImporter.cpp
+  AMF/AMFImporter_Geometry.cpp
+  AMF/AMFImporter_Material.cpp
+  AMF/AMFImporter_Postprocess.cpp
+)
 
 ADD_ASSIMP_IMPORTER( 3DS
   3DS/3DSConverter.cpp
@@ -348,142 +306,142 @@ ADD_ASSIMP_IMPORTER( 3DS
   3DS/3DSLoader.h
 )
 
-#ADD_ASSIMP_EXPORTER( 3DS
-#  3DS/3DSExporter.h
-#  3DS/3DSExporter.cpp
-#)
+ADD_ASSIMP_EXPORTER( 3DS
+  3DS/3DSExporter.h
+  3DS/3DSExporter.cpp
+)
 
-#ADD_ASSIMP_IMPORTER( AC
-#  AC/ACLoader.cpp
-#  AC/ACLoader.h
-#)
+ADD_ASSIMP_IMPORTER( AC
+  AC/ACLoader.cpp
+  AC/ACLoader.h
+)
 
-#ADD_ASSIMP_IMPORTER( ASE
-#  ASE/ASELoader.cpp
-#  ASE/ASELoader.h
-#  ASE/ASEParser.cpp
-#  ASE/ASEParser.h
-#)
+ADD_ASSIMP_IMPORTER( ASE
+  ASE/ASELoader.cpp
+  ASE/ASELoader.h
+  ASE/ASEParser.cpp
+  ASE/ASEParser.h
+)
 
-#ADD_ASSIMP_IMPORTER( ASSBIN
-#  Assbin/AssbinLoader.h
-#  Assbin/AssbinLoader.cpp
-#)
+ADD_ASSIMP_IMPORTER( ASSBIN
+  Assbin/AssbinLoader.h
+  Assbin/AssbinLoader.cpp
+)
 
-#ADD_ASSIMP_EXPORTER( ASSBIN
-#  Assbin/AssbinExporter.h
-#  Assbin/AssbinExporter.cpp
-#)
+ADD_ASSIMP_EXPORTER( ASSBIN
+  Assbin/AssbinExporter.h
+  Assbin/AssbinExporter.cpp
+)
 
-#ADD_ASSIMP_EXPORTER( ASSXML
-#  Assxml/AssxmlExporter.h
-#  Assxml/AssxmlExporter.cpp
-#)
+ADD_ASSIMP_EXPORTER( ASSXML
+  Assxml/AssxmlExporter.h
+  Assxml/AssxmlExporter.cpp
+)
 
-#ADD_ASSIMP_IMPORTER( B3D
-#  B3D/B3DImporter.cpp
-#  B3D/B3DImporter.h
-#)
+ADD_ASSIMP_IMPORTER( B3D
+  B3D/B3DImporter.cpp
+  B3D/B3DImporter.h
+)
 
-#ADD_ASSIMP_IMPORTER( BVH
-#  BVH/BVHLoader.cpp
-#  BVH/BVHLoader.h
-#)
+ADD_ASSIMP_IMPORTER( BVH
+  BVH/BVHLoader.cpp
+  BVH/BVHLoader.h
+)
 
-#ADD_ASSIMP_IMPORTER( COLLADA
-#  Collada/ColladaHelper.h
-#  Collada/ColladaLoader.cpp
-#  Collada/ColladaLoader.h
-#  Collada/ColladaParser.cpp
-#  Collada/ColladaParser.h
-#)
+ADD_ASSIMP_IMPORTER( COLLADA
+  Collada/ColladaHelper.h
+  Collada/ColladaLoader.cpp
+  Collada/ColladaLoader.h
+  Collada/ColladaParser.cpp
+  Collada/ColladaParser.h
+)
 
-#ADD_ASSIMP_EXPORTER( COLLADA
-#  Collada/ColladaExporter.h
-#  Collada/ColladaExporter.cpp
-#)
+ADD_ASSIMP_EXPORTER( COLLADA
+  Collada/ColladaExporter.h
+  Collada/ColladaExporter.cpp
+)
 
-#ADD_ASSIMP_IMPORTER( DXF
-#  DXF/DXFLoader.cpp
-#  DXF/DXFLoader.h
-#  DXF/DXFHelper.h
-#)
+ADD_ASSIMP_IMPORTER( DXF
+  DXF/DXFLoader.cpp
+  DXF/DXFLoader.h
+  DXF/DXFHelper.h
+)
 
-#ADD_ASSIMP_IMPORTER( CSM
-#  CSM/CSMLoader.cpp
-#  CSM/CSMLoader.h
-#)
+ADD_ASSIMP_IMPORTER( CSM
+  CSM/CSMLoader.cpp
+  CSM/CSMLoader.h
+)
 
-#ADD_ASSIMP_IMPORTER( HMP
-#  HMP/HMPFileData.h
-#  HMP/HMPLoader.cpp
-#  HMP/HMPLoader.h
-#  HMP/HalfLifeFileData.h
-#)
+ADD_ASSIMP_IMPORTER( HMP
+  HMP/HMPFileData.h
+  HMP/HMPLoader.cpp
+  HMP/HMPLoader.h
+  HMP/HalfLifeFileData.h
+)
 
-#ADD_ASSIMP_IMPORTER( IRRMESH
-#  Irr/IRRMeshLoader.cpp
-#  Irr/IRRMeshLoader.h
-#  Irr/IRRShared.cpp
-#  Irr/IRRShared.h
-#)
+ADD_ASSIMP_IMPORTER( IRRMESH
+  Irr/IRRMeshLoader.cpp
+  Irr/IRRMeshLoader.h
+  Irr/IRRShared.cpp
+  Irr/IRRShared.h
+)
 
-#ADD_ASSIMP_IMPORTER( IRR
-#  Irr/IRRLoader.cpp
-#  Irr/IRRLoader.h
-#  Irr/IRRShared.cpp
-#  Irr/IRRShared.h
-#)
+ADD_ASSIMP_IMPORTER( IRR
+  Irr/IRRLoader.cpp
+  Irr/IRRLoader.h
+  Irr/IRRShared.cpp
+  Irr/IRRShared.h
+)
 
-#ADD_ASSIMP_IMPORTER( LWO
-#  LWO/LWOAnimation.cpp
-#  LWO/LWOAnimation.h
-#  LWO/LWOBLoader.cpp
-#  LWO/LWOFileData.h
-#  LWO/LWOLoader.cpp
-#  LWO/LWOLoader.h
-#  LWO/LWOMaterial.cpp
-#)
+ADD_ASSIMP_IMPORTER( LWO
+  LWO/LWOAnimation.cpp
+  LWO/LWOAnimation.h
+  LWO/LWOBLoader.cpp
+  LWO/LWOFileData.h
+  LWO/LWOLoader.cpp
+  LWO/LWOLoader.h
+  LWO/LWOMaterial.cpp
+)
 
-#ADD_ASSIMP_IMPORTER( LWS
-#  LWS/LWSLoader.cpp
-#  LWS/LWSLoader.h
-#)
+ADD_ASSIMP_IMPORTER( LWS
+  LWS/LWSLoader.cpp
+  LWS/LWSLoader.h
+)
 
-#ADD_ASSIMP_IMPORTER( MD2
-#  MD2/MD2FileData.h
-#  MD2/MD2Loader.cpp
-#  MD2/MD2Loader.h
-#  MD2/MD2NormalTable.h
-#)
+ADD_ASSIMP_IMPORTER( MD2
+  MD2/MD2FileData.h
+  MD2/MD2Loader.cpp
+  MD2/MD2Loader.h
+  MD2/MD2NormalTable.h
+)
 
-#ADD_ASSIMP_IMPORTER( MD3
-#  MD3/MD3FileData.h
-#  MD3/MD3Loader.cpp
-#  MD3/MD3Loader.h
-#)
+ADD_ASSIMP_IMPORTER( MD3
+  MD3/MD3FileData.h
+  MD3/MD3Loader.cpp
+  MD3/MD3Loader.h
+)
 
-#ADD_ASSIMP_IMPORTER( MD5
-#  MD5/MD5Loader.cpp
-#  MD5/MD5Loader.h
-#  MD5/MD5Parser.cpp
-#  MD5/MD5Parser.h
-#)
+ADD_ASSIMP_IMPORTER( MD5
+  MD5/MD5Loader.cpp
+  MD5/MD5Loader.h
+  MD5/MD5Parser.cpp
+  MD5/MD5Parser.h
+)
 
-#ADD_ASSIMP_IMPORTER( MDC
-#  MDC/MDCFileData.h
-#  MDC/MDCLoader.cpp
-#  MDC/MDCLoader.h
-#  MDC/MDCNormalTable.h
-#)
+ADD_ASSIMP_IMPORTER( MDC
+  MDC/MDCFileData.h
+  MDC/MDCLoader.cpp
+  MDC/MDCLoader.h
+  MDC/MDCNormalTable.h
+)
 
-#ADD_ASSIMP_IMPORTER( MDL
-#  MDL/MDLDefaultColorMap.h
-#  MDL/MDLFileData.h
-#  MDL/MDLLoader.cpp
-#  MDL/MDLLoader.h
-#  MDL/MDLMaterialLoader.cpp
-#)
+ADD_ASSIMP_IMPORTER( MDL
+  MDL/MDLDefaultColorMap.h
+  MDL/MDLFileData.h
+  MDL/MDLLoader.cpp
+  MDL/MDLLoader.h
+  MDL/MDLMaterialLoader.cpp
+)
 
 SET( MaterialSystem_SRCS
   Material/MaterialSystem.cpp
@@ -491,20 +449,20 @@ SET( MaterialSystem_SRCS
 )
 SOURCE_GROUP( MaterialSystem FILES ${MaterialSystem_SRCS})
 
-#ADD_ASSIMP_IMPORTER( NFF
-#  NFF/NFFLoader.cpp
-#  NFF/NFFLoader.h
-#)
+ADD_ASSIMP_IMPORTER( NFF
+  NFF/NFFLoader.cpp
+  NFF/NFFLoader.h
+)
 
-#ADD_ASSIMP_IMPORTER( NDO
-#  NDO/NDOLoader.cpp
-#  NDO/NDOLoader.h
-#)
+ADD_ASSIMP_IMPORTER( NDO
+  NDO/NDOLoader.cpp
+  NDO/NDOLoader.h
+)
 
-#ADD_ASSIMP_IMPORTER( OFF
-#  OFF/OFFLoader.cpp
-#  OFF/OFFLoader.h
-#)
+ADD_ASSIMP_IMPORTER( OFF
+  OFF/OFFLoader.cpp
+  OFF/OFFLoader.h
+)
 
 ADD_ASSIMP_IMPORTER( OBJ
   Obj/ObjFileData.h
@@ -517,34 +475,34 @@ ADD_ASSIMP_IMPORTER( OBJ
   Obj/ObjTools.h
 )
 
-#ADD_ASSIMP_EXPORTER( OBJ
-#  Obj/ObjExporter.h
-#  Obj/ObjExporter.cpp
-#)
+ADD_ASSIMP_EXPORTER( OBJ
+  Obj/ObjExporter.h
+  Obj/ObjExporter.cpp
+)
 
-#ADD_ASSIMP_IMPORTER( OGRE
-#  Ogre/OgreImporter.h
-#  Ogre/OgreStructs.h
-#  Ogre/OgreParsingUtils.h
-#  Ogre/OgreBinarySerializer.h
-#  Ogre/OgreXmlSerializer.h
-#  Ogre/OgreImporter.cpp
-#  Ogre/OgreStructs.cpp
-#  Ogre/OgreBinarySerializer.cpp
-#  Ogre/OgreXmlSerializer.cpp
-#  Ogre/OgreMaterial.cpp
-#)
+ADD_ASSIMP_IMPORTER( OGRE
+  Ogre/OgreImporter.h
+  Ogre/OgreStructs.h
+  Ogre/OgreParsingUtils.h
+  Ogre/OgreBinarySerializer.h
+  Ogre/OgreXmlSerializer.h
+  Ogre/OgreImporter.cpp
+  Ogre/OgreStructs.cpp
+  Ogre/OgreBinarySerializer.cpp
+  Ogre/OgreXmlSerializer.cpp
+  Ogre/OgreMaterial.cpp
+)
 
-#ADD_ASSIMP_IMPORTER( OPENGEX
-#  OpenGEX/OpenGEXImporter.cpp
-#  OpenGEX/OpenGEXImporter.h
-#  OpenGEX/OpenGEXStructs.h
-#)
+ADD_ASSIMP_IMPORTER( OPENGEX
+  OpenGEX/OpenGEXImporter.cpp
+  OpenGEX/OpenGEXImporter.h
+  OpenGEX/OpenGEXStructs.h
+)
 
-#ADD_ASSIMP_EXPORTER( OPENGEX
-#  OpenGEX/OpenGEXExporter.cpp
-#  OpenGEX/OpenGEXExporter.h
-#)
+ADD_ASSIMP_EXPORTER( OPENGEX
+  OpenGEX/OpenGEXExporter.cpp
+  OpenGEX/OpenGEXExporter.h
+)
 
 ADD_ASSIMP_IMPORTER( PLY
   Ply/PlyLoader.cpp
@@ -558,65 +516,65 @@ ADD_ASSIMP_EXPORTER( PLY
   Ply/PlyExporter.h
 )
 
-#ADD_ASSIMP_IMPORTER( MS3D
-#  MS3D/MS3DLoader.cpp
-#  MS3D/MS3DLoader.h
-#)
+ADD_ASSIMP_IMPORTER( MS3D
+  MS3D/MS3DLoader.cpp
+  MS3D/MS3DLoader.h
+)
 
-#ADD_ASSIMP_IMPORTER( COB
-#  COB/COBLoader.cpp
-#  COB/COBLoader.h
-#  COB/COBScene.h
-#)
+ADD_ASSIMP_IMPORTER( COB
+  COB/COBLoader.cpp
+  COB/COBLoader.h
+  COB/COBScene.h
+)
 
-#ADD_ASSIMP_IMPORTER( BLEND
-#  Blender/BlenderLoader.cpp
-#  Blender/BlenderLoader.h
-#  Blender/BlenderDNA.cpp
-#  Blender/BlenderDNA.h
-#  Blender/BlenderDNA.inl
-#  Blender/BlenderScene.cpp
-#  Blender/BlenderScene.h
-#  Blender/BlenderSceneGen.h
-#  Blender/BlenderIntermediate.h
-#  Blender/BlenderModifier.h
-#  Blender/BlenderModifier.cpp
-#  Blender/BlenderBMesh.h
-#  Blender/BlenderBMesh.cpp
-#  Blender/BlenderTessellator.h
-#  Blender/BlenderTessellator.cpp
-#  Blender/BlenderCustomData.h
-#  Blender/BlenderCustomData.cpp
-#)
+ADD_ASSIMP_IMPORTER( BLEND
+  Blender/BlenderLoader.cpp
+  Blender/BlenderLoader.h
+  Blender/BlenderDNA.cpp
+  Blender/BlenderDNA.h
+  Blender/BlenderDNA.inl
+  Blender/BlenderScene.cpp
+  Blender/BlenderScene.h
+  Blender/BlenderSceneGen.h
+  Blender/BlenderIntermediate.h
+  Blender/BlenderModifier.h
+  Blender/BlenderModifier.cpp
+  Blender/BlenderBMesh.h
+  Blender/BlenderBMesh.cpp
+  Blender/BlenderTessellator.h
+  Blender/BlenderTessellator.cpp
+  Blender/BlenderCustomData.h
+  Blender/BlenderCustomData.cpp
+)
 
-#ADD_ASSIMP_IMPORTER( IFC
-#  Importer/IFC/IFCLoader.cpp
-#  Importer/IFC/IFCLoader.h
-#  Importer/IFC/IFCReaderGen1_2x3.cpp
-#  Importer/IFC/IFCReaderGen2_2x3.cpp
-#  Importer/IFC/IFCReaderGen_2x3.h
-#  Importer/IFC/IFCUtil.h
-#  Importer/IFC/IFCUtil.cpp
-#  Importer/IFC/IFCGeometry.cpp
-#  Importer/IFC/IFCMaterial.cpp
-#  Importer/IFC/IFCProfile.cpp
-#  Importer/IFC/IFCCurve.cpp
-#  Importer/IFC/IFCBoolean.cpp
-#  Importer/IFC/IFCOpenings.cpp
-#)
+ADD_ASSIMP_IMPORTER( IFC
+  Importer/IFC/IFCLoader.cpp
+  Importer/IFC/IFCLoader.h
+  Importer/IFC/IFCReaderGen1_2x3.cpp
+  Importer/IFC/IFCReaderGen2_2x3.cpp
+  Importer/IFC/IFCReaderGen_2x3.h
+  Importer/IFC/IFCUtil.h
+  Importer/IFC/IFCUtil.cpp
+  Importer/IFC/IFCGeometry.cpp
+  Importer/IFC/IFCMaterial.cpp
+  Importer/IFC/IFCProfile.cpp
+  Importer/IFC/IFCCurve.cpp
+  Importer/IFC/IFCBoolean.cpp
+  Importer/IFC/IFCOpenings.cpp
+)
 
-#if (ASSIMP_BUILD_IFC_IMPORTER)
-#  if (MSVC)
-#    set_source_files_properties(Importer/IFC/IFCReaderGen1_2x3.cpp Importer/IFC/IFCReaderGen2_2x3.cpp PROPERTIES COMPILE_FLAGS "/bigobj")
-#  elseif(CMAKE_COMPILER_IS_MINGW)
-#    set_source_files_properties(Importer/IFC/IFCReaderGen1_2x3.cpp Importer/IFC/IFCReaderGen2_2x3.cpp PROPERTIES COMPILE_FLAGS "-O2 -Wa,-mbig-obj")
-#  endif()
-#endif (ASSIMP_BUILD_IFC_IMPORTER)
+if (ASSIMP_BUILD_IFC_IMPORTER)
+  if (MSVC)
+    set_source_files_properties(Importer/IFC/IFCReaderGen1_2x3.cpp Importer/IFC/IFCReaderGen2_2x3.cpp PROPERTIES COMPILE_FLAGS "/bigobj")
+  elseif(CMAKE_COMPILER_IS_MINGW)
+    set_source_files_properties(Importer/IFC/IFCReaderGen1_2x3.cpp Importer/IFC/IFCReaderGen2_2x3.cpp PROPERTIES COMPILE_FLAGS "-O2 -Wa,-mbig-obj")
+  endif()
+endif (ASSIMP_BUILD_IFC_IMPORTER)
 
-#ADD_ASSIMP_IMPORTER( XGL
-#  XGL/XGLLoader.cpp
-#  XGL/XGLLoader.h
-#)
+ADD_ASSIMP_IMPORTER( XGL
+  XGL/XGLLoader.cpp
+  XGL/XGLLoader.h
+)
 
 ADD_ASSIMP_IMPORTER( FBX
   FBX/FBXImporter.cpp
@@ -647,14 +605,14 @@ ADD_ASSIMP_IMPORTER( FBX
   FBX/FBXCommon.h
 )
 
-#ADD_ASSIMP_EXPORTER( FBX
-#  FBX/FBXExporter.h
-#  FBX/FBXExporter.cpp
-#  FBX/FBXExportNode.h
-#  FBX/FBXExportNode.cpp
-#  FBX/FBXExportProperty.h
-#  FBX/FBXExportProperty.cpp
-#)
+ADD_ASSIMP_EXPORTER( FBX
+  FBX/FBXExporter.h
+  FBX/FBXExporter.cpp
+  FBX/FBXExportNode.h
+  FBX/FBXExportNode.cpp
+  FBX/FBXExportProperty.h
+  FBX/FBXExportProperty.cpp
+)
 
 SET( PostProcessing_SRCS
   PostProcessing/CalcTangentsProcess.cpp
@@ -721,33 +679,33 @@ SOURCE_GROUP( PostProcessing FILES ${PostProcessing_SRCS})
 SET( IrrXML_SRCS ${HEADER_PATH}/irrXMLWrapper.h )
 SOURCE_GROUP( IrrXML FILES ${IrrXML_SRCS})
 
-#ADD_ASSIMP_IMPORTER( Q3D
-#  Q3D/Q3DLoader.cpp
-#  Q3D/Q3DLoader.h
-#)
+ADD_ASSIMP_IMPORTER( Q3D
+  Q3D/Q3DLoader.cpp
+  Q3D/Q3DLoader.h
+)
 
-#ADD_ASSIMP_IMPORTER( Q3BSP
-#  Q3BSP/Q3BSPFileData.h
-#  Q3BSP/Q3BSPFileParser.h
-#  Q3BSP/Q3BSPFileParser.cpp
-#  Q3BSP/Q3BSPFileImporter.h
-#  Q3BSP/Q3BSPFileImporter.cpp
-#)
+ADD_ASSIMP_IMPORTER( Q3BSP
+  Q3BSP/Q3BSPFileData.h
+  Q3BSP/Q3BSPFileParser.h
+  Q3BSP/Q3BSPFileParser.cpp
+  Q3BSP/Q3BSPFileImporter.h
+  Q3BSP/Q3BSPFileImporter.cpp
+)
 
-#ADD_ASSIMP_IMPORTER( RAW
-#  Raw/RawLoader.cpp
-#  Raw/RawLoader.h
-#)
+ADD_ASSIMP_IMPORTER( RAW
+  Raw/RawLoader.cpp
+  Raw/RawLoader.h
+)
 
-#ADD_ASSIMP_IMPORTER( SIB
-#  SIB/SIBImporter.cpp
-#  SIB/SIBImporter.h
-#)
+ADD_ASSIMP_IMPORTER( SIB
+  SIB/SIBImporter.cpp
+  SIB/SIBImporter.h
+)
 
-#ADD_ASSIMP_IMPORTER( SMD
-#  SMD/SMDLoader.cpp
-#  SMD/SMDLoader.h
-#)
+ADD_ASSIMP_IMPORTER( SMD
+  SMD/SMDLoader.cpp
+  SMD/SMDLoader.h
+)
 
 ADD_ASSIMP_IMPORTER( STL
   STL/STLLoader.cpp
@@ -759,135 +717,135 @@ ADD_ASSIMP_EXPORTER( STL
   STL/STLExporter.cpp
 )
 
-#ADD_ASSIMP_IMPORTER( TERRAGEN
-#  Terragen/TerragenLoader.cpp
-#  Terragen/TerragenLoader.h
-#)
+ADD_ASSIMP_IMPORTER( TERRAGEN
+  Terragen/TerragenLoader.cpp
+  Terragen/TerragenLoader.h
+)
 
-#ADD_ASSIMP_IMPORTER( 3D
-#  Unreal/UnrealLoader.cpp
-#  Unreal/UnrealLoader.h
-#)
+ADD_ASSIMP_IMPORTER( 3D
+  Unreal/UnrealLoader.cpp
+  Unreal/UnrealLoader.h
+)
 
-#ADD_ASSIMP_IMPORTER( X
-#  X/XFileHelper.h
-#  X/XFileImporter.cpp
-#  X/XFileImporter.h
-#  X/XFileParser.cpp
-#  X/XFileParser.h
-#)
+ADD_ASSIMP_IMPORTER( X
+  X/XFileHelper.h
+  X/XFileImporter.cpp
+  X/XFileImporter.h
+  X/XFileParser.cpp
+  X/XFileParser.h
+)
 
-#ADD_ASSIMP_EXPORTER( X
-#  X/XFileExporter.h
-#  X/XFileExporter.cpp
-#)
+ADD_ASSIMP_EXPORTER( X
+  X/XFileExporter.h
+  X/XFileExporter.cpp
+)
 
-#ADD_ASSIMP_IMPORTER( X3D
-#  X3D/X3DImporter.cpp
-#  X3D/X3DImporter.hpp
-#  X3D/X3DImporter_Geometry2D.cpp
-#  X3D/X3DImporter_Geometry3D.cpp
-#  X3D/X3DImporter_Group.cpp
-#  X3D/X3DImporter_Light.cpp
-#  X3D/X3DImporter_Macro.hpp
-#  X3D/X3DImporter_Metadata.cpp
-#  X3D/X3DImporter_Networking.cpp
-#  X3D/X3DImporter_Node.hpp
-#  X3D/X3DImporter_Postprocess.cpp
-#  X3D/X3DImporter_Rendering.cpp
-#  X3D/X3DImporter_Shape.cpp
-#  X3D/X3DImporter_Texturing.cpp
-#  X3D/FIReader.hpp
-#  X3D/FIReader.cpp
-#  X3D/X3DVocabulary.cpp
-#)
+ADD_ASSIMP_IMPORTER( X3D
+  X3D/X3DImporter.cpp
+  X3D/X3DImporter.hpp
+  X3D/X3DImporter_Geometry2D.cpp
+  X3D/X3DImporter_Geometry3D.cpp
+  X3D/X3DImporter_Group.cpp
+  X3D/X3DImporter_Light.cpp
+  X3D/X3DImporter_Macro.hpp
+  X3D/X3DImporter_Metadata.cpp
+  X3D/X3DImporter_Networking.cpp
+  X3D/X3DImporter_Node.hpp
+  X3D/X3DImporter_Postprocess.cpp
+  X3D/X3DImporter_Rendering.cpp
+  X3D/X3DImporter_Shape.cpp
+  X3D/X3DImporter_Texturing.cpp
+  X3D/FIReader.hpp
+  X3D/FIReader.cpp
+  X3D/X3DVocabulary.cpp
+)
 
-#ADD_ASSIMP_EXPORTER( X3D
-#  X3D/X3DExporter.cpp
-#  X3D/X3DExporter.hpp
-#)
+ADD_ASSIMP_EXPORTER( X3D
+  X3D/X3DExporter.cpp
+  X3D/X3DExporter.hpp
+)
 
-#ADD_ASSIMP_IMPORTER( GLTF
-#  glTF/glTFCommon.h
-#  glTF/glTFCommon.cpp
-#  glTF/glTFAsset.h
-#  glTF/glTFAsset.inl
-#  glTF/glTFAssetWriter.h
-#  glTF/glTFAssetWriter.inl
-#  glTF/glTFImporter.cpp
-#  glTF/glTFImporter.h
-#  glTF2/glTF2Asset.h
-#  glTF2/glTF2Asset.inl
-#  glTF2/glTF2AssetWriter.h
-#  glTF2/glTF2AssetWriter.inl
-#  glTF2/glTF2Importer.cpp
-#  glTF2/glTF2Importer.h
-#)
+ADD_ASSIMP_IMPORTER( GLTF
+  glTF/glTFCommon.h
+  glTF/glTFCommon.cpp
+  glTF/glTFAsset.h
+  glTF/glTFAsset.inl
+  glTF/glTFAssetWriter.h
+  glTF/glTFAssetWriter.inl
+  glTF/glTFImporter.cpp
+  glTF/glTFImporter.h
+  glTF2/glTF2Asset.h
+  glTF2/glTF2Asset.inl
+  glTF2/glTF2AssetWriter.h
+  glTF2/glTF2AssetWriter.inl
+  glTF2/glTF2Importer.cpp
+  glTF2/glTF2Importer.h
+)
 
-#ADD_ASSIMP_EXPORTER( GLTF
-#  glTF/glTFExporter.h
-#  glTF/glTFExporter.cpp
-#  glTF2/glTF2Exporter.h
-#  glTF2/glTF2Exporter.cpp
-#)
+ADD_ASSIMP_EXPORTER( GLTF
+  glTF/glTFExporter.h
+  glTF/glTFExporter.cpp
+  glTF2/glTF2Exporter.h
+  glTF2/glTF2Exporter.cpp
+)
 
-#ADD_ASSIMP_IMPORTER( 3MF
-#  3MF/D3MFImporter.h
-#  3MF/D3MFImporter.cpp
-#  3MF/D3MFOpcPackage.h
-#  3MF/D3MFOpcPackage.cpp
-#  3MF/3MFXmlTags.h
-#)
+ADD_ASSIMP_IMPORTER( 3MF
+  3MF/D3MFImporter.h
+  3MF/D3MFImporter.cpp
+  3MF/D3MFOpcPackage.h
+  3MF/D3MFOpcPackage.cpp
+  3MF/3MFXmlTags.h
+)
 
-#ADD_ASSIMP_EXPORTER( 3MF
-#  3MF/D3MFExporter.h
-#  3MF/D3MFExporter.cpp
-#)
+ADD_ASSIMP_EXPORTER( 3MF
+  3MF/D3MFExporter.h
+  3MF/D3MFExporter.cpp
+)
 
-#ADD_ASSIMP_IMPORTER( MMD
-#  MMD/MMDCpp14.h
-#  MMD/MMDImporter.cpp
-#  MMD/MMDImporter.h
-#  MMD/MMDPmdParser.h
-#  MMD/MMDPmxParser.h
-#  MMD/MMDPmxParser.cpp
-#  MMD/MMDVmdParser.h
-#)
+ADD_ASSIMP_IMPORTER( MMD
+  MMD/MMDCpp14.h
+  MMD/MMDImporter.cpp
+  MMD/MMDImporter.h
+  MMD/MMDPmdParser.h
+  MMD/MMDPmxParser.h
+  MMD/MMDPmxParser.cpp
+  MMD/MMDVmdParser.h
+)
 
-#ADD_ASSIMP_EXPORTER( ASSJSON
-#  Assjson/cencode.c
-#  Assjson/cencode.h
-#  Assjson/json_exporter.cpp
-#  Assjson/mesh_splitter.cpp
-#  Assjson/mesh_splitter.h
-#)
+ADD_ASSIMP_EXPORTER( ASSJSON
+  Assjson/cencode.c
+  Assjson/cencode.h
+  Assjson/json_exporter.cpp
+  Assjson/mesh_splitter.cpp
+  Assjson/mesh_splitter.h
+)
 
 # Workaround for issue #2406 - force problematic large file to be optimized to prevent string table overflow error
 # Used -Os instead of -O2 as previous issues had mentioned, since -Os is roughly speaking -O2, excluding any
 # optimizations that take up extra space. Given that the issue is a string table overflowing, -Os seemed appropriate
 # Also, I'm not positive if both link & compile flags are needed, but this hopefully ensures that the issue should not
 # recur for edge cases such as static builds.
-#if ((CMAKE_COMPILER_IS_MINGW) AND (CMAKE_BUILD_TYPE MATCHES Debug))
-#  message("-- Applying MinGW StepFileGen1.cpp Debug Workaround")
-#  SET_SOURCE_FILES_PROPERTIES(Importer/StepFile/StepFileGen1.cpp PROPERTIES COMPILE_FLAGS -Os )
-#  SET_SOURCE_FILES_PROPERTIES(Importer/StepFile/StepFileGen1.cpp PROPERTIES LINK_FLAGS -Os )
-#  SET_SOURCE_FILES_PROPERTIES(Importer/StepFile/StepFileGen1.cpp PROPERTIES STATIC_LIBRARY_FLAGS -Os )
-#endif()
-#
-#ADD_ASSIMP_IMPORTER( STEP
-#    Step/STEPFile.h
-#    Importer/StepFile/StepFileImporter.h
-#    Importer/StepFile/StepFileImporter.cpp
-#    Importer/StepFile/StepFileGen1.cpp
-#    Importer/StepFile/StepFileGen2.cpp
-#    Importer/StepFile/StepFileGen3.cpp
-#    Importer/StepFile/StepReaderGen.h
-#)
-#
-#ADD_ASSIMP_EXPORTER( STEP
-#    Step/StepExporter.h
-#    Step/StepExporter.cpp
-#)
+if ((CMAKE_COMPILER_IS_MINGW) AND (CMAKE_BUILD_TYPE MATCHES Debug))
+  message("-- Applying MinGW StepFileGen1.cpp Debug Workaround")
+  SET_SOURCE_FILES_PROPERTIES(Importer/StepFile/StepFileGen1.cpp PROPERTIES COMPILE_FLAGS -Os )
+  SET_SOURCE_FILES_PROPERTIES(Importer/StepFile/StepFileGen1.cpp PROPERTIES LINK_FLAGS -Os )
+  SET_SOURCE_FILES_PROPERTIES(Importer/StepFile/StepFileGen1.cpp PROPERTIES STATIC_LIBRARY_FLAGS -Os )
+endif()
+
+ADD_ASSIMP_IMPORTER( STEP
+    Step/STEPFile.h
+    Importer/StepFile/StepFileImporter.h
+    Importer/StepFile/StepFileImporter.cpp
+    Importer/StepFile/StepFileGen1.cpp
+    Importer/StepFile/StepFileGen2.cpp
+    Importer/StepFile/StepFileGen3.cpp
+    Importer/StepFile/StepReaderGen.h
+)
+
+ADD_ASSIMP_EXPORTER( STEP
+    Step/StepExporter.h
+    Step/StepExporter.cpp
+)
 
 if ((NOT ASSIMP_NO_EXPORT) OR (NOT ASSIMP_EXPORTERS_ENABLED STREQUAL ""))
 	SET( Exporter_SRCS

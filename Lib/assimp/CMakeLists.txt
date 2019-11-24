@@ -82,7 +82,7 @@ OPTION( ASSIMP_NO_EXPORT
 )
 OPTION( ASSIMP_BUILD_ZLIB
   "Build your own zlib"
-  OFF
+  ON
 )
 OPTION( ASSIMP_BUILD_ASSIMP_TOOLS
   "If the supplementary tools for Assimp are built in addition to the library."
@@ -145,7 +145,7 @@ endif()
 IF(MSVC)
   OPTION( ASSIMP_INSTALL_PDB
     "Install MSVC debug files."
-    OFF
+    ON
   )
   IF(NOT (MSVC_VERSION LESS 1900))
     # Multibyte character set is deprecated since at least MSVC2015 (possibly earlier)
@@ -436,9 +436,9 @@ IF(HUNTER_ENABLED)
   set(ZLIB_LIBRARIES ZLIB::zlib)
   set(ASSIMP_BUILD_MINIZIP TRUE)
 ELSE(HUNTER_ENABLED)
-  #IF ( NOT ASSIMP_BUILD_ZLIB )
-  #  FIND_PACKAGE(ZLIB)
-  #ENDIF( NOT ASSIMP_BUILD_ZLIB )
+  IF ( NOT ASSIMP_BUILD_ZLIB )
+    FIND_PACKAGE(ZLIB)
+  ENDIF( NOT ASSIMP_BUILD_ZLIB )
 
   IF( NOT ZLIB_FOUND )
     MESSAGE(STATUS "compiling zlib from sources")

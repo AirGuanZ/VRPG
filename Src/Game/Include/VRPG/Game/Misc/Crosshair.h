@@ -4,6 +4,9 @@
 
 VRPG_GAME_BEGIN
 
+/**
+ * @brief 辅助类：用于绘制屏幕中心的准星
+ */
 class Crosshair
 {
     BlendState blend_;

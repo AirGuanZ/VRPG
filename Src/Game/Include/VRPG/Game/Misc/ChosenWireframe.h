@@ -4,6 +4,9 @@
 
 VRPG_GAME_BEGIN
 
+/**
+ * @brief 辅助类：用于绘制被选中的方块周围的线框
+ */
 class ChosenWireframeRenderer : public agz::misc::uncopyable_t
 {
 public:

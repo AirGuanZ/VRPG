@@ -34,7 +34,7 @@ int main()
             spdlog::info("destroy builtin block manager");
             BuiltinBlockTypeManager::GetInstance().Clear();
             BlockEffectManager     ::GetInstance().Clear();
-            BlockDescManager::GetInstance().Clear();
+            BlockDescManager       ::GetInstance().Clear();
         });
 
         Game game(&window);
