@@ -88,7 +88,7 @@ GrassLikeEffectCommon::GrassLikeEffectCommon()
     forwardShadowMapping_ = CreateForwardshadowMapping(&forwardUniforms_);
 }
 
-void GrassLikeEffectCommon::SetForwardRenderParams(const BlockForwardRenderParams &params)
+void GrassLikeEffectCommon::SetForwardRenderParams(const ForwardRenderParams &params)
 {
     forwardShadowMapping_->SetRenderParams(params);
     forwardVSTransform_.SetValue({
@@ -96,7 +96,7 @@ void GrassLikeEffectCommon::SetForwardRenderParams(const BlockForwardRenderParam
     forwardPSPerFrame_.SetValue({ params.skyLight, 0 });
 }
 
-void GrassLikeEffectCommon::SetShadowRenderParams(const BlockShadowRenderParams &params)
+void GrassLikeEffectCommon::SetShadowRenderParams(const ShadowRenderParams &params)
 {
     shadowVSTransform_.SetValue({ params.shadowViewProj });
 }
@@ -170,12 +170,12 @@ std::unique_ptr<ModelBuilder> GrassLikeEffect::CreateModelBuilder(const Vec3i &g
     return std::make_unique<Builder>(globalSectionPosition, this);
 }
 
-void GrassLikeEffect::SetForwardRenderParams(const BlockForwardRenderParams &params) const
+void GrassLikeEffect::SetForwardRenderParams(const ForwardRenderParams &params) const
 {
     common_->SetForwardRenderParams(params);
 }
 
-void GrassLikeEffect::SetShadowRenderParams(const BlockShadowRenderParams &params) const
+void GrassLikeEffect::SetShadowRenderParams(const ShadowRenderParams &params) const
 {
     common_->SetShadowRenderParams(params);
 }

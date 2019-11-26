@@ -19,8 +19,8 @@ class DefaultCamera : public Camera
     Mat4 viewMatrix_;
     Mat4 projMatrix_;
     Mat4 viewProjectionMatrix_;
-    Vec4 cullingF_[5];
     Vec3 direction_;
+    FrustumCuller culler_;
 
     void Update() noexcept;
 

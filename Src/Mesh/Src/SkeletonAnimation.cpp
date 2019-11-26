@@ -121,11 +121,11 @@ void SkeletonAnimation::ComputeTransformMatrix(const StaticSkeleton &staticSkele
 
         if(bone.parent < 0)
         {
-            output[i] = bone.staticTransform * aniTrans;
+            output[i] = /*bone.staticTransform * */aniTrans;
         }
         else
         {
-            output[i] = bone.staticTransform * aniTrans * output[bone.parent];
+            output[i] = /*bone.staticTransform * */aniTrans * output[bone.parent];
         }
     }
 }
@@ -138,6 +138,12 @@ float SkeletonAnimation::GetStartTime() const noexcept
 float SkeletonAnimation::GetEndTime() const noexcept
 {
     return endTime_;
+}
+
+const BoneAnimation &SkeletonAnimation::GetBoneAnimation(int boneIndex) const noexcept
+{
+    assert(0 <= boneIndex && boneIndex < int(boneAnimations_.size()));
+    return boneAnimations_[boneIndex];
 }
 
 void SkeletonAnimation::Write(std::ostream &out) const

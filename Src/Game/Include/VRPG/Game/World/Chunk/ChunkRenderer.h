@@ -14,9 +14,9 @@ public:
 
     void Done();
 
-    void RenderForward(const BlockForwardRenderParams &params) const;
+    void RenderForward(const ForwardRenderParams &params) const;
 
-    void RenderShadow(const BlockShadowRenderParams &params) const;
+    void RenderShadow(const ShadowRenderParams &params) const;
 
     void Clear();
 

@@ -152,7 +152,7 @@ std::unique_ptr<ModelBuilder> TransparentBlockEffect::CreateModelBuilder(const V
     return std::make_unique<Builder>(globalSectionPosition, this);
 }
 
-void TransparentBlockEffect::SetForwardRenderParams(const BlockForwardRenderParams &params) const
+void TransparentBlockEffect::SetForwardRenderParams(const ForwardRenderParams &params) const
 {
     forwardShadowMapping_->SetRenderParams(params);
     vsTransform_.SetValue({ params.camera->GetViewProjectionMatrix() });

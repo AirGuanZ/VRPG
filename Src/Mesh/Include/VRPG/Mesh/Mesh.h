@@ -9,16 +9,18 @@ struct Mesh
 {
     struct MeshComponentBinding
     {
-        std::string name;
+        std::string   name;
         MeshComponent mesh;
 
-        std::string boneName;
+        int  boneIndex = -1; // 为负表示此component没有被绑定到任何骨骼上
         Mat4 bindingTransform;
     };
 
-    std::vector<MeshComponentBinding>        staticComponents;
-    std::map<std::string, SkeletonAnimation> skeletonAnimation;
-    StaticSkeleton                           staticSkeleton;
+    std::vector<MeshComponentBinding>                     staticComponents;
+    std::map<std::string, SkeletonAnimation, std::less<>> skeletonAnimations;
+    StaticSkeleton                                        staticSkeleton;
+
+    void RemoveUnusedBones();
 
     void Write(std::ostream &out) const;
 

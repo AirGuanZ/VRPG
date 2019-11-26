@@ -29,9 +29,12 @@ public:
     const Bone &operator[](int boneIndex) const noexcept;
 
     int GetParentIndex(int boneIndex) const noexcept;
+
     const Mat4 &GetTransform(int boneIndex) const noexcept;
 
     int BoneNameToIndex(std::string_view boneName) const;
+
+    void ComputeStaticTransformMatrix(Mat4 *output) const;
 
     void Write(std::ostream &out) const;
 

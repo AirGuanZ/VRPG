@@ -50,6 +50,23 @@ int StaticSkeleton::BoneNameToIndex(std::string_view boneName) const
     return it != name2Index_.end() ? it->second : -1;
 }
 
+void StaticSkeleton::ComputeStaticTransformMatrix(Mat4 *output) const
+{
+    int boneCount = GetBoneCount();
+    for(int i = 0; i < boneCount; ++i)
+    {
+        auto &bone = GetBone(i);
+        if(bone.parent < 0)
+        {
+            output[i] = bone.staticTransform;
+        }
+        else
+        {
+            output[i] = bone.staticTransform * output[bone.parent];
+        }
+    }
+}
+
 void StaticSkeleton::Write(std::ostream &out) const
 {
     uint32_t boneCount = static_cast<uint32_t>(bones_.size());

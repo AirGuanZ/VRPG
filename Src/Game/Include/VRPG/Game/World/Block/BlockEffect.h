@@ -4,45 +4,12 @@
 #include <memory>
 #include <vector>
 
+#include <VRPG/Game/Misc/RenderParams.h>
 #include <VRPG/Game/World/Chunk/ChunkModel.h>
 
 VRPG_GAME_BEGIN
 
 using BlockEffectID = uint16_t;
-
-/**
- * @brief 单个shadow map的渲染参数
- */
-struct ShadowMapParams
-{
-    Mat4 shadowViewProj;
-    float PCFStep = 1.0f / 4096;
-    float homZLimit = 1;
-    ComPtr<ID3D11ShaderResourceView> shadowMapSRV;
-};
-
-/**
- * @brief 通用区块前向渲染参数
- * 
- * 所有的block effect在前向渲染时均只接收此参数
- */
-struct BlockForwardRenderParams
-{
-    const Camera *camera = nullptr;
-    Vec3 skyLight;
-
-    float shadowScale = 1;
-    Vec3 sunlightDirection;
-    ShadowMapParams cascadeShadowMaps[3];
-};
-
-/**
- * @brief 通用区块shadow map渲染参数
- */
-struct BlockShadowRenderParams
-{
-    Mat4 shadowViewProj;
-};
 
 /*
 一个BlockEffect代表一种特定类型的方块外观，包括其shader、纹理、input layout等
@@ -112,12 +79,12 @@ public:
     /**
      * @brief 设置前向渲染参数
      */
-    virtual void SetForwardRenderParams(const BlockForwardRenderParams &params) const = 0;
+    virtual void SetForwardRenderParams(const ForwardRenderParams &params) const = 0;
 
     /**
      * @brief 设置shadow map渲染参数
      */
-    virtual void SetShadowRenderParams(const BlockShadowRenderParams &params) const = 0;
+    virtual void SetShadowRenderParams(const ShadowRenderParams &params) const = 0;
 };
 
 /**

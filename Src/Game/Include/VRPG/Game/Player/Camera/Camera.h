@@ -1,14 +1,9 @@
 ﻿#pragma once
 
 #include <VRPG/Game/Common.h>
+#include <VRPG/Game/Misc/FrustumCuller.h>
 
 VRPG_GAME_BEGIN
-
-struct CullingBoundingBox
-{
-    Vec3 low;
-    Vec3 high;
-};
 
 class Camera
 {

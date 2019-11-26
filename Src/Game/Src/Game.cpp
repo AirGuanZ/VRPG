@@ -272,7 +272,8 @@ void Game::Render(int fps)
     }
     ImGui::End();
 
-    CSM_->RenderShadow(camera, *chunkRenderer_);
+    CSM_->UpdateCSMParams(camera);
+    CSM_->RenderChunkShadow(*chunkRenderer_);
 
     static const Vec4 backgroundColor = Vec4(0.7f, 1, 1, 0).map(
         [](float x) { return std::pow(x, 1 / 2.2f); });
@@ -280,7 +281,7 @@ void Game::Render(int fps)
     window_->ClearDefaultDepthStencil();
 
     {
-        BlockForwardRenderParams params;
+        ForwardRenderParams params;
         params.camera = &camera;
         params.skyLight = Vec3(1);
         CSM_->FillForwardParams(params);

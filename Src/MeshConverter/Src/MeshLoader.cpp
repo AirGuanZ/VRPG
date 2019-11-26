@@ -14,7 +14,7 @@ namespace
      * 提取node处的骨骼，将它加入bones，然后递归地提取node的孩子结点
      */
     void LoadStaticSkeletonAux(
-        const aiNode *node, std::vector<Mesh::StaticSkeleton::Bone> bones, int directParentIndex)
+        const aiNode *node, std::vector<Mesh::StaticSkeleton::Bone> &bones, int directParentIndex)
     {
         assert(node);
 
@@ -36,7 +36,13 @@ namespace
                                   .transpose();
 
         int newBoneIndex = static_cast<int>(bones.size());
-        bones.push_back(newBone);
+
+        spdlog::info("find new bone");
+        spdlog::info("  bone name   = {}", newBone.name);
+        spdlog::info("  bone index  = {}", newBoneIndex);
+        spdlog::info("  bone parent = {}", directParentIndex);
+
+        bones.push_back(std::move(newBone));
 
         for(unsigned int i = 0; i < node->mNumChildren; ++i)
         {
@@ -163,10 +169,15 @@ std::vector<std::pair<std::string, Mesh::SkeletonAnimation>> LoadSkeletonAnimati
     std::vector<std::pair<std::string, Mesh::SkeletonAnimation>> animations;
     animations.reserve(scene->mNumAnimations);
 
+    spdlog::info("animation count: {}", scene->mNumAnimations);
+
     // 遍历所有动画
     for(unsigned int aniIndex = 0; aniIndex < scene->mNumAnimations; ++aniIndex)
     {
         const aiAnimation *animation = scene->mAnimations[aniIndex];
+
+        std::string animationName = animation->mName.C_Str();
+        spdlog::info("load animation {}", animationName.c_str());
 
         std::vector<Mesh::BoneAnimation> boneAnimations(skeleton.GetBoneCount());
 
@@ -185,8 +196,6 @@ std::vector<std::pair<std::string, Mesh::SkeletonAnimation>> LoadSkeletonAnimati
 
             boneAnimations[boneIndex] = LoadBoneAnimation(channel);
         }
-
-        std::string animationName = animation->mName.C_Str();
         Mesh::SkeletonAnimation skeletonAnimation(std::move(boneAnimations));
         animations.emplace_back(animationName, std::move(skeletonAnimation));
     }
@@ -198,11 +207,20 @@ Mesh::Mesh LoadMesh(const aiScene *scene)
 {
     assert(scene);
 
-    auto staticSkeleton     = LoadStaticSkeleton(scene);
+    spdlog::info("load static skeleton...");
+
+    auto staticSkeleton = LoadStaticSkeleton(scene);
+
+    spdlog::info("load skeleton animations...");
+
     auto skeletonAnimations = LoadSkeletonAnimation(scene, staticSkeleton);
+
+    spdlog::info("load mesh components...");
 
     std::vector<Mesh::Mesh::MeshComponentBinding> meshComponentBindings;
     meshComponentBindings.reserve(scene->mNumMeshes);
+
+    spdlog::info("mesh count: {}", scene->mNumMeshes);
 
     for(unsigned int meshIdx = 0; meshIdx < scene->mNumMeshes; ++meshIdx)
     {
@@ -213,36 +231,55 @@ Mesh::Mesh LoadMesh(const aiScene *scene)
         Mesh::MeshComponent meshComponent = LoadMeshComponent(mesh);
         std::string meshName              = mesh->mName.C_Str();
 
+        spdlog::info("find new mesh");
+        spdlog::info("  mesh name = {} ", meshName.c_str());
+
         if(mesh->mNumBones > 1)
         {
             throw VRPGMeshConverterException(
                 "single mesh bound to multiple bones");
         }
 
+        if(mesh->mNumBones < 1)
+        {
+            meshComponentBindings.push_back({
+                std::move(meshName), std::move(meshComponent),
+                -1, Mat4::identity()
+            });
+            continue;
+        }
+
         std::string boneName = mesh->mBones[0]->mName.C_Str();
         int boneIndex = staticSkeleton.BoneNameToIndex(boneName);
         if(boneIndex < 0)
         {
-            throw VRPGMeshConverterException(
-                "unknown bone name in mesh binding: " + boneName);
+            meshComponentBindings.push_back({
+                std::move(meshName), std::move(meshComponent),
+                -1, Mat4::identity()
+            });
         }
+        else
+        {
+            spdlog::info("  bone name  = {}", boneName);
+            spdlog::info("  bone index = {}", boneIndex);
 
-        auto &m = mesh->mBones[0]->mOffsetMatrix;
-        Mat4 bindingTransform = Mat4(m[0][0], m[0][1], m[0][2], m[0][3],
-                                     m[1][0], m[1][1], m[1][2], m[1][3],
-                                     m[2][0], m[2][1], m[2][2], m[2][3],
-                                     m[3][0], m[3][1], m[3][2], m[3][3])
-                                .transpose();
+            auto &m = mesh->mBones[0]->mOffsetMatrix;
+            Mat4 bindingTransform = Mat4(m[0][0], m[0][1], m[0][2], m[0][3],
+                                         m[1][0], m[1][1], m[1][2], m[1][3],
+                                         m[2][0], m[2][1], m[2][2], m[2][3],
+                                         m[3][0], m[3][1], m[3][2], m[3][3])
+                                    .transpose();
 
-        meshComponentBindings.push_back({
-            std::move(meshName), std::move(meshComponent),
-            std::move(boneName), bindingTransform
-        });
+            meshComponentBindings.push_back({
+                std::move(meshName), std::move(meshComponent),
+                boneIndex, bindingTransform
+            });
+        }
 
         AGZ_HIERARCHY_WRAP("in loading mesh: " + std::string(mesh->mName.C_Str()))
     }
 
-    std::map<std::string, Mesh::SkeletonAnimation> skeletonAnimationMap;
+    std::map<std::string, Mesh::SkeletonAnimation, std::less<>> skeletonAnimationMap;
     for(auto &ani : skeletonAnimations)
     {
         skeletonAnimationMap.insert(std::move(ani));

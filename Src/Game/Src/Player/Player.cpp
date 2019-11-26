@@ -39,7 +39,9 @@ namespace
         int front = static_cast<int>(userInput.frontPressed) - static_cast<int>(userInput.backPressed);
         int left  = static_cast<int>(userInput.leftPressed)  - static_cast<int>(userInput.rightPressed);
         if(!front && !left)
+        {
             return Vec3(0);
+        }
 
         Vec3 horMove = static_cast<float>(front) * Vec3(cameraDirection.x, 0, cameraDirection.z)
                      - static_cast<float>(left)  * Vec3(cameraDirection.z, 0, -cameraDirection.x);
@@ -206,9 +208,9 @@ void Player::HandleMovement(const UserInput &userInput, float dt)
     while(moveDt > 0)
     {
         float moveLen = velocity_.length() * moveDt;
-        if(moveLen > 0.48f)
+        if(moveLen > 0.4f)
         {
-            float ddt = moveDt * 0.48f / moveLen;
+            float ddt = moveDt * 0.4f / moveLen;
             UpdatePosition(ddt);
             onGround |= onGround_;
             moveDt = (std::max)(0.0f, moveDt - ddt);
@@ -382,8 +384,8 @@ void Player::UpdatePosition(float dt)
         onGround_ = true;
     }
 
-    Vec3 resolvedNewPosition = newPosition + enumerator.bestSolution;
-    Vec3 resolvedDeltaPosition = resolvedNewPosition - position_;
+    Vec3 resolvedNewPosition       = newPosition + enumerator.bestSolution;
+    Vec3 resolvedDeltaPosition     = resolvedNewPosition - position_;
     float resolvedDeltaPositionLen = resolvedDeltaPosition.length();
     if(resolvedDeltaPositionLen < 1e-2f)
     {

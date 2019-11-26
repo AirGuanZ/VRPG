@@ -59,6 +59,7 @@ int main(int argc, char *argv[])
 {
     try
     {
+        spdlog::set_pattern("%v");
         Run(argc, argv);
     }
     catch(const std::exception & err)

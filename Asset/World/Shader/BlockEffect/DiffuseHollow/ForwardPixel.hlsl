@@ -1,3 +1,7 @@
+#include "../../ForwardShadowPixel.hlsl"
+
+#include "../../ForwardShadowPixel.hlsl"
+
 cbuffer PerFrame
 {
     float3 skylight;
@@ -11,17 +15,14 @@ struct PSInput
     float2 texCoord   	  : TEXCOORD;
     uint   texIndex   	  : TEXINDEX;
     float4 brightness 	  : BRIGHTNESS;
-    
-    float  clipSpaceZ           : CLIP_SPACE_Z;
-    float4 nearShadowPosition   : NEAR_SHADOW_POSITION;
-    float4 middleShadowPosition : MIDDLE_SHADOW_POSITION;
-    float4 farShadowPosition    : FAR_SHADOW_POSITION;
+
+    SHADOW_PIXEL_SHADER_INPUT_DECL
 };
+
+SHADOW_PIXEL_SHADER_FUNCTION_IMPL(PSInput)
 
 SamplerState DiffuseSampler;
 Texture2DArray<float4> DiffuseTexture;
-
-#include "../ShadowPixel.hlsl"
 
 float4 main(PSInput input) : SV_TARGET
 {

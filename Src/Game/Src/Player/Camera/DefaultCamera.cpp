@@ -28,11 +28,13 @@ void DefaultCamera::Update() noexcept
     projMatrix_ = Trans4::perspective(FOVYRad_, wOverH_, nearPlane_, farPlane_);
     viewProjectionMatrix_ = viewMatrix_ * projMatrix_;
 
-    cullingF_[0] = viewProjectionMatrix_.get_col(3) - viewProjectionMatrix_.get_col(0);
-    cullingF_[1] = viewProjectionMatrix_.get_col(3) + viewProjectionMatrix_.get_col(0);
-    cullingF_[2] = viewProjectionMatrix_.get_col(3) - viewProjectionMatrix_.get_col(1);
-    cullingF_[3] = viewProjectionMatrix_.get_col(3) + viewProjectionMatrix_.get_col(1);
-    cullingF_[4] = viewProjectionMatrix_.get_col(3);
+    //cullingF_[0] = viewProjectionMatrix_.get_col(3) - viewProjectionMatrix_.get_col(0);
+    //cullingF_[1] = viewProjectionMatrix_.get_col(3) + viewProjectionMatrix_.get_col(0);
+    //cullingF_[2] = viewProjectionMatrix_.get_col(3) - viewProjectionMatrix_.get_col(1);
+    //cullingF_[3] = viewProjectionMatrix_.get_col(3) + viewProjectionMatrix_.get_col(1);
+    //cullingF_[4] = viewProjectionMatrix_.get_col(3);
+
+    culler_ = FrustumCuller(viewProjectionMatrix_);
 }
 
 DefaultCamera::DefaultCamera()
@@ -127,11 +129,12 @@ Mat4 DefaultCamera::GetViewProjectionMatrix() const
 
 bool DefaultCamera::IsVisible(const CullingBoundingBox &bbox) const noexcept
 {
-    return !IsNegativeForAllVertices(cullingF_[0], bbox) &&
+    /*return !IsNegativeForAllVertices(cullingF_[0], bbox) &&
            !IsNegativeForAllVertices(cullingF_[1], bbox) &&
            !IsNegativeForAllVertices(cullingF_[2], bbox) &&
            !IsNegativeForAllVertices(cullingF_[3], bbox) &&
-           !IsNegativeForAllVertices(cullingF_[4], bbox);
+           !IsNegativeForAllVertices(cullingF_[4], bbox);*/
+    return culler_.IsVisible(bbox);
 }
 
 VRPG_GAME_END

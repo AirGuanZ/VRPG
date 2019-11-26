@@ -151,6 +151,7 @@ private:
 
     Vec3 position_;
     Vec3 velocity_;
+    Vec3 lastVelocity_;
 
     float verticalRadian_;
     float horizontalRadian_;

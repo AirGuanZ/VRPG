@@ -60,12 +60,15 @@ public:
 
     float GetEndTime() const noexcept;
 
+    const BoneAnimation &GetBoneAnimation(int boneIndex) const noexcept;
+
     void Write(std::ostream &out) const;
 
     void Read(std::istream &in);
 
 private:
 
+    // bone index -> bone animation
     std::vector<BoneAnimation> boneAnimations_;
 
     float startTime_, endTime_;

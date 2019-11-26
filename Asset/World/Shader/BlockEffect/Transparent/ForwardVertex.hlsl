@@ -1,3 +1,5 @@
+#include "../../ForwardShadowVertex.hlsl"
+
 cbuffer Transform
 {
     float4x4 VP;
@@ -19,14 +21,9 @@ struct VSOutput
     float4 brightness     : BRIGHTNESS;
 	
     nointerpolation uint texIndex : TEXINDEX;
-    
-    float  clipSpaceZ           : CLIP_SPACE_Z;
-    float4 nearShadowPosition   : NEAR_SHADOW_POSITION;
-    float4 middleShadowPosition : MIDDLE_SHADOW_POSITION;
-    float4 farShadowPosition    : FAR_SHADOW_POSITION;
-};
 
-#include "../ShadowVertex.hlsl"
+    SHADOW_VERTEX_SHADER_OUTPUT_DECL
+};
 
 VSOutput main(VSInput input)
 {
@@ -38,10 +35,7 @@ VSOutput main(VSInput input)
     output.texIndex       = input.texIndex;
     output.brightness     = input.brightness;
     
-    output.clipSpaceZ           = output.position.z;
-    output.nearShadowPosition   = toNearShadowSpace(position);
-    output.middleShadowPosition = toMiddleShadowSpace(position);
-    output.farShadowPosition    = toFarShadowSpace(position);
+    SHADOW_VERTEX_SHADER_COMPUTE_IMPL(output, position)
     
     return output;
 }

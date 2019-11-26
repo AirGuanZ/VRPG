@@ -4,7 +4,7 @@ VRPG_GAME_BEGIN
 
 namespace
 {
-    bool ShouldRender(const Vec3i &globalSectionPosition, const Camera &camera)
+    CullingBoundingBox GetSectionBoundingBox(const Vec3i &globalSectionPosition) noexcept
     {
         CullingBoundingBox bbox;
         bbox.low =
@@ -18,7 +18,17 @@ namespace
             bbox.low.y + CHUNK_SECTION_SIZE_Y,
             bbox.low.z + CHUNK_SECTION_SIZE_Z
         };
-        return camera.IsVisible(bbox);
+        return bbox;
+    }
+
+    bool ShouldRender(const Vec3i &globalSectionPosition, const FrustumCuller &culler) noexcept
+    {
+        return culler.IsVisible(GetSectionBoundingBox(globalSectionPosition));
+    }
+
+    bool ShouldRender(const Vec3i &globalSectionPosition, const Camera &camera) noexcept
+    {
+        return camera.IsVisible(GetSectionBoundingBox(globalSectionPosition));
     }
 }
 
@@ -57,7 +67,7 @@ void ChunkRenderer::Done()
     modelSets_.swap(newSolidModelSets);
 }
 
-void ChunkRenderer::RenderForward(const BlockForwardRenderParams &params) const
+void ChunkRenderer::RenderForward(const ForwardRenderParams &params) const
 {
     for(auto &chunkModelSet : modelSets_)
     {
@@ -114,8 +124,10 @@ void ChunkRenderer::RenderForward(const BlockForwardRenderParams &params) const
     }
 }
 
-void ChunkRenderer::RenderShadow(const BlockShadowRenderParams &params) const
+void ChunkRenderer::RenderShadow(const ShadowRenderParams &params) const
 {
+    FrustumCuller culler(params.shadowViewProj);
+
     for(auto &chunkModelSet : modelSets_)
     {
         if(chunkModelSet.empty())
@@ -128,7 +140,10 @@ void ChunkRenderer::RenderShadow(const BlockShadowRenderParams &params) const
         effect->StartShadow();
         for(auto &chunkModel : chunkModelSet)
         {
-            chunkModel->RenderShadow();
+            if(ShouldRender(chunkModel->GetGlobalSectionPosition(), culler))
+            {
+                chunkModel->RenderShadow();
+            }
         }
         effect->EndShadow();
     }

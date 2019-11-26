@@ -8,9 +8,11 @@ class DisableCascadeShadowMapping : public CascadeShadowMapping
 {
 public:
 
-    void RenderShadow(const Camera &camera, const ChunkRenderer &chunkRenderer) override { }
+    void UpdateCSMParams(const Camera &camera) override { }
 
-    void FillForwardParams(BlockForwardRenderParams &params) override { }
+    void RenderChunkShadow(const ChunkRenderer &chunkRenderer) override { }
+
+    void FillForwardParams(ForwardRenderParams &params) override { }
 };
 
 class EnableCascadeShadowMapping : public CascadeShadowMapping
@@ -19,9 +21,11 @@ public:
 
     EnableCascadeShadowMapping();
 
-    void RenderShadow(const Camera &camera, const ChunkRenderer &chunkRenderer) override;
+    void UpdateCSMParams(const Camera &camera) override;
 
-    void FillForwardParams(BlockForwardRenderParams &params) override;
+    void RenderChunkShadow(const ChunkRenderer &chunkRenderer) override;
+
+    void FillForwardParams(ForwardRenderParams &params) override;
 
 private:
 
@@ -39,7 +43,7 @@ class DisabledForwardShadowMapping : public ForwardShadowMapping
 {
 public:
 
-    void SetRenderParams(const BlockForwardRenderParams &params) override { }
+    void SetRenderParams(const ForwardRenderParams &params) override { }
 
     void Bind() override { }
 
@@ -88,7 +92,7 @@ public:
 
     explicit EnabledForwardShadowMapping(UniformManager<SS_VS, SS_PS> *forwardUniforms);
 
-    void SetRenderParams(const BlockForwardRenderParams &params) override;
+    void SetRenderParams(const ForwardRenderParams &params) override;
 
     void Bind() override;
 
@@ -115,10 +119,13 @@ EnableCascadeShadowMapping::EnableCascadeShadowMapping()
         GLOBAL_CONFIG.SHADOW_MAP.resolution[2], GLOBAL_CONFIG.SHADOW_MAP.resolution[2]);
 }
 
-void EnableCascadeShadowMapping::RenderShadow(const Camera &camera, const ChunkRenderer &chunkRenderer)
+void EnableCascadeShadowMapping::UpdateCSMParams(const Camera &camera)
 {
     UpdateViewProj(camera, viewProj_, cascadeZLimit_);
+}
 
+void EnableCascadeShadowMapping::RenderChunkShadow(const ChunkRenderer &chunkRenderer)
+{
     nearSM_->Begin();
     chunkRenderer.RenderShadow({ viewProj_[0] });
     nearSM_->End();
@@ -132,7 +139,7 @@ void EnableCascadeShadowMapping::RenderShadow(const Camera &camera, const ChunkR
     farSM_->End();
 }
 
-void EnableCascadeShadowMapping::FillForwardParams(BlockForwardRenderParams &params)
+void EnableCascadeShadowMapping::FillForwardParams(ForwardRenderParams &params)
 {
     params.shadowScale = 0.2f;
     params.sunlightDirection = Vec3(5, 6, 7).normalize();
@@ -229,7 +236,7 @@ void EnableCascadeShadowMapping::UpdateViewProj(const Camera &camera, Mat4 viewP
     float distance0 = camera.GetNearDistance();
     float distance1 = GLOBAL_CONFIG.SHADOW_MAP.distance;
     float distance2 = distance1 + 2 * (distance1 - distance0);
-    float distance3 = distance2 + 8 * (distance2 - distance1);
+    float distance3 = distance2 + 5 * (distance2 - distance1);
 
     auto computeHomZLimit = [proj = camera.GetProjMatrix()](float maxZ)
     {
@@ -309,7 +316,7 @@ EnabledForwardShadowMapping::EnabledForwardShadowMapping(UniformManager<SS_VS, S
     }
 }
 
-void EnabledForwardShadowMapping::SetRenderParams(const BlockForwardRenderParams &params)
+void EnabledForwardShadowMapping::SetRenderParams(const ForwardRenderParams &params)
 {
     vsTransform_.SetValue({
         params.cascadeShadowMaps[0].shadowViewProj,

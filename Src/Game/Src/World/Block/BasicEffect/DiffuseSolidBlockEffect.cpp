@@ -80,14 +80,14 @@ DiffuseSolidBlockEffectCommon::DiffuseSolidBlockEffectCommon()
     forwardShadowMapping = CreateForwardshadowMapping(&forwardUniforms);
 }
 
-void DiffuseSolidBlockEffectCommon::SetForwardRenderParams(const BlockForwardRenderParams &params)
+void DiffuseSolidBlockEffectCommon::SetForwardRenderParams(const ForwardRenderParams &params)
 {
     forwardShadowMapping->SetRenderParams(params);
     forwardVSTransform.SetValue({ params.camera->GetViewProjectionMatrix() });
     forwardPSPerFrame.SetValue({ params.skyLight, 0 });
 }
 
-void DiffuseSolidBlockEffectCommon::SetShadowRenderParams(const BlockShadowRenderParams &params)
+void DiffuseSolidBlockEffectCommon::SetShadowRenderParams(const ShadowRenderParams &params)
 {
     shadowVSTransform.SetValue({ params.shadowViewProj });
 }
@@ -142,12 +142,12 @@ std::unique_ptr<ModelBuilder> DiffuseSolidBlockEffect::CreateModelBuilder(const 
     return std::make_unique<Builder>(globalSectionPosition, this);
 }
 
-void DiffuseSolidBlockEffect::SetForwardRenderParams(const BlockForwardRenderParams &params) const
+void DiffuseSolidBlockEffect::SetForwardRenderParams(const ForwardRenderParams &params) const
 {
     common_->SetForwardRenderParams(params);
 }
 
-void DiffuseSolidBlockEffect::SetShadowRenderParams(const BlockShadowRenderParams &params) const
+void DiffuseSolidBlockEffect::SetShadowRenderParams(const ShadowRenderParams &params) const
 {
     common_->SetShadowRenderParams(params);
 }

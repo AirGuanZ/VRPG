@@ -60,14 +60,14 @@ std::unique_ptr<ModelBuilder> DefaultBlockEffect::CreateModelBuilder(const Vec3i
     return std::make_unique<Builder>(globalSectionPosition, this);
 }
 
-void DefaultBlockEffect::SetForwardRenderParams(const BlockForwardRenderParams &params) const
+void DefaultBlockEffect::SetForwardRenderParams(const ForwardRenderParams &params) const
 {
     forwardShadowMapping_->SetRenderParams(params);
     forwardVSTransform_.SetValue({ params.camera->GetViewProjectionMatrix() });
     forwardPSPerFrame_.SetValue({ params.skyLight, 0 });
 }
 
-void DefaultBlockEffect::SetShadowRenderParams(const BlockShadowRenderParams &params) const
+void DefaultBlockEffect::SetShadowRenderParams(const ShadowRenderParams &params) const
 {
     shadowVSTransform_.SetValue({ params.shadowViewProj });
 }

@@ -48,9 +48,9 @@ public:
 
     DiffuseSolidBlockEffectCommon();
 
-    void SetForwardRenderParams(const BlockForwardRenderParams &params);
+    void SetForwardRenderParams(const ForwardRenderParams &params);
 
-    void SetShadowRenderParams(const BlockShadowRenderParams &params);
+    void SetShadowRenderParams(const ShadowRenderParams &params);
 
     void StartForward(ID3D11ShaderResourceView *diffuseTextureArray) const;
 
@@ -84,9 +84,9 @@ public:
 
     std::unique_ptr<ModelBuilder> CreateModelBuilder(const Vec3i &globalSectionPosition) const override;
 
-    void SetForwardRenderParams(const BlockForwardRenderParams &params) const override;
+    void SetForwardRenderParams(const ForwardRenderParams &params) const override;
 
-    void SetShadowRenderParams(const BlockShadowRenderParams &params) const override;
+    void SetShadowRenderParams(const ShadowRenderParams &params) const override;
 
     void StartForward() const override;
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <spdlog/spdlog.h>
+
 #include <VRPG/Mesh/Mesh.h>
 
 #define VRPG_MESH_CONVERTER_BEGIN namespace VRPG::MeshConverter {

@@ -44,7 +44,7 @@ public:
 
     virtual ~ForwardShadowMapping() = default;
 
-    virtual void SetRenderParams(const BlockForwardRenderParams &params) = 0;
+    virtual void SetRenderParams(const ForwardRenderParams &params) = 0;
 
     virtual void Bind() = 0;
 
@@ -60,9 +60,11 @@ public:
 
     virtual ~CascadeShadowMapping() = default;
 
-    virtual void RenderShadow(const Camera &camera, const ChunkRenderer &chunkRenderer) = 0;
+    virtual void UpdateCSMParams(const Camera &camera) = 0;
 
-    virtual void FillForwardParams(BlockForwardRenderParams &params) = 0;
+    virtual void RenderChunkShadow(const ChunkRenderer &chunkRenderer) = 0;
+
+    virtual void FillForwardParams(ForwardRenderParams &params) = 0;
 };
 
 VRPG_GAME_END

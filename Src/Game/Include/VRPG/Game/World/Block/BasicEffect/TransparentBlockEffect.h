@@ -84,9 +84,9 @@ public:
 
     std::unique_ptr<ModelBuilder> CreateModelBuilder(const Vec3i &globalSectionPosition) const override;
 
-    void SetForwardRenderParams(const BlockForwardRenderParams &params) const override;
+    void SetForwardRenderParams(const ForwardRenderParams &params) const override;
 
-    void SetShadowRenderParams(const BlockShadowRenderParams &params) const override { }
+    void SetShadowRenderParams(const ShadowRenderParams &params) const override { }
 
 private:
 
