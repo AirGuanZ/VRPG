@@ -273,7 +273,18 @@ void Game::Render(int fps)
     ImGui::End();
 
     CSM_->UpdateCSMParams(camera);
-    CSM_->RenderChunkShadow(*chunkRenderer_);
+
+    CSM_->StartNear();
+    CSM_->RenderNearChunkShadow(*chunkRenderer_);
+    CSM_->EndNear();
+
+    CSM_->StartMiddle();
+    CSM_->RenderMiddleChunkShadow(*chunkRenderer_);
+    CSM_->EndMiddle();
+
+    CSM_->StartFar();
+    CSM_->RenderFarChunkShadow(*chunkRenderer_);
+    CSM_->EndFar();
 
     static const Vec4 backgroundColor = Vec4(0.7f, 1, 1, 0).map(
         [](float x) { return std::pow(x, 1 / 2.2f); });

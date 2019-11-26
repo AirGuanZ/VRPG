@@ -11,8 +11,11 @@ public:
 
     AnimatedDiffuseSolidMesh(
         std::shared_ptr<const DiffuseSolidMeshEffect> effect,
-        const Mesh::Mesh &mesh, std::map<std::string, ComPtr<ID3D11ShaderResourceView>> diffuseTextures,
+        const Mesh::Mesh &mesh,
+        std::map<std::string, ComPtr<ID3D11ShaderResourceView>> diffuseTextures,
         std::string_view initAnimationName = "");
+
+    std::unique_ptr<AnimatedDiffuseSolidMesh> Clone() const;
 
     const Mesh::SkeletonAnimation *GetCurrentAnimation() const noexcept;
 
@@ -38,9 +41,34 @@ public:
 
 private:
 
-    using Vertex  = DiffuseSolidMeshEffect::Vertex;
-    using Index   = uint32_t;
-    using Submesh = AnimatedSubMesh<Vertex, Index>;
+    using Vertex       = DiffuseSolidMeshEffect::Vertex;
+    using Index        = uint32_t;
+    using Submesh      = AnimatedSubMesh<Vertex, Index>;
+    using AnimationMap = std::map<std::string, Mesh::SkeletonAnimation, std::less<>>;
+
+    struct MeshComponent
+    {
+        std::unique_ptr<Submesh> submesh;
+        Mat4                     bindingTransform_;
+        ShaderResourceView       diffuseTexture_;
+        int                      boneIndex = -1;
+    };
+
+    struct Model
+    {
+        Mesh::StaticSkeleton       staticSkeleton;
+        std::vector<MeshComponent> meshComponents;
+        AnimationMap               skeletonAnimations;
+    };
+
+    AnimatedDiffuseSolidMesh(
+        const Mat4 &worldMatrix, const Vec4 &brightness,
+        std::shared_ptr<const DiffuseSolidMeshEffect> effect,
+        std::shared_ptr<Model> model,
+        const Mesh::SkeletonAnimation *currentAnimation,
+        bool animationLoop,
+        std::vector<Mat4> currentGlobalTransforms,
+        float currentAnimationTime);
 
     static void InitializeSubmesh(const Mesh::MeshComponent &component, Submesh &submesh);
 
@@ -58,17 +86,7 @@ private:
 
     // 模型数据
 
-    struct MeshComponent
-    {
-        std::unique_ptr<Submesh> submesh;
-        Mat4 bindingTransform_;
-        ShaderResourceView diffuseTexture_;
-        int boneIndex = -1;
-    };
-
-    Mesh::StaticSkeleton                                        staticSkeleton_;
-    std::vector<MeshComponent>                                  meshComponents_;
-    std::map<std::string, Mesh::SkeletonAnimation, std::less<>> skeletonAnimations_;
+    std::shared_ptr<Model> model_;
 
     // 动画设置
 

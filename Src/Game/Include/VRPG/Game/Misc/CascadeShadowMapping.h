@@ -62,7 +62,23 @@ public:
 
     virtual void UpdateCSMParams(const Camera &camera) = 0;
 
-    virtual void RenderChunkShadow(const ChunkRenderer &chunkRenderer) = 0;
+    virtual void StartNear() = 0;
+
+    virtual void EndNear() = 0;
+
+    virtual void StartMiddle() = 0;
+
+    virtual void EndMiddle() = 0;
+
+    virtual void StartFar() = 0;
+
+    virtual void EndFar() = 0;
+
+    virtual void RenderNearChunkShadow(const ChunkRenderer &chunkRenderer) = 0;
+
+    virtual void RenderMiddleChunkShadow(const ChunkRenderer &chunkRenderer) = 0;
+
+    virtual void RenderFarChunkShadow(const ChunkRenderer &chunkRenderer) = 0;
 
     virtual void FillForwardParams(ForwardRenderParams &params) = 0;
 };

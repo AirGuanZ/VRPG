@@ -10,7 +10,23 @@ public:
 
     void UpdateCSMParams(const Camera &camera) override { }
 
-    void RenderChunkShadow(const ChunkRenderer &chunkRenderer) override { }
+    void StartNear() override { }
+
+    void EndNear() override { }
+
+    void StartMiddle() override { }
+
+    void EndMiddle() override { }
+
+    void StartFar() override { }
+
+    void EndFar() override { }
+
+    void RenderNearChunkShadow(const ChunkRenderer &chunkRenderer) override { }
+
+    void RenderMiddleChunkShadow(const ChunkRenderer &chunkRenderer) override { }
+
+    void RenderFarChunkShadow(const ChunkRenderer &chunkRenderer) override { }
 
     void FillForwardParams(ForwardRenderParams &params) override { }
 };
@@ -23,7 +39,23 @@ public:
 
     void UpdateCSMParams(const Camera &camera) override;
 
-    void RenderChunkShadow(const ChunkRenderer &chunkRenderer) override;
+    void StartNear() override;
+
+    void EndNear() override;
+
+    void StartMiddle() override;
+
+    void EndMiddle() override;
+
+    void StartFar() override;
+
+    void EndFar() override;
+
+    void RenderNearChunkShadow(const ChunkRenderer &chunkRenderer) override;
+
+    void RenderMiddleChunkShadow(const ChunkRenderer &chunkRenderer) override;
+
+    void RenderFarChunkShadow(const ChunkRenderer &chunkRenderer) override;
 
     void FillForwardParams(ForwardRenderParams &params) override;
 
@@ -124,19 +156,49 @@ void EnableCascadeShadowMapping::UpdateCSMParams(const Camera &camera)
     UpdateViewProj(camera, viewProj_, cascadeZLimit_);
 }
 
-void EnableCascadeShadowMapping::RenderChunkShadow(const ChunkRenderer &chunkRenderer)
+void EnableCascadeShadowMapping::StartNear()
 {
     nearSM_->Begin();
-    chunkRenderer.RenderShadow({ viewProj_[0] });
+}
+
+void EnableCascadeShadowMapping::EndNear()
+{
     nearSM_->End();
+}
 
+void EnableCascadeShadowMapping::StartMiddle()
+{
     middleSM_->Begin();
-    chunkRenderer.RenderShadow({ viewProj_[1] });
-    middleSM_->End();
+}
 
+void EnableCascadeShadowMapping::EndMiddle()
+{
+    middleSM_->End();
+}
+
+void EnableCascadeShadowMapping::StartFar()
+{
     farSM_->Begin();
-    chunkRenderer.RenderShadow({ viewProj_[2] });
+}
+
+void EnableCascadeShadowMapping::EndFar()
+{
     farSM_->End();
+}
+
+void EnableCascadeShadowMapping::RenderNearChunkShadow(const ChunkRenderer &chunkRenderer)
+{
+    chunkRenderer.RenderShadow({ viewProj_[0] });
+}
+
+void EnableCascadeShadowMapping::RenderMiddleChunkShadow(const ChunkRenderer &chunkRenderer)
+{
+    chunkRenderer.RenderShadow({ viewProj_[1] });
+}
+
+void EnableCascadeShadowMapping::RenderFarChunkShadow(const ChunkRenderer &chunkRenderer)
+{
+    chunkRenderer.RenderShadow({ viewProj_[2] });
 }
 
 void EnableCascadeShadowMapping::FillForwardParams(ForwardRenderParams &params)
