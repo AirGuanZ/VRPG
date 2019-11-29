@@ -14,6 +14,11 @@ void MeshComponent::Write(std::ostream &out) const
     WriteOStream(out, indices.data(), sizeof(indices[0]) * indices.size());
 }
 
+void MeshComponent::WriteText(std::ostream &out) const
+{
+    
+}
+
 void MeshComponent::Read(std::istream &in)
 {
     vertices.clear();

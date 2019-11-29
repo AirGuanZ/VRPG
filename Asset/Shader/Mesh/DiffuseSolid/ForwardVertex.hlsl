@@ -25,13 +25,14 @@ struct VSOutput
 VSOutput main(VSInput input)
 {
     VSOutput output = (VSOutput)0;
-    float4 position = float4(input.position, 1);
     
-    output.position = mul(position, WVP);
+    float4 worldPosition = mul(float4(input.position, 1), world);
+    
+    output.position = mul(float4(input.position, 1), WVP);
     output.normal   = mul(float4(input.normal, 0), world);
     output.texCoord = input.texCoord;
     
-    SHADOW_VERTEX_SHADER_COMPUTE_IMPL(output, position)
+    SHADOW_VERTEX_SHADER_COMPUTE_IMPL(output, worldPosition)
     
     return output;
 }

@@ -22,11 +22,14 @@ ENDFOREACH()
 SET(${TargetName}_INCLUDE_DIRS
 		"${PROJECT_SOURCE_DIR}/Include"
 		"${Base_INCLUDE_DIRS}"
+		"${libconfig_INCLUDE_DIRS}"
 		CACHE STRING "")
 SET(${TargetName}_LIBRARIES
 		${TargetName}
 		Base
+		libconfig++
 		CACHE STRING "")
 
 TARGET_INCLUDE_DIRECTORIES(${TargetName} PRIVATE "${PROJECT_SOURCE_DIR}/Include/")
 TARGET_INCLUDE_DIRECTORIES(${TargetName} PRIVATE "${Base_INCLUDE_DIRS}")
+TARGET_INCLUDE_DIRECTORIES(${TargetName} PRIVATE "${libconfig_INCLUDE_DIRS}")

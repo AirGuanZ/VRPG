@@ -20,7 +20,11 @@ struct MeshComponent
 
     void Write(std::ostream &out) const;
 
+    void WriteText(std::ostream &out) const;
+
     void Read(std::istream &in);
+
+    void ReadText(std::istream &in);
 };
 
 VRPG_MESH_END

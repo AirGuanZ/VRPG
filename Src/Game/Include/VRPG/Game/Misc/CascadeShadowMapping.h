@@ -74,6 +74,12 @@ public:
 
     virtual void EndFar() = 0;
 
+    virtual void FillNearShadowParams(ShadowRenderParams &params) const noexcept = 0;
+
+    virtual void FillMiddleShadowParams(ShadowRenderParams &params) const noexcept = 0;
+
+    virtual void FillFarShadowParams(ShadowRenderParams &params) const noexcept = 0;
+
     virtual void RenderNearChunkShadow(const ChunkRenderer &chunkRenderer) = 0;
 
     virtual void RenderMiddleChunkShadow(const ChunkRenderer &chunkRenderer) = 0;

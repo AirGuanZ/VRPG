@@ -135,6 +135,17 @@ void Game::Initialize()
 
     player_ = std::make_unique<Player>(playerParams, *chunkManager_, Vec3{ 0, 40, 0 }, camera);
 
+    spdlog::info("initialize mesh");
+
+    meshEffect_ = CreateDiffuseSolidMeshEffect();
+    mesh_ = DiffuseSolidMesh::LoadFromConfig(meshEffect_, GLOBAL_CONFIG.ASSET_PATH["Mesh"]["Mesh"]);
+    mesh_->SetCurrentAnimation("Armature|Walking");
+    mesh_->SetWorldTransform(Trans4::translate(0, 21, 0));
+    mesh_->SetCurrentAnimationTime(0);
+    mesh_->EnableAnimationLoop(true);
+
+    spdlog::info("hide cursor");
+
     HideCursor();
     UpdateCentreChunk();
 }
@@ -272,18 +283,40 @@ void Game::Render(int fps)
     }
     ImGui::End();
 
+    mesh_->SetCurrentAnimationTime(mesh_->GetCurrentAnimationTime() + 0.5f);
+    mesh_->SetBrightness(Vec4(0, 0, 0, 1));
+    mesh_->UpdateBoneTransform();
+
     CSM_->UpdateCSMParams(camera);
 
+    ShadowRenderParams shadowParams;
+
     CSM_->StartNear();
-    CSM_->RenderNearChunkShadow(*chunkRenderer_);
+    chunkRenderer_->RenderShadow(shadowParams);
+    CSM_->FillNearShadowParams(shadowParams);
+    chunkRenderer_->RenderShadow(shadowParams);
+    meshEffect_->SetShadowRenderParams(shadowParams);
+    meshEffect_->StartShadow();
+    mesh_->RenderShadow(shadowParams);
+    meshEffect_->EndShadow();
     CSM_->EndNear();
 
     CSM_->StartMiddle();
-    CSM_->RenderMiddleChunkShadow(*chunkRenderer_);
+    CSM_->FillMiddleShadowParams(shadowParams);
+    chunkRenderer_->RenderShadow(shadowParams);
+    meshEffect_->SetShadowRenderParams(shadowParams);
+    meshEffect_->StartShadow();
+    mesh_->RenderShadow(shadowParams);
+    meshEffect_->EndShadow();
     CSM_->EndMiddle();
 
     CSM_->StartFar();
-    CSM_->RenderFarChunkShadow(*chunkRenderer_);
+    CSM_->FillFarShadowParams(shadowParams);
+    chunkRenderer_->RenderShadow(shadowParams);
+    meshEffect_->SetShadowRenderParams(shadowParams);
+    meshEffect_->StartShadow();
+    mesh_->RenderShadow(shadowParams);
+    meshEffect_->EndShadow();
     CSM_->EndFar();
 
     static const Vec4 backgroundColor = Vec4(0.7f, 1, 1, 0).map(
@@ -296,7 +329,13 @@ void Game::Render(int fps)
         params.camera = &camera;
         params.skyLight = Vec3(1);
         CSM_->FillForwardParams(params);
+
         chunkRenderer_->RenderForward(params);
+
+        meshEffect_->SetForwardRenderParams(params);
+        meshEffect_->StartForward();
+        mesh_->RenderForward(params);
+        meshEffect_->EndForward();
     }
 
     if(GLOBAL_CONFIG.MISC.enableChoseBlockWireframe && chosenBlockPosition_)

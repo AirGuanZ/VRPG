@@ -11,8 +11,9 @@ struct PSInput
     float4 position   	  : SV_POSITION;
     float3 normal         : NORMAL;
     float2 texCoord   	  : TEXCOORD;
-    uint   texIndex   	  : TEXINDEX;
     float4 brightness 	  : BRIGHTNESS;
+    
+    nointerpolation uint texIndex : TEXINDEX;
 
     SHADOW_PIXEL_SHADER_INPUT_DECL
 };

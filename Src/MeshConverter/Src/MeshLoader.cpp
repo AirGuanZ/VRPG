@@ -14,7 +14,8 @@ namespace
      * 提取node处的骨骼，将它加入bones，然后递归地提取node的孩子结点
      */
     void LoadStaticSkeletonAux(
-        const aiNode *node, std::vector<Mesh::StaticSkeleton::Bone> &bones, int directParentIndex)
+        const aiNode *node, std::vector<Mesh::StaticSkeleton::Bone> &bones, int directParentIndex,
+        std::multimap<int, int> &boneIndexToMeshIndex)
     {
         assert(node);
 
@@ -44,9 +45,14 @@ namespace
 
         bones.push_back(std::move(newBone));
 
+        for(unsigned int i = 0; i < node->mNumMeshes; ++i)
+        {
+            boneIndexToMeshIndex.insert(std::make_pair(newBoneIndex, node->mMeshes[i]));
+        }
+
         for(unsigned int i = 0; i < node->mNumChildren; ++i)
         {
-            LoadStaticSkeletonAux(node->mChildren[i], bones, newBoneIndex);
+            LoadStaticSkeletonAux(node->mChildren[i], bones, newBoneIndex, boneIndexToMeshIndex);
         }
     }
 
@@ -86,7 +92,7 @@ namespace
             Mesh::BoneTransformKeyFrame keyframe;
             keyframe.timePoint = static_cast<float>(kPos.mTime);
             keyframe.translate = Vec3(kPos.mValue.x, kPos.mValue.y, kPos.mValue.z);
-            keyframe.rotate    = Quaternion(kRot.mValue.w, Vec3(kRot.mValue.x, kRot.mValue.y, kRot.mValue.z));
+            keyframe.rotate    = Quaternion(kRot.mValue.w, kRot.mValue.x, kRot.mValue.y, kRot.mValue.z);
             keyframe.scale     = Vec3(kScl.mValue.x, kScl.mValue.y, kScl.mValue.z);
 
             keyframes.push_back(keyframe);
@@ -155,14 +161,21 @@ namespace
     }
 }
 
-Mesh::StaticSkeleton LoadStaticSkeleton(const aiScene *scene)
+/**
+ * @brief 从aiScene中提取静态骨架结构
+ */
+Mesh::StaticSkeleton LoadStaticSkeleton(const aiScene *scene, std::multimap<int, int> &boneIndexToMeshIndex)
 {
+    boneIndexToMeshIndex.clear();
     std::vector<Mesh::StaticSkeleton::Bone> bones;
-    LoadStaticSkeletonAux(scene->mRootNode, bones, -1);
+    LoadStaticSkeletonAux(scene->mRootNode, bones, -1, boneIndexToMeshIndex);
     bones.shrink_to_fit();
     return Mesh::StaticSkeleton(std::move(bones));
 }
 
+/**
+ * @brief 从aiScene中提取指定骨架上的所有骨骼动画
+ */
 std::vector<std::pair<std::string, Mesh::SkeletonAnimation>> LoadSkeletonAnimation(
     const aiScene *scene, const Mesh::StaticSkeleton &skeleton)
 {
@@ -194,6 +207,7 @@ std::vector<std::pair<std::string, Mesh::SkeletonAnimation>> LoadSkeletonAnimati
                 continue;
             }
 
+            spdlog::info("bone name = {}", boneName);
             boneAnimations[boneIndex] = LoadBoneAnimation(channel);
         }
         Mesh::SkeletonAnimation skeletonAnimation(std::move(boneAnimations));
@@ -209,11 +223,27 @@ Mesh::Mesh LoadMesh(const aiScene *scene)
 
     spdlog::info("load static skeleton...");
 
-    auto staticSkeleton = LoadStaticSkeleton(scene);
+    std::multimap<int, int> boneIndexToMeshIndex;
+    auto staticSkeleton = LoadStaticSkeleton(scene, boneIndexToMeshIndex);
+
+    std::map<int, int> meshIndexToBoneIndex;
+    for(auto &p : boneIndexToMeshIndex)
+    {
+        meshIndexToBoneIndex.insert(std::make_pair(p.second, p.first));
+    }
+
+    std::vector<Mat4> staticBoneTransforms(staticSkeleton.GetBoneCount());
+    staticSkeleton.ComputeStaticTransformMatrix(staticBoneTransforms.data());
 
     spdlog::info("load skeleton animations...");
 
     auto skeletonAnimations = LoadSkeletonAnimation(scene, staticSkeleton);
+
+    std::map<std::string, Mesh::SkeletonAnimation, std::less<>> skeletonAnimationMap;
+    for(auto &ani : skeletonAnimations)
+    {
+        skeletonAnimationMap.insert(std::move(ani));
+    }
 
     spdlog::info("load mesh components...");
 
@@ -229,60 +259,46 @@ Mesh::Mesh LoadMesh(const aiScene *scene)
         AGZ_HIERARCHY_TRY
 
         Mesh::MeshComponent meshComponent = LoadMeshComponent(mesh);
-        std::string meshName              = mesh->mName.C_Str();
+        std::string meshName = mesh->mName.C_Str();
 
         spdlog::info("find new mesh");
         spdlog::info("  mesh name = {} ", meshName.c_str());
 
-        if(mesh->mNumBones > 1)
+        spdlog::info("  mesh bone count = {}", mesh->mNumBones);
+
+        int boneIndex = -1;
+        Mat4 bindingTransform = Mat4::identity();
+
+        for(unsigned j = 0; j < mesh->mNumBones; ++j)
         {
-            throw VRPGMeshConverterException(
-                "single mesh bound to multiple bones");
+            auto bone = mesh->mBones[j];
+            spdlog::info("  mesh bone name = {}", bone->mName.C_Str());
+
+            if(bone->mNumWeights > 0 && bone->mWeights[0].mWeight > 0.9f)
+            {
+                boneIndex = staticSkeleton.BoneNameToIndex(bone->mName.C_Str());
+                spdlog::info("  select bone name = {}", bone->mName.C_Str());
+                if(boneIndex >= 0)
+                {
+                    auto &T = bone->mOffsetMatrix;
+                    bindingTransform = Mat4(T[0][0], T[0][1], T[0][2], T[0][3],
+                                            T[1][0], T[1][1], T[1][2], T[1][3], 
+                                            T[2][0], T[2][1], T[2][2], T[2][3], 
+                                            T[3][0], T[3][1], T[3][2], T[3][3])
+                                       .transpose();
+                }
+                break;
+            }
         }
 
-        if(mesh->mNumBones < 1)
-        {
-            meshComponentBindings.push_back({
-                std::move(meshName), std::move(meshComponent),
-                -1, Mat4::identity()
-            });
-            continue;
-        }
-
-        std::string boneName = mesh->mBones[0]->mName.C_Str();
-        int boneIndex = staticSkeleton.BoneNameToIndex(boneName);
-        if(boneIndex < 0)
-        {
-            meshComponentBindings.push_back({
-                std::move(meshName), std::move(meshComponent),
-                -1, Mat4::identity()
-            });
-        }
-        else
-        {
-            spdlog::info("  bone name  = {}", boneName);
-            spdlog::info("  bone index = {}", boneIndex);
-
-            auto &m = mesh->mBones[0]->mOffsetMatrix;
-            Mat4 bindingTransform = Mat4(m[0][0], m[0][1], m[0][2], m[0][3],
-                                         m[1][0], m[1][1], m[1][2], m[1][3],
-                                         m[2][0], m[2][1], m[2][2], m[2][3],
-                                         m[3][0], m[3][1], m[3][2], m[3][3])
-                                    .transpose();
-
-            meshComponentBindings.push_back({
-                std::move(meshName), std::move(meshComponent),
-                boneIndex, bindingTransform
-            });
-        }
+        int staticBoneIndex = meshIndexToBoneIndex[static_cast<int>(meshIdx)];
+        
+        meshComponentBindings.push_back({
+            std::move(meshName), std::move(meshComponent),
+            boneIndex, staticBoneTransforms[staticBoneIndex], bindingTransform
+        });
 
         AGZ_HIERARCHY_WRAP("in loading mesh: " + std::string(mesh->mName.C_Str()))
-    }
-
-    std::map<std::string, Mesh::SkeletonAnimation, std::less<>> skeletonAnimationMap;
-    for(auto &ani : skeletonAnimations)
-    {
-        skeletonAnimationMap.insert(std::move(ani));
     }
 
     return {

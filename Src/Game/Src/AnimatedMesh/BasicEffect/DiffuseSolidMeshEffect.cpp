@@ -101,8 +101,11 @@ namespace DSMEImpl
 
         UniformManager<SS_VS, SS_PS>               uniforms_;
         ConstantBufferSlot<SS_VS>                 *vsTransformSlot_;
+        ConstantBufferSlot<SS_PS>                 *psPerFrameSlot_;
         ConstantBufferSlot<SS_PS>                 *psPerObjectSlot_;
         ShaderResourceSlot<SS_PS>                 *diffuseTextureSlot_;
+
+        SamplerSlot<SS_PS>                        *diffuseSamplerSlot_;
 
         mutable ConstantBuffer<ForwardVSTransform> vsTransform_;
         mutable ConstantBuffer<ForwardPSPerFrame>  psPerFrame_;
@@ -118,8 +121,8 @@ namespace DSMEImpl
 
 DSMEImpl::EnableShadowImpl::EnableShadowImpl()
 {
-    shader_.InitializeStageFromFile<SS_VS>(GLOBAL_CONFIG.ASSET_PATH["Mesh"]["DiffuseSolid"]["ShadowVertex"]);
-    shader_.InitializeStageFromFile<SS_PS>(GLOBAL_CONFIG.ASSET_PATH["Mesh"]["DiffuseSolid"]["ShadowPixel"]);
+    shader_.InitializeStageFromFile<SS_VS>(GLOBAL_CONFIG.ASSET_PATH["Mesh"]["DiffuseSolid"]["ShadowVertexShader"]);
+    shader_.InitializeStageFromFile<SS_PS>(GLOBAL_CONFIG.ASSET_PATH["Mesh"]["DiffuseSolid"]["ShadowPixelShader"]);
     if(!shader_.IsAllStagesAvailable())
     {
         throw VRPGGameException("failed to initialize shadow shader for diffuse solid mesh effect");
@@ -184,7 +187,8 @@ DSMEImpl::DiffuseSolidMeshEffectImpl<EnableShadow>::DiffuseSolidMeshEffectImpl()
 
     Sampler diffuseSampler;
     diffuseSampler.Initialize(D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT);
-    uniforms_.GetSamplerSlot<SS_PS>("DiffuseSampler")->SetSampler(diffuseSampler);
+    diffuseSamplerSlot_ = uniforms_.GetSamplerSlot<SS_PS>("DiffuseSampler");
+    diffuseSamplerSlot_->SetSampler(diffuseSampler);
 
     vsTransform_.Initialize(true, nullptr);
     psPerFrame_.Initialize(true, nullptr);
@@ -197,7 +201,12 @@ DSMEImpl::DiffuseSolidMeshEffectImpl<EnableShadow>::DiffuseSolidMeshEffectImpl()
     }
     vsTransformSlot_->SetBuffer(vsTransform_);
 
-    uniforms_.GetConstantBufferSlot<SS_PS>("PerFrame")->SetBuffer(psPerFrame_);
+    psPerFrameSlot_ = uniforms_.GetConstantBufferSlot<SS_PS>("PerFrame");
+    if(!psPerFrameSlot_)
+    {
+        throw VRPGGameException("constant buffer 'PerFrame' not found in forward pixel shader of diffuse solid mesh effect");
+    }
+    psPerFrameSlot_->SetBuffer(psPerFrame_);
 
     psPerObjectSlot_ = uniforms_.GetConstantBufferSlot<SS_PS>("PerObject");
     if(!psPerObjectSlot_)
@@ -219,27 +228,31 @@ template<bool EnableShadow>
 void DSMEImpl::DiffuseSolidMeshEffectImpl<EnableShadow>::SetForwardRenderParams(const ForwardRenderParams &params)
 {
     shadowMapping_->SetRenderParams(params);
-    psPerFrame_.SetValue({ params.skyLight });
+    psPerFrame_.SetValue({ params.skyLight, 0 });
 }
 
 template<bool EnableShadow>
 void DSMEImpl::DiffuseSolidMeshEffectImpl<EnableShadow>::StartForward() const
 {
-    shader_        .Bind();
-    inputLayout_   .Bind();
-    shadowMapping_->Bind();
+    shader_             .Bind();
+    inputLayout_        .Bind();
+    psPerFrameSlot_    ->Bind();
+    shadowMapping_     ->Bind();
+    diffuseSamplerSlot_->Bind();
 }
 
 template<bool EnableShadow>
 void DSMEImpl::DiffuseSolidMeshEffectImpl<EnableShadow>::EndForward() const
 {
     vsTransformSlot_   ->Unbind();
-    psPerObjectSlot_    ->Unbind();
+    psPerObjectSlot_   ->Unbind();
     diffuseTextureSlot_->Unbind();
 
-    shader_        .Unbind();
-    inputLayout_   .Unbind();
-    shadowMapping_->Unbind();
+    shader_             .Unbind();
+    inputLayout_        .Unbind();
+    psPerFrameSlot_    ->Unbind();
+    shadowMapping_     ->Unbind();
+    diffuseSamplerSlot_->Unbind();
 }
 
 template<bool EnableShadow>

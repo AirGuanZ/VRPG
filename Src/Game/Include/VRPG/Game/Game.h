@@ -2,6 +2,7 @@
 
 #include <agz/utility/time.h>
 
+#include <VRPG/Game/AnimatedMesh/DiffuseSolidMesh.h>
 #include <VRPG/Game/Misc/CascadeShadowMapping.h>
 #include <VRPG/Game/Misc/ChosenWireframe.h>
 #include <VRPG/Game/Misc/Crosshair.h>
@@ -60,7 +61,10 @@ private:
     std::unique_ptr<BlockUpdaterManager> blockUpdaterManager_;
 
     std::unique_ptr<ChosenWireframeRenderer> chosenBlockWireframeRenderer_;
-    std::optional<Vec3i> chosenBlockPosition_;
+    std::optional<Vec3i>                     chosenBlockPosition_;
+
+    std::shared_ptr<DiffuseSolidMeshEffect> meshEffect_;
+    std::unique_ptr<DiffuseSolidMesh> mesh_;
 };
 
 VRPG_GAME_END

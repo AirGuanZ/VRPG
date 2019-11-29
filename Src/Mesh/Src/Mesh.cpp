@@ -128,6 +128,7 @@ void Mesh::Write(std::ostream &out) const
         WriteOStream(out, binding.name);
         binding.mesh.Write(out);
         WriteOStream(out, binding.boneIndex);
+        WriteOStream(out, binding.nonbindingTransform);
         WriteOStream(out, binding.bindingTransform);
     }
 
@@ -155,6 +156,7 @@ void Mesh::Read(std::istream &in)
         ReadIStream(in, comp.name);
         comp.mesh.Read(in);
         ReadIStream(in, comp.boneIndex);
+        ReadIStream(in, comp.nonbindingTransform);
         ReadIStream(in, comp.bindingTransform);
     }
 

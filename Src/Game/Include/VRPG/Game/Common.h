@@ -33,6 +33,7 @@ using Base::D3D::ConstantBuffer;
 using Base::D3D::ConstantBufferSlot;
 using Base::D3D::RasterizerState;
 using Base::D3D::Sampler;
+using Base::D3D::SamplerSlot;
 using Base::D3D::Shader;
 using Base::D3D::ShaderResourceSlot;
 using Base::D3D::ShaderResourceView;

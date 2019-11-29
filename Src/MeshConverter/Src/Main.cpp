@@ -37,10 +37,10 @@ void Run(int argc, char *argv[])
     auto params = ParseParams(argc, argv);
 
     constexpr unsigned ASSIMP_IMPORT_FLAG =
-        aiProcess_MakeLeftHanded |
         aiProcess_Triangulate    |
         aiProcess_GenNormals     |
         aiProcess_FlipUVs        |
+        aiProcess_MakeLeftHanded |
         aiProcess_FlipWindingOrder;
 
     Assimp::Importer importer;

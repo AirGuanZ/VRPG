@@ -129,12 +129,12 @@ private:
     void InitState_Flying    (const UserInput &userInput);
     void InitState_FastFlying(const UserInput &userInput);
     
-    State TransState_Standing  (const UserInput &userInput) const;
-    State TransState_Walking   (const UserInput &userInput) const;
-    State TransState_Running   (const UserInput &userInput) const;
-    State TransState_Floating  (const UserInput &userInput) const;
-    State TransState_Flying    (const UserInput &userInput) const;
-    State TransState_FastFlying(const UserInput &userInput) const;
+    State TransState_Standing  (const UserInput &userInput);
+    State TransState_Walking   (const UserInput &userInput);
+    State TransState_Running   (const UserInput &userInput);
+    State TransState_Floating  (const UserInput &userInput);
+    State TransState_Flying    (const UserInput &userInput);
+    State TransState_FastFlying(const UserInput &userInput);
     
     void ApplyState_Standing  (const UserInput &userInput, float dt);
     void ApplyState_Walking   (const UserInput &userInput, float dt);

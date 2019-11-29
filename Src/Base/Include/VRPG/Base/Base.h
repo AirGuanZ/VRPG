@@ -11,6 +11,7 @@
 #include <VRPG/Base/D3D/State/RasterizerState.h>
 #include <VRPG/Base/D3D/Texture/Sampler.h>
 #include <VRPG/Base/D3D/Texture/ShaderResourceView.h>
+#include <VRPG/Base/D3D/Texture/Texture2DLoader.h>
 #include <VRPG/Base/D3D/InputLayout.h>
 #include <VRPG/Base/D3D/RenderState.h>
 #include <VRPG/Base/D3D/Shader.h>

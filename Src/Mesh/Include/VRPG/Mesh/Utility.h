@@ -52,7 +52,7 @@ inline void ReadIStream<std::string>(std::istream &in, std::string &str)
 {
     uint32_t strLen;
     ReadIStream(in, strLen);
-    str.resize(strLen + 1);
+    str.resize(strLen);
     ReadIStream(in, str.data(), strLen);
 }
 

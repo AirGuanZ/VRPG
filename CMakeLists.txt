@@ -20,6 +20,8 @@ ADD_DEFINITIONS(-D_UNICODE)
 SET(spdlog_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/Lib/spdlog/include")
 SET(libconfig_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/Lib/libconfig/lib")
 SET(Misc_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/Lib/Misc/Include")
+    
+MESSAGE("${CMAKE_BINARY_DIR}")
 
 ADD_SUBDIRECTORY(Lib/agz-utils)
 ADD_SUBDIRECTORY(Lib/assimp)

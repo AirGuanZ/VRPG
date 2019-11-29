@@ -248,11 +248,6 @@ void Player::UpdateDirection(const UserInput &userInput)
 
 void Player::UpdateState(const UserInput &userInput, float dt)
 {
-    if(userInput.runDown)
-    {
-        enableRunning_ = !enableRunning_;
-    }
-
     State newState = State::Standing;
     switch(state_)
     {
@@ -439,7 +434,7 @@ void Player::InitState_FastFlying(const UserInput &userInput)
     enableRunning_ = false;
 }
 
-Player::State Player::TransState_Standing(const UserInput &userInput) const
+Player::State Player::TransState_Standing(const UserInput &userInput)
 {
     if(userInput.flyDown || !enableCollision_)
     {
@@ -459,8 +454,13 @@ Player::State Player::TransState_Standing(const UserInput &userInput) const
     return State::Standing;
 }
 
-Player::State Player::TransState_Walking(const UserInput &userInput) const
+Player::State Player::TransState_Walking(const UserInput &userInput)
 {
+    if(userInput.runDown)
+    {
+        enableRunning_ = !enableRunning_;
+    }
+
     if(userInput.flyDown || !enableCollision_)
     {
         return enableRunning_ ? State::FastFlying : State::Flying;
@@ -479,8 +479,13 @@ Player::State Player::TransState_Walking(const UserInput &userInput) const
     return State::Standing;
 }
 
-Player::State Player::TransState_Running(const UserInput &userInput) const
+Player::State Player::TransState_Running(const UserInput &userInput)
 {
+    if(userInput.runDown)
+    {
+        enableRunning_ = !enableRunning_;
+    }
+
     if(userInput.flyDown || !enableCollision_)
     {
         return enableRunning_ ? State::FastFlying : State::Flying;
@@ -499,7 +504,7 @@ Player::State Player::TransState_Running(const UserInput &userInput) const
     return State::Standing;
 }
 
-Player::State Player::TransState_Floating(const UserInput &userInput) const
+Player::State Player::TransState_Floating(const UserInput &userInput)
 {
     if(userInput.flyDown || !enableCollision_)
     {
@@ -519,7 +524,7 @@ Player::State Player::TransState_Floating(const UserInput &userInput) const
     return State::Standing;
 }
 
-Player::State Player::TransState_Flying(const UserInput &userInput) const
+Player::State Player::TransState_Flying(const UserInput &userInput)
 {
     if(userInput.flyDown)
     {
@@ -534,7 +539,7 @@ Player::State Player::TransState_Flying(const UserInput &userInput) const
     return State::Flying;
 }
 
-Player::State Player::TransState_FastFlying(const UserInput &userInput) const
+Player::State Player::TransState_FastFlying(const UserInput &userInput)
 {
     if(userInput.flyDown)
     {
@@ -602,8 +607,14 @@ void Player::ApplyState_Floating(const UserInput &userInput, float dt)
         velocity_ = CombineFriction(velocity_, fricDir, dt * params_.floatingFrictionAccel, 0);
     }
 
+    float floatingMaxSpeed = params_.floatingMaxSpeed;
+    if(enableRunning_)
+    {
+        floatingMaxSpeed *= params_.runningMaxSpeed / params_.walkingMaxSpeed;
+    }
+
     Vec3 horMove = ComputeXZMoveDirection(userInput, camera_.GetDirection());
-    velocity_ = CombineAccel(velocity_, horMove, dt * params_.floatingAccel, params_.floatingMaxSpeed);
+    velocity_ = CombineAccel(velocity_, horMove, dt * params_.floatingAccel, floatingMaxSpeed);
 }
 
 void Player::ApplyState_Flying(const UserInput &userInput, float dt)

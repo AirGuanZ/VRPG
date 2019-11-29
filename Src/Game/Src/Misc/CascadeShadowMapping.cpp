@@ -22,6 +22,12 @@ public:
 
     void EndFar() override { }
 
+    void FillNearShadowParams(ShadowRenderParams &params) const noexcept override { params.shadowViewProj = Mat4::identity(); }
+
+    void FillMiddleShadowParams(ShadowRenderParams &params) const noexcept override { params.shadowViewProj = Mat4::identity(); }
+
+    void FillFarShadowParams(ShadowRenderParams &params) const noexcept override { params.shadowViewProj = Mat4::identity(); }
+
     void RenderNearChunkShadow(const ChunkRenderer &chunkRenderer) override { }
 
     void RenderMiddleChunkShadow(const ChunkRenderer &chunkRenderer) override { }
@@ -50,6 +56,12 @@ public:
     void StartFar() override;
 
     void EndFar() override;
+
+    void FillNearShadowParams(ShadowRenderParams &params) const noexcept override;
+
+    void FillMiddleShadowParams(ShadowRenderParams &params) const noexcept override;
+
+    void FillFarShadowParams(ShadowRenderParams &params) const noexcept override;
 
     void RenderNearChunkShadow(const ChunkRenderer &chunkRenderer) override;
 
@@ -110,6 +122,11 @@ class EnabledForwardShadowMapping : public ForwardShadowMapping
     UniformManager<SS_VS, SS_PS>    *uniforms_;
     ConstantBuffer<VSTransform>      vsTransform_;
     ConstantBuffer<PSShadow>         psShadow_;
+
+    SamplerSlot<SS_PS>              *shadowSamplerSlot_;
+
+    ConstantBufferSlot<SS_VS>       *vsTransformSlot_;
+    ConstantBufferSlot<SS_PS>       *psShadowSlot_;
 
     ShaderResourceSlot<SS_PS>       *nearShadowMapSlot_;
     ComPtr<ID3D11ShaderResourceView> nearShadowMapSRV_;
@@ -184,6 +201,21 @@ void EnableCascadeShadowMapping::StartFar()
 void EnableCascadeShadowMapping::EndFar()
 {
     farSM_->End();
+}
+
+void EnableCascadeShadowMapping::FillNearShadowParams(ShadowRenderParams &params) const noexcept
+{
+    params.shadowViewProj = viewProj_[0];
+}
+
+void EnableCascadeShadowMapping::FillMiddleShadowParams(ShadowRenderParams &params) const noexcept
+{
+    params.shadowViewProj = viewProj_[1];
+}
+
+void EnableCascadeShadowMapping::FillFarShadowParams(ShadowRenderParams &params) const noexcept
+{
+    params.shadowViewProj = viewProj_[2];
 }
 
 void EnableCascadeShadowMapping::RenderNearChunkShadow(const ChunkRenderer &chunkRenderer)
@@ -352,11 +384,16 @@ EnabledForwardShadowMapping::EnabledForwardShadowMapping(UniformManager<SS_VS, S
 {
     assert(uniforms_);
 
+    vsTransformSlot_ = uniforms_->GetConstantBufferSlot<SS_VS>("Shadow");
+    psShadowSlot_    = uniforms_->GetConstantBufferSlot<SS_PS>("Shadow");
+
     vsTransform_.Initialize(true, nullptr);
-    uniforms_->GetConstantBufferSlot<SS_VS>("Shadow")->SetBuffer(vsTransform_);
+    vsTransformSlot_->SetBuffer(vsTransform_);
 
     psShadow_.Initialize(true, nullptr);
-    uniforms_->GetConstantBufferSlot<SS_PS>("Shadow")->SetBuffer(psShadow_);
+    psShadowSlot_->SetBuffer(psShadow_);
+
+    shadowSamplerSlot_ = uniforms_->GetSamplerSlot<SS_PS>("ShadowSampler");
 
     Sampler shadowSampler;
     const float shadowSamplerBorderColor[] = { FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX };
@@ -367,7 +404,7 @@ EnabledForwardShadowMapping::EnabledForwardShadowMapping(UniformManager<SS_VS, S
         D3D11_TEXTURE_ADDRESS_BORDER,
         0, 1, D3D11_COMPARISON_LESS_EQUAL,
         shadowSamplerBorderColor);
-    uniforms_->GetSamplerSlot<SS_PS>("ShadowSampler")->SetSampler(shadowSampler);
+    shadowSamplerSlot_->SetSampler(shadowSampler);
 
     nearShadowMapSlot_   = uniforms_->GetShaderResourceSlot<SS_PS>("NearShadowMap");
     middleShadowMapSlot_ = uniforms_->GetShaderResourceSlot<SS_PS>("MiddleShadowMap");
@@ -409,11 +446,27 @@ void EnabledForwardShadowMapping::Bind()
     nearShadowMapSlot_  ->SetShaderResourceView(nearShadowMapSRV_.Get());
     middleShadowMapSlot_->SetShaderResourceView(middleShadowMapSRV_.Get());
     farShadowMapSlot_   ->SetShaderResourceView(farShadowMapSRV_.Get());
+
+    nearShadowMapSlot_  ->Bind();
+    middleShadowMapSlot_->Bind();
+    farShadowMapSlot_   ->Bind();
+
+    shadowSamplerSlot_->Bind();
+
+    vsTransformSlot_->Bind();
+    psShadowSlot_   ->Bind();
 }
 
 void EnabledForwardShadowMapping::Unbind()
 {
-    
+    nearShadowMapSlot_  ->Unbind();
+    middleShadowMapSlot_->Unbind();
+    farShadowMapSlot_   ->Unbind();
+
+    shadowSamplerSlot_->Unbind();
+
+    vsTransformSlot_->Unbind();
+    psShadowSlot_   ->Unbind();
 }
 
 VRPG_GAME_END

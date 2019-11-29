@@ -3,6 +3,8 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 
+#include <agz/utility/system.h>
+
 #include <VRPG/Base/D3D/Shader/ConstantBufferSlot.h>
 #include <VRPG/Base/D3D/Shader/Reflection.h>
 #include <VRPG/Base/D3D/Shader/SamplerSlot.h>
@@ -28,13 +30,19 @@ namespace Impl
             return "vs_5_0";
         }
 
+#ifdef AGZ_DEBUG
+        static constexpr UINT COMPILER_FLAGS = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+        static constexpr UINT COMPILER_FLAGS = 0;
+#endif
+
         static ComPtr<ID3D10Blob> CompileShader(
             std::string_view source, const char *sourceName, const char *target, const char *entry, D3D_SHADER_MACRO *macros, std::string &errMsg)
         {
             ComPtr<ID3D10Blob> ret, err;
             HRESULT hr = D3DCompile(
                 source.data(), source.size(), sourceName, macros, D3D_COMPILE_STANDARD_FILE_INCLUDE,
-                entry, target, 0, 0, ret.GetAddressOf(), err.GetAddressOf());
+                entry, target, COMPILER_FLAGS, 0, ret.GetAddressOf(), err.GetAddressOf());
             if(FAILED(hr))
             {
                 errMsg = (char *)(err->GetBufferPointer());
@@ -48,7 +56,7 @@ namespace Impl
             ComPtr<ID3D10Blob> ret, err;
             HRESULT hr = D3DCompile(
                 source.data(), source.size(), nullptr, macros, nullptr,
-                entry, target, 0, 0, ret.GetAddressOf(), err.GetAddressOf());
+                entry, target, COMPILER_FLAGS, 0, ret.GetAddressOf(), err.GetAddressOf());
             if(FAILED(hr))
             {
                 errMsg = (char *)(err->GetBufferPointer());

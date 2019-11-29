@@ -26,6 +26,7 @@ void BoneAnimation::ComputeTransformMatrix(float t, Mat4 &output) const noexcept
     if(t >= GetEndTime())
     {
         auto &keyframe = keyframes_.back();
+
         output = Trans4::scale          (keyframe.scale)
                * Trans4::from_quaternion(keyframe.rotate)
                * Trans4::translate      (keyframe.translate);
@@ -110,7 +111,7 @@ SkeletonAnimation::SkeletonAnimation(std::vector<BoneAnimation> boneAnimations)
 void SkeletonAnimation::ComputeTransformMatrix(const StaticSkeleton &staticSkeleton, float t, Mat4 *output) const
 {
     assert(staticSkeleton.GetBoneCount());
-    assert(staticSkeleton.GetBoneCount() == boneAnimations_.size());
+    assert(staticSkeleton.GetBoneCount() == int(boneAnimations_.size()));
 
     for(int i = 0; i < staticSkeleton.GetBoneCount(); ++i)
     {
@@ -121,11 +122,12 @@ void SkeletonAnimation::ComputeTransformMatrix(const StaticSkeleton &staticSkele
 
         if(bone.parent < 0)
         {
-            output[i] = /*bone.staticTransform * */aniTrans;
+            output[i] = aniTrans;
         }
         else
         {
-            output[i] = /*bone.staticTransform * */aniTrans * output[bone.parent];
+            assert(bone.parent < i);
+            output[i] = aniTrans * output[bone.parent];
         }
     }
 }

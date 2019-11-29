@@ -107,8 +107,6 @@
                                                                                                                           \
     float computeShadowFactor(PS_INPUT_TYPE input, float3 normal)                                                         \
     {                                                                                                                     \
-        if(!enableShadow)                                                                                                 \
-            return 1;                                                                                                     \
         if(dot(sunlightDirection, normal) <= 0)                                                                           \
             return shadowScale;                                                                                           \
         return computeShadowFactor_NoNormal(input);                                                                       \
