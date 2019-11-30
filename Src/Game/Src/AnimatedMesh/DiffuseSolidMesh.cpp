@@ -37,6 +37,7 @@ std::unique_ptr<DiffuseSolidMesh> DiffuseSolidMesh::LoadFromFile(const LoadParam
 
     Mesh::Mesh mesh;
     mesh.Read(fin);
+    mesh.RemoveUnusedBones();
 
     fin.close();
 

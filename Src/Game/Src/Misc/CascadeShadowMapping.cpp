@@ -257,16 +257,15 @@ void EnableCascadeShadowMapping::FillForwardParams(ForwardRenderParams &params)
 
 void EnableCascadeShadowMapping::UpdateViewProj(const Camera &camera, Mat4 viewProj[3], float cascadeZLimit[3])
 {
-    Vec3 cameraPosition = camera.GetPosition();
     float FOVy = camera.GetFOVy();
     float wOverH = camera.GetWOverH();
 
     Mat4 shadowView = Trans4::look_at(
-        cameraPosition + 500.0f * Vec3(5, 6, 7).normalize(),
-        cameraPosition, Vec3(0, 1, 0));
+        500.0f * Vec3(5, 6, 7).normalize(),
+        Vec3(0), Vec3(0, 1, 0));
     Mat4 viewToShadow = camera.GetViewMatrix().inv() * shadowView;
 
-    auto constructSingleShadowMapVP = [&](float nearD, float farD)
+    auto constructSingleShadowMapVP = [&](float nearD, float farD, int shadowMapResolution)
     {
         float nearYOri = nearD * std::tan(FOVy / 2);
         float nearXOri = wOverH * nearYOri;
@@ -321,16 +320,23 @@ void EnableCascadeShadowMapping::UpdateViewProj(const Camera &camera, Mat4 viewP
             maxZ = (std::max)(maxZ, farPoints[i].z);
         }
 
+        float unitsPerPixelX = (maxX - minX) / shadowMapResolution;
+        float unitsPerPixelY = (maxY - minY) / shadowMapResolution;
+        minX = std::floor(minX / unitsPerPixelX) * unitsPerPixelX;
+        maxX = std::floor(maxX / unitsPerPixelX) * unitsPerPixelX;
+        minY = std::floor(minY / unitsPerPixelY) * unitsPerPixelY;
+        maxY = std::floor(maxY / unitsPerPixelY) * unitsPerPixelY;
+
         Mat4 shadowProj = Trans4::orthographic(
-            minX - 5, maxX + 5, maxY + 5, minY - 5, 300, maxZ + 5);
+            minX, maxX, maxY, minY, 300, maxZ + 5);
 
         return shadowView * shadowProj;
     };
 
     float distance0 = camera.GetNearDistance();
     float distance1 = GLOBAL_CONFIG.SHADOW_MAP.distance;
-    float distance2 = distance1 + 2 * (distance1 - distance0);
-    float distance3 = distance2 + 5 * (distance2 - distance1);
+    float distance2 = distance1 + 1.2f * (distance1 - distance0);
+    float distance3 = distance2 + 2.2f * (distance2 - distance1);
 
     auto computeHomZLimit = [proj = camera.GetProjMatrix()](float maxZ)
     {
@@ -338,9 +344,9 @@ void EnableCascadeShadowMapping::UpdateViewProj(const Camera &camera, Mat4 viewP
         return clipV.z;
     };
 
-    viewProj[0] = constructSingleShadowMapVP(distance0, distance1);
-    viewProj[1] = constructSingleShadowMapVP(distance1, distance2);
-    viewProj[2] = constructSingleShadowMapVP(distance2, distance3);
+    viewProj[0] = constructSingleShadowMapVP(distance0, distance1, GLOBAL_CONFIG.SHADOW_MAP.resolution[0]);
+    viewProj[1] = constructSingleShadowMapVP(distance1, distance2, GLOBAL_CONFIG.SHADOW_MAP.resolution[1]);
+    viewProj[2] = constructSingleShadowMapVP(distance2, distance3, GLOBAL_CONFIG.SHADOW_MAP.resolution[2]);
 
     cascadeZLimit[0] = computeHomZLimit(distance1);
     cascadeZLimit[1] = computeHomZLimit(distance2);
