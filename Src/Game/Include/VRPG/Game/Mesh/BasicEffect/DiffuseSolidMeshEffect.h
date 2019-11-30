@@ -1,6 +1,6 @@
 #pragma once
 
-#include <VRPG/Game/AnimatedMesh/MeshEffect.h>
+#include <VRPG/Game/Mesh/MeshEffect.h>
 
 VRPG_GAME_BEGIN
 

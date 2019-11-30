@@ -1,3 +1,5 @@
+#include <agz/utility/string.h>
+
 #include <VRPG/MeshConverter/MeshLoader.h>
 
 VRPG_MESH_CONVERTER_BEGIN
@@ -190,6 +192,11 @@ std::vector<std::pair<std::string, Mesh::SkeletonAnimation>> LoadSkeletonAnimati
         const aiAnimation *animation = scene->mAnimations[aniIndex];
 
         std::string animationName = animation->mName.C_Str();
+        if(auto delimiterPos = animationName.find('|'))
+        {
+            animationName = animationName.substr(delimiterPos + 1);
+        }
+
         spdlog::info("load animation {}", animationName.c_str());
 
         std::vector<Mesh::BoneAnimation> boneAnimations(skeleton.GetBoneCount());

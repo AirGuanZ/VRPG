@@ -2,8 +2,11 @@
 
 #include <libconfig.h++>
 
-#include <VRPG/Game/AnimatedMesh/BasicEffect/DiffuseSolidMeshEffect.h>
-#include <VRPG/Game/AnimatedMesh/SubMesh.h>
+#include <VRPG/Game/Mesh/Animation/AnimationModel.h>
+#include <VRPG/Game/Mesh/Animation/AnimationState.h>
+#include <VRPG/Game/Mesh/MeshComponent.h>
+#include <VRPG/Game/Mesh/BasicEffect/DiffuseSolidMeshEffect.h>
+#include <VRPG/Mesh/Mesh.h>
 
 VRPG_GAME_BEGIN
 
@@ -55,10 +58,10 @@ private:
 
     using Vertex       = DiffuseSolidMeshEffect::Vertex;
     using Index        = uint32_t;
-    using Submesh      = AnimatedSubMesh<Vertex, Index>;
+    using Submesh      = MeshComponent<Vertex, Index>;
     using AnimationMap = std::map<std::string, Mesh::SkeletonAnimation, std::less<>>;
 
-    struct MeshComponent
+    struct MeshBinding
     {
         std::unique_ptr<Submesh> submesh;
         Mat4                     nonbindingTransform;
@@ -69,22 +72,18 @@ private:
 
     struct Model
     {
-        Mesh::StaticSkeleton       staticSkeleton;
-        std::vector<MeshComponent> meshComponents;
-        AnimationMap               skeletonAnimations;
+        std::shared_ptr<const DiffuseSolidMeshEffect> effect;
+        std::vector<MeshBinding>                      meshComponents;
+        std::shared_ptr<AnimationModel>               animationModel;
     };
 
     DiffuseSolidMesh(
-        std::shared_ptr<const DiffuseSolidMeshEffect> effect,
-        const Mesh::Mesh &mesh,
-        std::map<std::string, ComPtr<ID3D11ShaderResourceView>> diffuseTextures,
-        std::string_view initAnimationName = "");
+        const Mesh::Mesh &mesh, std::shared_ptr<const DiffuseSolidMeshEffect> effect,
+        std::map<std::string, ComPtr<ID3D11ShaderResourceView>> diffuseTextures);
 
     DiffuseSolidMesh(
-        const Mat4 &worldMatrix, const Vec4 &brightness,
-        std::shared_ptr<const DiffuseSolidMeshEffect> effect, std::shared_ptr<Model> model,
-        const Mesh::SkeletonAnimation *currentAnimation, bool animationLoop,
-        std::vector<Mat4> currentGlobalTransforms, float currentAnimationTime);
+        const Mat4 &worldMatrix, const Vec4 &brightness, std::shared_ptr<Model> model,
+        AnimationState animationState, std::vector<Mat4> currentGlobalTransforms);
 
     static void InitializeSubmesh(const Mesh::MeshComponent &component, Submesh &submesh);
 
@@ -96,23 +95,18 @@ private:
 
     Vec4 brightness_;
 
-    // 管线数据
-
-    std::shared_ptr<const DiffuseSolidMeshEffect> effect_;
-
     // 模型数据
 
     std::shared_ptr<Model> model_;
 
     // 动画设置
 
-    const Mesh::SkeletonAnimation *currentAnimation_;
-    bool animationLoop_;
+    AnimationModel animationModel_;
 
     // 动画状态
 
     std::vector<Mat4> currentGlobalTransforms_;
-    float currentAnimationTime_;
+    AnimationState    animationState_;
 };
 
 VRPG_GAME_END

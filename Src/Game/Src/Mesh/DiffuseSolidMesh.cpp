@@ -1,6 +1,6 @@
 #include <fstream>
 
-#include <VRPG/Game/AnimatedMesh/DiffuseSolidMesh.h>
+#include <VRPG/Game/Mesh/DiffuseSolidMesh.h>
 
 VRPG_GAME_BEGIN
 
@@ -48,94 +48,56 @@ std::unique_ptr<DiffuseSolidMesh> DiffuseSolidMesh::LoadFromFile(const LoadParam
         diffuseTextures.insert(std::make_pair(p.first, std::move(srv)));
     }
 
-    auto ptr = new DiffuseSolidMesh(params.effect, mesh, std::move(diffuseTextures));
+    auto ptr = new DiffuseSolidMesh(mesh, params.effect, std::move(diffuseTextures));
     return std::unique_ptr<DiffuseSolidMesh>(ptr);
 }
 
 std::unique_ptr<DiffuseSolidMesh> DiffuseSolidMesh::Clone() const
 {
     auto ptr = new DiffuseSolidMesh(
-        worldMatrix_, brightness_, effect_, model_,
-        currentAnimation_, animationLoop_,
-        currentGlobalTransforms_, currentAnimationTime_);
+        worldMatrix_, brightness_, model_,
+        animationState_, currentGlobalTransforms_);
     return std::unique_ptr<DiffuseSolidMesh>(ptr);
 }
 
 const std::shared_ptr<const DiffuseSolidMeshEffect> &DiffuseSolidMesh::GetEffect() const noexcept
 {
-    return effect_;
+    return model_->effect;
 }
 
 const Mesh::SkeletonAnimation *DiffuseSolidMesh::GetCurrentAnimation() const noexcept
 {
-    return currentAnimation_;
+    return animationState_.GetCurrentAnimation();
 }
 
 void DiffuseSolidMesh::SetCurrentAnimation(std::string_view animationName)
 {
-    if(animationName.empty())
-    {
-        currentAnimation_ = nullptr;
-        currentAnimationTime_ = 0;
-        return;
-    }
-
-    auto it = model_->skeletonAnimations.find(animationName);
-    if(it == model_->skeletonAnimations.end())
-    {
-        throw VRPGGameException("animation not found: " + std::string(animationName));
-    }
-    currentAnimation_ = &it->second;
-    currentAnimationTime_ = 0;
+    animationState_.SetCurrentAnimationName(animationName);
 }
 
 bool DiffuseSolidMesh::IsAnimationLoopEnabled() const noexcept
 {
-    return animationLoop_;
+    return animationState_.IsAnimationLoopEnabled();
 }
 
 void DiffuseSolidMesh::EnableAnimationLoop(bool loop)
 {
-    animationLoop_ = loop;
+    animationState_.EnableAnimationLoop(loop);
 }
 
 bool DiffuseSolidMesh::IsAnimationEnd() const noexcept
 {
-    if(!currentAnimation_)
-    {
-        return false;
-    }
-    return currentAnimationTime_ > currentAnimation_->GetEndTime();
+    return animationState_.IsAnimationEnd();
 }
 
 float DiffuseSolidMesh::GetCurrentAnimationTime() const noexcept
 {
-    return currentAnimationTime_;
+    return animationState_.GetCurrentAnimationTime();
 }
 
 void DiffuseSolidMesh::SetCurrentAnimationTime(float timePoint)
 {
-    if(!currentAnimation_)
-    {
-        return;
-    }
-
-    currentAnimationTime_ = timePoint;
-    float endTime = currentAnimation_->GetEndTime();
-    if(currentAnimationTime_ > endTime)
-    {
-        if(animationLoop_)
-        {
-            while(currentAnimationTime_ > endTime)
-            {
-                currentAnimationTime_ -= endTime;
-            }
-        }
-        else
-        {
-            currentAnimationTime_ = endTime;
-        }
-    }
+    animationState_.SetCurrentAnimationTime(timePoint);
 }
 
 void DiffuseSolidMesh::RenderForward(const ForwardRenderParams &params) const
@@ -155,9 +117,9 @@ void DiffuseSolidMesh::RenderForward(const ForwardRenderParams &params) const
         }
         Mat4 worldViewProj = world * viewProj;
 
-        effect_->BindForwardVSTransform(world, worldViewProj);
-        effect_->BindForwardPSBrightness(brightness_);
-        effect_->BindForwardPSDiffuseTexture(mesh.diffuseTexture);
+        model_->effect->BindForwardVSTransform(world, worldViewProj);
+        model_->effect->BindForwardPSBrightness(brightness_);
+        model_->effect->BindForwardPSDiffuseTexture(mesh.diffuseTexture);
 
         mesh.submesh->Render();
     }
@@ -178,7 +140,7 @@ void DiffuseSolidMesh::RenderShadow(const ShadowRenderParams &params) const
         }
         Mat4 worldViewProj = world * params.shadowViewProj;
 
-        effect_->BindShadowVSTransform(worldViewProj);
+        model_->effect->BindShadowVSTransform(worldViewProj);
 
         mesh.submesh->Render();
     }
@@ -196,32 +158,23 @@ void DiffuseSolidMesh::SetBrightness(const Vec4 &brightness)
 
 void DiffuseSolidMesh::UpdateBoneTransform()
 {
-    if(!currentAnimation_)
-    {
-        model_->staticSkeleton.ComputeStaticTransformMatrix(currentGlobalTransforms_.data());
-        return;
-    }
-    currentAnimation_->ComputeTransformMatrix(model_->staticSkeleton, currentAnimationTime_, currentGlobalTransforms_.data());
+    animationState_.ComputeTransform(currentGlobalTransforms_.data());
 }
 
 DiffuseSolidMesh::DiffuseSolidMesh(
-    std::shared_ptr<const DiffuseSolidMeshEffect> effect,
-    const Mesh::Mesh &mesh,
-    std::map<std::string, ComPtr<ID3D11ShaderResourceView>> diffuseTextures,
-    std::string_view initAnimationName)
+    const Mesh::Mesh &mesh, std::shared_ptr<const DiffuseSolidMeshEffect> effect,
+    std::map<std::string, ComPtr<ID3D11ShaderResourceView>> diffuseTextures)
 {
     worldMatrix_ = Mat4::identity();
 
-    effect_ = std::move(effect);
-
     model_ = std::make_shared<Model>();
-    model_->staticSkeleton = mesh.staticSkeleton;
-    model_->skeletonAnimations = mesh.skeletonAnimations;
+    model_->effect         = std::move(effect);
+    model_->animationModel = std::make_shared<AnimationModel>(mesh.staticSkeleton, mesh.skeletonAnimations);
 
     model_->meshComponents.reserve(mesh.staticComponents.size());
     for(auto &m : mesh.staticComponents)
     {
-        MeshComponent component;
+        MeshBinding component;
 
         component.submesh = std::make_unique<Submesh>();
         InitializeSubmesh(m.mesh, *component.submesh);
@@ -249,42 +202,21 @@ DiffuseSolidMesh::DiffuseSolidMesh(
         model_->meshComponents.push_back(std::move(component));
     }
 
-    animationLoop_ = false;
-    if(initAnimationName.empty())
-    {
-        currentAnimation_ = nullptr;
-    }
-    else
-    {
-        auto it = model_->skeletonAnimations.find(initAnimationName);
-        if(it == model_->skeletonAnimations.end())
-        {
-            throw VRPGGameException("animation not found: " + std::string(initAnimationName));
-        }
-        currentAnimation_ = &it->second;
-    }
-
-    currentGlobalTransforms_.resize(model_->staticSkeleton.GetBoneCount(), Mat4::identity());
-    currentAnimationTime_ = 0;
+    animationState_.Initialize(model_->animationModel);
+    currentGlobalTransforms_.resize(model_->animationModel->GetBoneCount(), Mat4::identity());
 }
 
 DiffuseSolidMesh::DiffuseSolidMesh(
-    const Mat4 &worldMatrix, const Vec4 &brightness,
-    std::shared_ptr<const DiffuseSolidMeshEffect> effect, std::shared_ptr<Model> model,
-    const Mesh::SkeletonAnimation *currentAnimation, bool animationLoop,
-    std::vector<Mat4> currentGlobalTransforms, float currentAnimationTime)
+    const Mat4 &worldMatrix, const Vec4 &brightness, std::shared_ptr<Model> model,
+    AnimationState animationState, std::vector<Mat4> currentGlobalTransforms)
 {
     worldMatrix_ = worldMatrix;
     brightness_  = brightness;
 
-    effect_ = std::move(effect);
     model_  = std::move(model);
 
-    currentAnimation_ = currentAnimation;
-    animationLoop_    = animationLoop;
-
+    animationState_          = std::move(animationState);
     currentGlobalTransforms_ = std::move(currentGlobalTransforms);
-    currentAnimationTime_    = currentAnimationTime;
 }
 
 void DiffuseSolidMesh::InitializeSubmesh(const Mesh::MeshComponent &component, Submesh &submesh)

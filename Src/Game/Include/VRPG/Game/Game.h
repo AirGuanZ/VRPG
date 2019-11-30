@@ -2,7 +2,7 @@
 
 #include <agz/utility/time.h>
 
-#include <VRPG/Game/AnimatedMesh/DiffuseSolidMesh.h>
+#include <VRPG/Game/Mesh/DiffuseSolidMesh.h>
 #include <VRPG/Game/Misc/CascadeShadowMapping.h>
 #include <VRPG/Game/Misc/ChosenWireframe.h>
 #include <VRPG/Game/Misc/Crosshair.h>

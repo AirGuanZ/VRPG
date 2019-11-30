@@ -1,11 +1,11 @@
 #pragma once
 
-#include <VRPG/Mesh/Mesh.h>
+#include <VRPG/Game/Mesh/BasicEffect/DiffuseSolidMeshEffect.h>
 
 VRPG_GAME_BEGIN
 
 template<typename Vertex, typename Index>
-class AnimatedSubMesh
+class MeshComponent
 {
 public:
 

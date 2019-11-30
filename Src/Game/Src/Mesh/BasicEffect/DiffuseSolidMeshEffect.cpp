@@ -1,6 +1,6 @@
 #include <type_traits>
 
-#include <VRPG/Game/AnimatedMesh/BasicEffect/DiffuseSolidMeshEffect.h>
+#include <VRPG/Game/Mesh/BasicEffect/DiffuseSolidMeshEffect.h>
 #include <VRPG/Game/Config/GlobalConfig.h>
 #include <VRPG/Game/Misc/CascadeShadowMapping.h>
 
