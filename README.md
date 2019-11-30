@@ -2,9 +2,12 @@
 
 ### Roadmap
 
-- [ ] Land Generator
-- [x] Block Update Mechanism 
+- [x] Block Updating Mechanism 
 - [x] Liquid Simulation & Rendering
 - [x] Basic Camera, Character & Control
-- [ ] Skeleton Animation
+- [x] Cascade Shadow Mapping
+- [x] Skeleton Animation
+- [ ] Animation Management
 - [ ] Third-person Camera
+- [ ] Better Land Generator
+
