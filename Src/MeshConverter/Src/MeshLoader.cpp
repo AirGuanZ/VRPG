@@ -161,67 +161,67 @@ namespace
 
         return { std::move(vertices), std::move(indices) };
     }
-}
 
-/**
- * @brief 从aiScene中提取静态骨架结构
- */
-Mesh::StaticSkeleton LoadStaticSkeleton(const aiScene *scene, std::multimap<int, int> &boneIndexToMeshIndex)
-{
-    boneIndexToMeshIndex.clear();
-    std::vector<Mesh::StaticSkeleton::Bone> bones;
-    LoadStaticSkeletonAux(scene->mRootNode, bones, -1, boneIndexToMeshIndex);
-    bones.shrink_to_fit();
-    return Mesh::StaticSkeleton(std::move(bones));
-}
-
-/**
- * @brief 从aiScene中提取指定骨架上的所有骨骼动画
- */
-std::vector<std::pair<std::string, Mesh::SkeletonAnimation>> LoadSkeletonAnimation(
-    const aiScene *scene, const Mesh::StaticSkeleton &skeleton)
-{
-    std::vector<std::pair<std::string, Mesh::SkeletonAnimation>> animations;
-    animations.reserve(scene->mNumAnimations);
-
-    spdlog::info("animation count: {}", scene->mNumAnimations);
-
-    // 遍历所有动画
-    for(unsigned int aniIndex = 0; aniIndex < scene->mNumAnimations; ++aniIndex)
+    /**
+     * @brief 从aiScene中提取静态骨架结构
+     */
+    Mesh::StaticSkeleton LoadStaticSkeleton(const aiScene *scene, std::multimap<int, int> &boneIndexToMeshIndex)
     {
-        const aiAnimation *animation = scene->mAnimations[aniIndex];
-
-        std::string animationName = animation->mName.C_Str();
-        if(auto delimiterPos = animationName.find('|'))
-        {
-            animationName = animationName.substr(delimiterPos + 1);
-        }
-
-        spdlog::info("load animation {}", animationName.c_str());
-
-        std::vector<Mesh::BoneAnimation> boneAnimations(skeleton.GetBoneCount());
-
-        // 遍历该动画中涉及到的所有骨骼
-        for(unsigned int chIdx = 0; chIdx < animation->mNumChannels; ++chIdx)
-        {
-            const aiNodeAnim *channel = animation->mChannels[chIdx];
-
-            std::string boneName = channel->mNodeName.C_Str();
-            int boneIndex = skeleton.BoneNameToIndex(boneName);
-            if(boneIndex < 0)
-            {
-                // 忽略给定的骨架上找不到的骨骼
-                continue;
-            }
-
-            spdlog::info("bone name = {}", boneName);
-            boneAnimations[boneIndex] = LoadBoneAnimation(channel);
-        }
-        Mesh::SkeletonAnimation skeletonAnimation(std::move(boneAnimations));
-        animations.emplace_back(animationName, std::move(skeletonAnimation));
+        boneIndexToMeshIndex.clear();
+        std::vector<Mesh::StaticSkeleton::Bone> bones;
+        LoadStaticSkeletonAux(scene->mRootNode, bones, -1, boneIndexToMeshIndex);
+        bones.shrink_to_fit();
+        return Mesh::StaticSkeleton(std::move(bones));
     }
 
-    return animations;
+    /**
+     * @brief 从aiScene中提取指定骨架上的所有骨骼动画
+     */
+    std::vector<std::pair<std::string, Mesh::SkeletonAnimation>> LoadSkeletonAnimation(
+        const aiScene *scene, const Mesh::StaticSkeleton &skeleton)
+    {
+        std::vector<std::pair<std::string, Mesh::SkeletonAnimation>> animations;
+        animations.reserve(scene->mNumAnimations);
+
+        spdlog::info("animation count: {}", scene->mNumAnimations);
+
+        // 遍历所有动画
+        for(unsigned int aniIndex = 0; aniIndex < scene->mNumAnimations; ++aniIndex)
+        {
+            const aiAnimation *animation = scene->mAnimations[aniIndex];
+
+            std::string animationName = animation->mName.C_Str();
+            if(auto delimiterPos = animationName.find('|'))
+            {
+                animationName = animationName.substr(delimiterPos + 1);
+            }
+
+            spdlog::info("load animation {}", animationName.c_str());
+
+            std::vector<Mesh::BoneAnimation> boneAnimations(skeleton.GetBoneCount());
+
+            // 遍历该动画中涉及到的所有骨骼
+            for(unsigned int chIdx = 0; chIdx < animation->mNumChannels; ++chIdx)
+            {
+                const aiNodeAnim *channel = animation->mChannels[chIdx];
+
+                std::string boneName = channel->mNodeName.C_Str();
+                int boneIndex = skeleton.BoneNameToIndex(boneName);
+                if(boneIndex < 0)
+                {
+                    // 忽略给定的骨架上找不到的骨骼
+                    continue;
+                }
+
+                spdlog::info("bone name = {}", boneName);
+                boneAnimations[boneIndex] = LoadBoneAnimation(channel);
+            }
+            Mesh::SkeletonAnimation skeletonAnimation(std::move(boneAnimations));
+            animations.emplace_back(animationName, std::move(skeletonAnimation));
+        }
+
+        return animations;
+    }
 }
 
 Mesh::Mesh LoadMesh(const aiScene *scene)

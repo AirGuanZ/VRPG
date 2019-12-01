@@ -167,9 +167,9 @@ DiffuseSolidMesh::DiffuseSolidMesh(
 {
     worldMatrix_ = Mat4::identity();
 
-    model_ = std::make_shared<Model>();
+    model_ = std::make_shared<DiffuseSolidMeshModel>();
     model_->effect         = std::move(effect);
-    model_->animationModel = std::make_shared<AnimationModel>(mesh.staticSkeleton, mesh.skeletonAnimations);
+    model_->animationModel = AnimationModel::CreateAnimationModel(mesh.staticSkeleton, mesh.skeletonAnimations);
 
     model_->meshComponents.reserve(mesh.staticComponents.size());
     for(auto &m : mesh.staticComponents)
@@ -207,7 +207,7 @@ DiffuseSolidMesh::DiffuseSolidMesh(
 }
 
 DiffuseSolidMesh::DiffuseSolidMesh(
-    const Mat4 &worldMatrix, const Vec4 &brightness, std::shared_ptr<Model> model,
+    const Mat4 &worldMatrix, const Vec4 &brightness, std::shared_ptr<DiffuseSolidMeshModel> model,
     AnimationState animationState, std::vector<Mat4> currentGlobalTransforms)
 {
     worldMatrix_ = worldMatrix;

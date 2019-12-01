@@ -139,7 +139,7 @@ void Game::Initialize()
 
     meshEffect_ = CreateDiffuseSolidMeshEffect();
     mesh_ = DiffuseSolidMesh::LoadFromConfig(meshEffect_, GLOBAL_CONFIG.ASSET_PATH["Mesh"]["Mesh"]);
-    mesh_->SetCurrentAnimation("Walking");
+    //mesh_->SetCurrentAnimation("Walking");
     mesh_->SetWorldTransform(Trans4::translate(0, 21, 0));
     mesh_->SetCurrentAnimationTime(0);
     mesh_->EnableAnimationLoop(true);

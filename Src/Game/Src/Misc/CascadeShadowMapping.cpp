@@ -233,10 +233,15 @@ void EnableCascadeShadowMapping::RenderFarChunkShadow(const ChunkRenderer &chunk
     chunkRenderer.RenderShadow({ viewProj_[2] });
 }
 
+namespace
+{
+    static const Vec3 SUN_DIR = Vec3(5, 6, 7).normalize();
+}
+
 void EnableCascadeShadowMapping::FillForwardParams(ForwardRenderParams &params)
 {
-    params.shadowScale = 0.2f;
-    params.sunlightDirection = Vec3(5, 6, 7).normalize();
+    params.shadowScale       = 0.2f;
+    params.sunlightDirection = SUN_DIR;
 
     params.cascadeShadowMaps[0].shadowMapSRV = nearSM_->GetSRV();
     params.cascadeShadowMaps[1].shadowMapSRV = middleSM_->GetSRV();
@@ -257,12 +262,16 @@ void EnableCascadeShadowMapping::FillForwardParams(ForwardRenderParams &params)
 
 void EnableCascadeShadowMapping::UpdateViewProj(const Camera &camera, Mat4 viewProj[3], float cascadeZLimit[3])
 {
-    float FOVy = camera.GetFOVy();
+    float FOVy   = camera.GetFOVy();
     float wOverH = camera.GetWOverH();
 
+    Vec3 shadowDst = camera.GetPosition();
+    shadowDst.x = std::floor(shadowDst.x / 50) * 50;
+    shadowDst.y = std::floor(shadowDst.y / 50) * 50;
+    shadowDst.z = std::floor(shadowDst.z / 50) * 50;
+
     Mat4 shadowView = Trans4::look_at(
-        500.0f * Vec3(5, 6, 7).normalize(),
-        Vec3(0), Vec3(0, 1, 0));
+        shadowDst + 600.0f * SUN_DIR, shadowDst, Vec3(0, 1, 0));
     Mat4 viewToShadow = camera.GetViewMatrix().inv() * shadowView;
 
     auto constructSingleShadowMapVP = [&](float nearD, float farD, int shadowMapResolution)
@@ -287,38 +296,51 @@ void EnableCascadeShadowMapping::UpdateViewProj(const Camera &camera, Mat4 viewP
             { -farXOri, -farYOri, farD }
         };
 
+        Vec3 boundSphereCenter;
         for(int i = 0; i < 4; ++i)
         {
-            Vec4 vn = Vec4(nearPoints[i].x, nearPoints[i].y, nearPoints[i].z, 1);
-            nearPoints[i] = (vn * viewToShadow).xyz();
-
-            Vec4 vf = Vec4(farPoints[i].x, farPoints[i].y, farPoints[i].z, 1);
-            farPoints[i] = (vf * viewToShadow).xyz();
+            nearPoints[i] = (Vec4(nearPoints[i], 1) * viewToShadow).xyz();
+            farPoints [i] = (Vec4(farPoints [i], 1) * viewToShadow).xyz();
+            boundSphereCenter += nearPoints[i] + farPoints[i];
         }
+        boundSphereCenter /= 8.0f;
 
-        float minX = (std::numeric_limits<float>::max)();
-        float minY = (std::numeric_limits<float>::max)();
-        float minZ = (std::numeric_limits<float>::max)();
-        float maxX = (std::numeric_limits<float>::lowest)();
-        float maxY = (std::numeric_limits<float>::lowest)();
-        float maxZ = (std::numeric_limits<float>::lowest)();
-
+        float boundSphereRadius = 0;
         for(int i = 0; i < 4; ++i)
         {
-            minX = (std::min)(minX, nearPoints[i].x);
-            minY = (std::min)(minY, nearPoints[i].y);
-            minZ = (std::min)(minZ, nearPoints[i].z);
-            maxX = (std::max)(maxX, nearPoints[i].x);
-            maxY = (std::max)(maxY, nearPoints[i].y);
-            maxZ = (std::max)(maxZ, nearPoints[i].z);
-
-            minX = (std::min)(minX, farPoints[i].x);
-            minY = (std::min)(minY, farPoints[i].y);
-            minZ = (std::min)(minZ, farPoints[i].z);
-            maxX = (std::max)(maxX, farPoints[i].x);
-            maxY = (std::max)(maxY, farPoints[i].y);
-            maxZ = (std::max)(maxZ, farPoints[i].z);
+            float nearDistance = (nearPoints[i] - boundSphereCenter).length_square();
+            float farDistance  = (farPoints[i] - boundSphereCenter) .length_square();
+            boundSphereRadius = (std::max)(
+                boundSphereRadius, (std::max)(nearDistance, farDistance));
         }
+        boundSphereRadius = 1.01f * std::sqrt(boundSphereRadius);
+        
+        float minX = boundSphereCenter.x - boundSphereRadius;
+        float minY = boundSphereCenter.y - boundSphereRadius;
+        float maxX = boundSphereCenter.x + boundSphereRadius;
+        float maxY = boundSphereCenter.y + boundSphereRadius;
+        float maxZ = boundSphereCenter.z + boundSphereRadius;
+
+        //float minX = (std::numeric_limits<float>::max)();
+        //float minY = (std::numeric_limits<float>::max)();
+        //float maxX = (std::numeric_limits<float>::lowest)();
+        //float maxY = (std::numeric_limits<float>::lowest)();
+        //float maxZ = (std::numeric_limits<float>::lowest)();
+        //
+        //for(int i = 0; i < 4; ++i)
+        //{
+        //    minX = (std::min)(minX, nearPoints[i].x);
+        //    minY = (std::min)(minY, nearPoints[i].y);
+        //    maxX = (std::max)(maxX, nearPoints[i].x);
+        //    maxY = (std::max)(maxY, nearPoints[i].y);
+        //    maxZ = (std::max)(maxZ, nearPoints[i].z);
+        //
+        //    minX = (std::min)(minX, farPoints[i].x);
+        //    minY = (std::min)(minY, farPoints[i].y);
+        //    maxX = (std::max)(maxX, farPoints[i].x);
+        //    maxY = (std::max)(maxY, farPoints[i].y);
+        //    maxZ = (std::max)(maxZ, farPoints[i].z);
+        //}
 
         float unitsPerPixelX = (maxX - minX) / shadowMapResolution;
         float unitsPerPixelY = (maxY - minY) / shadowMapResolution;
@@ -335,8 +357,8 @@ void EnableCascadeShadowMapping::UpdateViewProj(const Camera &camera, Mat4 viewP
 
     float distance0 = camera.GetNearDistance();
     float distance1 = GLOBAL_CONFIG.SHADOW_MAP.distance;
-    float distance2 = distance1 + 1.2f * (distance1 - distance0);
-    float distance3 = distance2 + 2.2f * (distance2 - distance1);
+    float distance2 = distance1 + 2.0f * (distance1 - distance0);
+    float distance3 = distance2 + 2.0f * (distance2 - distance1);
 
     auto computeHomZLimit = [proj = camera.GetProjMatrix()](float maxZ)
     {
@@ -410,6 +432,13 @@ EnabledForwardShadowMapping::EnabledForwardShadowMapping(UniformManager<SS_VS, S
         D3D11_TEXTURE_ADDRESS_BORDER,
         0, 1, D3D11_COMPARISON_LESS_EQUAL,
         shadowSamplerBorderColor);
+    /*shadowSampler.Initialize(
+            D3D11_FILTER_COMPARISON_MIN_MAG_MIP_POINT,
+            D3D11_TEXTURE_ADDRESS_BORDER,
+            D3D11_TEXTURE_ADDRESS_BORDER,
+            D3D11_TEXTURE_ADDRESS_BORDER,
+            0, 1, D3D11_COMPARISON_LESS_EQUAL,
+            shadowSamplerBorderColor);*/
     shadowSamplerSlot_->SetSampler(shadowSampler);
 
     nearShadowMapSlot_   = uniforms_->GetShaderResourceSlot<SS_PS>("NearShadowMap");
