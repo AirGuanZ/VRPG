@@ -19,45 +19,47 @@ public:
     {
         // 重力模式移动参数
 
-        float runningAccel  = 300.0f;         // 跑动自给水平加速度
-        float walkingAccel  = 200.0f;         // 行走自给水平加速度
-        float floatingAccel = 30.0f;          // 浮空自给水平加速度
+        float runningAccel           = -1; // 跑动自给水平加速度
+        float walkingAccel           = -1; // 行走自给水平加速度
+        float floatingAccel          = -1; // 浮空自给水平加速度
 
-        float runningMaxSpeed  = 8.5f;        // 跑动最大自给水平速度
-        float walkingMaxSpeed  = 6.5f;        // 行走最大自给水平速度
-        float floatingMaxSpeed = 6.5f;        // 跳跃最大自给水平速度
+        float runningMaxSpeed        = -1; // 跑动最大自给水平速度
+        float walkingMaxSpeed        = -1; // 行走最大自给水平速度
+        float floatingMaxSpeed       = -1; // 跳跃最大自给水平速度
 
-        float standingFrictionAccel  = 80.0f; // 站立外来阻力水平加速度
-        float runningFrictionAccel   = 80.0f; // 跑动外来阻力水平加速度
-        float walkingFrictionAccel   = 80.0f; // 行走外来阻力水平加速度
-        float floatingFrictionAccel  = 10.0f; // 跳跃外来阻力水平加速度
+        float standingFrictionAccel  = -1; // 站立外来阻力水平加速度
+        float runningFrictionAccel   = -1; // 跑动外来阻力水平加速度
+        float walkingFrictionAccel   = -1; // 行走外来阻力水平加速度
+        float floatingFrictionAccel  = -1; // 跳跃外来阻力水平加速度
 
-        float jumpingInitVelocity = 10.0f;    // 跳跃初始速度
-        float gravityAccel        = 30.0;     // 重力加速度
-        float gravityMaxSpeed     = 120.0f;   // 最大下落速度
+        float jumpingInitVelocity    = -1; // 跳跃初始速度
+        float gravityAccel           = -1; // 重力加速度
+        float gravityMaxSpeed        = -1; // 最大下落速度
 
         // 飞行模式移动参数
 
-        float flyingAccel       = 300.0f;     // 飞行自给水平加速度
-        float flyingFricAccel   = 30.0f;      // 飞行外来阻力水平加速度
+        float flyingAccel            = -1; // 飞行自给水平加速度
+        float flyingFricAccel        = -1; // 飞行外来阻力水平加速度
 
-        float flyingMaxSpeed     = 10.0f;     // 飞行最大自给水平速度
-        float fastFlyingMaxSpeed = 15.0f;     // 快速飞行最大自给水品速度
+        float flyingMaxSpeed         = -1; // 飞行最大自给水平速度
+        float fastFlyingMaxSpeed     = -1; // 快速飞行最大自给水品速度
 
-        float flyingVertAccel     = 130.0f;   // 飞行自给垂直加速度
-        float flyingVertFricAccel = 70.0f;    // 飞行外来阻力垂直加速度
-        float flyingVertMaxSpeed  = 10.0f;    // 飞行最大自给垂直速度
+        float flyingVertAccel        = -1; // 飞行自给垂直加速度
+        float flyingVertFricAccel    = -1; // 飞行外来阻力垂直加速度
+        float flyingVertMaxSpeed     = -1; // 飞行最大自给垂直速度
 
         // 其他
 
-        float cameraMoveXSpeed = 0.002f;      // 摄像机水平灵敏度
-        float cameraMoveYSpeed = 0.002f;      // 摄像机垂直灵敏度
+        float cameraMoveXSpeed       = -1; // 摄像机水平灵敏度
+        float cameraMoveYSpeed       = -1; // 摄像机垂直灵敏度
 
-        float cameraDownReOffset = 0.02f;     // 摄像机最小垂直夹角偏移
-        float cameraUpReOffset   = 0.02f;     // 摄像机最大垂直夹角偏移
+        float cameraDownReOffset     = -1; // 摄像机最小垂直夹角偏移
+        float cameraUpReOffset       = -1; // 摄像机最大垂直夹角偏移
 
-        float collisionRadius = 0.25f;        // 角色碰撞半径（圆柱形碰撞体）
-        float collisionHeight = 1.8f;         // 角色碰撞高度（圆柱形碰撞体）
+        float collisionRadius        = -1; // 角色碰撞半径（圆柱形碰撞体）
+        float collisionHeight        = -1; // 角色碰撞高度（圆柱形碰撞体）
+
+        bool IsValid() const noexcept;
     };
 
     // 用户用于操作角色行为的输入

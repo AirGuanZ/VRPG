@@ -7,11 +7,11 @@ VRPG_GAME_BEGIN
 /**
  * @brief 通用mesh rendering effect，统一要求实现forward和shadow两个pass
  */
-class AnimatedMeshEffect : public agz::misc::uncopyable_t
+class MeshEffect : public agz::misc::uncopyable_t
 {
 public:
 
-    virtual ~AnimatedMeshEffect() = default;
+    virtual ~MeshEffect() = default;
 
     // forward rendering
 

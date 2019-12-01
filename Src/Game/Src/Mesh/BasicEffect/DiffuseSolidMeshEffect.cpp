@@ -237,7 +237,7 @@ void DSMEImpl::DiffuseSolidMeshEffectImpl<EnableShadow>::StartForward() const
     shader_             .Bind();
     inputLayout_        .Bind();
     psPerFrameSlot_    ->Bind();
-    shadowMapping_     ->Bind();
+    shadowMapping_     ->StartForward();
     diffuseSamplerSlot_->Bind();
 }
 
@@ -251,7 +251,7 @@ void DSMEImpl::DiffuseSolidMeshEffectImpl<EnableShadow>::EndForward() const
     shader_             .Unbind();
     inputLayout_        .Unbind();
     psPerFrameSlot_    ->Unbind();
-    shadowMapping_     ->Unbind();
+    shadowMapping_     ->EndForward();
     diffuseSamplerSlot_->Unbind();
 }
 

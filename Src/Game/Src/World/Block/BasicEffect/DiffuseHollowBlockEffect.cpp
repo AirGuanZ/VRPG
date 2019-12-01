@@ -105,7 +105,7 @@ void DiffuseHollowBlockEffectCommon::SetShadowRenderParams(const ShadowRenderPar
 void DiffuseHollowBlockEffectCommon::StartForward(ID3D11ShaderResourceView *textureArray)
 {
     forwardDiffuseTextureSlot_->SetShaderResourceView(textureArray);
-    forwardShadowMapping_ ->Bind();
+    forwardShadowMapping_ ->StartForward();
     forwardShader_         .Bind();
     forwardUniforms_       .Bind();
     forwardInputLayout_    .Bind();
@@ -118,7 +118,7 @@ void DiffuseHollowBlockEffectCommon::EndForward()
     forwardShader_         .Unbind();
     forwardUniforms_       .Unbind();
     forwardInputLayout_    .Unbind();
-    forwardShadowMapping_ ->Unbind();
+    forwardShadowMapping_ ->EndForward();
 }
 
 void DiffuseHollowBlockEffectCommon::StartShadow(ID3D11ShaderResourceView *textureArray)

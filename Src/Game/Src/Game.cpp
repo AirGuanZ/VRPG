@@ -111,21 +111,26 @@ void Game::Initialize()
     playerParams.runningAccel          = GLOBAL_CONFIG.PLAYER.runningAccel;
     playerParams.walkingAccel          = GLOBAL_CONFIG.PLAYER.walkingAccel;
     playerParams.floatingAccel         = GLOBAL_CONFIG.PLAYER.floatingAccel;
+
     playerParams.runningMaxSpeed       = GLOBAL_CONFIG.PLAYER.runningMaxSpeed;
     playerParams.walkingMaxSpeed       = GLOBAL_CONFIG.PLAYER.walkingMaxSpeed;
     playerParams.floatingMaxSpeed      = GLOBAL_CONFIG.PLAYER.floatingMaxSpeed;
+
     playerParams.standingFrictionAccel = GLOBAL_CONFIG.PLAYER.standingFrictionAccel;
     playerParams.walkingFrictionAccel  = GLOBAL_CONFIG.PLAYER.walkingFrictionAccel;
     playerParams.runningFrictionAccel  = GLOBAL_CONFIG.PLAYER.runningFrictionAccel;
     playerParams.floatingFrictionAccel = GLOBAL_CONFIG.PLAYER.floatingFrictionAccel;
+
     playerParams.jumpingInitVelocity   = GLOBAL_CONFIG.PLAYER.jumpingInitVelocity;
     playerParams.gravityAccel          = GLOBAL_CONFIG.PLAYER.gravityAccel;
     playerParams.gravityMaxSpeed       = GLOBAL_CONFIG.PLAYER.gravityMaxSpeed;
 
     playerParams.flyingAccel           = GLOBAL_CONFIG.PLAYER.flyingAccel;
     playerParams.flyingFricAccel       = GLOBAL_CONFIG.PLAYER.flyingFricAccel;
+
     playerParams.flyingMaxSpeed        = GLOBAL_CONFIG.PLAYER.flyingMaxSpeed;
     playerParams.fastFlyingMaxSpeed    = GLOBAL_CONFIG.PLAYER.fastFlyingMaxSpeed;
+
     playerParams.flyingVertAccel       = GLOBAL_CONFIG.PLAYER.flyingVertAccel;
     playerParams.flyingVertFricAccel   = GLOBAL_CONFIG.PLAYER.flyingVertFricAccel;
     playerParams.flyingVertMaxSpeed    = GLOBAL_CONFIG.PLAYER.flyingVertMaxSpeed;
@@ -133,13 +138,19 @@ void Game::Initialize()
     playerParams.cameraMoveXSpeed      = GLOBAL_CONFIG.PLAYER.cameraMoveXSpeed;
     playerParams.cameraMoveYSpeed      = GLOBAL_CONFIG.PLAYER.cameraMoveYSpeed;
 
+    playerParams.cameraDownReOffset = 0.01f;
+    playerParams.cameraUpReOffset   = 0.01f;
+
+    playerParams.collisionRadius = 0.25f;
+    playerParams.collisionHeight = 1.8f;
+
     player_ = std::make_unique<Player>(playerParams, *chunkManager_, Vec3{ 0, 40, 0 }, camera);
 
     spdlog::info("initialize mesh");
 
     meshEffect_ = CreateDiffuseSolidMeshEffect();
     mesh_ = DiffuseSolidMesh::LoadFromConfig(meshEffect_, GLOBAL_CONFIG.ASSET_PATH["Mesh"]["Mesh"]);
-    //mesh_->SetCurrentAnimation("Walking");
+    mesh_->SetCurrentAnimation("Walking");
     mesh_->SetWorldTransform(Trans4::translate(0, 21, 0));
     mesh_->SetCurrentAnimationTime(0);
     mesh_->EnableAnimationLoop(true);
@@ -206,15 +217,15 @@ void Game::PlayerTick(float deltaT)
 
             if(chunkManager_->GetBlockDesc(newBlockPosition)->IsReplacableByCrosshairRay())
             {
-                /*auto waterDesc = BuiltinBlockTypeManager::GetInstance().GetDesc(BuiltinBlockType::Water);
+                auto waterDesc = BuiltinBlockTypeManager::GetInstance().GetDesc(BuiltinBlockType::Water);
                 auto waterID   = waterDesc->GetBlockID();
                 auto extraData = MakeLiquidExtraData(waterDesc->GetLiquid()->sourceLevel);
                 chunkManager_->SetBlockID(
                     newBlockPosition, waterID, {}, std::move(extraData));
                 LiquidUpdater::AddUpdaterForNeighborhood(
-                    newBlockPosition, *blockUpdaterManager_, *chunkManager_, StdClock::now());*/
+                    newBlockPosition, *blockUpdaterManager_, *chunkManager_, StdClock::now());
 
-                auto stoneDesc = BuiltinBlockTypeManager::GetInstance().GetDesc(BuiltinBlockType::Stone);
+                /*auto stoneDesc = BuiltinBlockTypeManager::GetInstance().GetDesc(BuiltinBlockType::Stone);
                 auto stoneCollision = stoneDesc->GetCollision();
                 auto playerCollision = player_->GetCollision();
 
@@ -222,7 +233,7 @@ void Game::PlayerTick(float deltaT)
                 if(!stoneCollision->HasCollisionWith({}, playerCollision))
                 {
                     chunkManager_->SetBlockID(newBlockPosition, stoneDesc->GetBlockID(), {});
-                }
+                }*/
             }
         }
     }
@@ -330,12 +341,14 @@ void Game::Render(int fps)
         params.skyLight = Vec3(1);
         CSM_->FillForwardParams(params);
 
-        chunkRenderer_->RenderForward(params);
+        chunkRenderer_->RenderForwardOpaque(params);
 
         meshEffect_->SetForwardRenderParams(params);
         meshEffect_->StartForward();
         mesh_->RenderForward(params);
         meshEffect_->EndForward();
+
+        chunkRenderer_->RenderForwardTransparent(params);
     }
 
     if(GLOBAL_CONFIG.MISC.enableChoseBlockWireframe && chosenBlockPosition_)

@@ -28,12 +28,6 @@ public:
 
     void FillFarShadowParams(ShadowRenderParams &params) const noexcept override { params.shadowViewProj = Mat4::identity(); }
 
-    void RenderNearChunkShadow(const ChunkRenderer &chunkRenderer) override { }
-
-    void RenderMiddleChunkShadow(const ChunkRenderer &chunkRenderer) override { }
-
-    void RenderFarChunkShadow(const ChunkRenderer &chunkRenderer) override { }
-
     void FillForwardParams(ForwardRenderParams &params) override { }
 };
 
@@ -63,12 +57,6 @@ public:
 
     void FillFarShadowParams(ShadowRenderParams &params) const noexcept override;
 
-    void RenderNearChunkShadow(const ChunkRenderer &chunkRenderer) override;
-
-    void RenderMiddleChunkShadow(const ChunkRenderer &chunkRenderer) override;
-
-    void RenderFarChunkShadow(const ChunkRenderer &chunkRenderer) override;
-
     void FillForwardParams(ForwardRenderParams &params) override;
 
 private:
@@ -89,9 +77,9 @@ public:
 
     void SetRenderParams(const ForwardRenderParams &params) override { }
 
-    void Bind() override { }
+    void StartForward() override { }
 
-    void Unbind() override { }
+    void EndForward() override { }
 };
 
 class EnabledForwardShadowMapping : public ForwardShadowMapping
@@ -143,9 +131,9 @@ public:
 
     void SetRenderParams(const ForwardRenderParams &params) override;
 
-    void Bind() override;
+    void StartForward() override;
 
-    void Unbind() override;
+    void EndForward() override;
 };
 
 std::unique_ptr<CascadeShadowMapping> CreateCascadeShadowMapping()
@@ -218,24 +206,9 @@ void EnableCascadeShadowMapping::FillFarShadowParams(ShadowRenderParams &params)
     params.shadowViewProj = viewProj_[2];
 }
 
-void EnableCascadeShadowMapping::RenderNearChunkShadow(const ChunkRenderer &chunkRenderer)
-{
-    chunkRenderer.RenderShadow({ viewProj_[0] });
-}
-
-void EnableCascadeShadowMapping::RenderMiddleChunkShadow(const ChunkRenderer &chunkRenderer)
-{
-    chunkRenderer.RenderShadow({ viewProj_[1] });
-}
-
-void EnableCascadeShadowMapping::RenderFarChunkShadow(const ChunkRenderer &chunkRenderer)
-{
-    chunkRenderer.RenderShadow({ viewProj_[2] });
-}
-
 namespace
 {
-    static const Vec3 SUN_DIR = Vec3(5, 6, 7).normalize();
+    const Vec3 SUN_DIR = Vec3(5, 6, 7).normalize();
 }
 
 void EnableCascadeShadowMapping::FillForwardParams(ForwardRenderParams &params)
@@ -247,9 +220,9 @@ void EnableCascadeShadowMapping::FillForwardParams(ForwardRenderParams &params)
     params.cascadeShadowMaps[1].shadowMapSRV = middleSM_->GetSRV();
     params.cascadeShadowMaps[2].shadowMapSRV = farSM_->GetSRV();
 
-    params.cascadeShadowMaps[0].PCFStep = 1.0f / GLOBAL_CONFIG.SHADOW_MAP.resolution[0];
-    params.cascadeShadowMaps[1].PCFStep = 1.0f / GLOBAL_CONFIG.SHADOW_MAP.resolution[1];
-    params.cascadeShadowMaps[2].PCFStep = 1.0f / GLOBAL_CONFIG.SHADOW_MAP.resolution[2];
+    params.cascadeShadowMaps[0].PCFStep = 1 / static_cast<float>(GLOBAL_CONFIG.SHADOW_MAP.resolution[0]);
+    params.cascadeShadowMaps[1].PCFStep = 1 / static_cast<float>(GLOBAL_CONFIG.SHADOW_MAP.resolution[1]);
+    params.cascadeShadowMaps[2].PCFStep = 1 / static_cast<float>(GLOBAL_CONFIG.SHADOW_MAP.resolution[2]);
 
     params.cascadeShadowMaps[0].shadowViewProj = viewProj_[0];
     params.cascadeShadowMaps[1].shadowViewProj = viewProj_[1];
@@ -476,7 +449,7 @@ void EnabledForwardShadowMapping::SetRenderParams(const ForwardRenderParams &par
     farShadowMapSRV_    = params.cascadeShadowMaps[2].shadowMapSRV;
 }
 
-void EnabledForwardShadowMapping::Bind()
+void EnabledForwardShadowMapping::StartForward()
 {
     nearShadowMapSlot_  ->SetShaderResourceView(nearShadowMapSRV_.Get());
     middleShadowMapSlot_->SetShaderResourceView(middleShadowMapSRV_.Get());
@@ -492,7 +465,7 @@ void EnabledForwardShadowMapping::Bind()
     psShadowSlot_   ->Bind();
 }
 
-void EnabledForwardShadowMapping::Unbind()
+void EnabledForwardShadowMapping::EndForward()
 {
     nearShadowMapSlot_  ->Unbind();
     middleShadowMapSlot_->Unbind();

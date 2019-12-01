@@ -44,11 +44,20 @@ public:
 
     virtual ~ForwardShadowMapping() = default;
 
+    /**
+     * @brief 设置前向渲染参数
+     */
     virtual void SetRenderParams(const ForwardRenderParams &params) = 0;
 
-    virtual void Bind() = 0;
+    /**
+     * @brief 开始前向渲染
+     */
+    virtual void StartForward() = 0;
 
-    virtual void Unbind() = 0;
+    /**
+     * @brief 结束前向渲染
+     */
+    virtual void EndForward() = 0;
 };
 
 /**
@@ -60,32 +69,59 @@ public:
 
     virtual ~CascadeShadowMapping() = default;
 
+    /**
+     * @brief 更新阴影矩阵等参数
+     */
     virtual void UpdateCSMParams(const Camera &camera) = 0;
 
+    /**
+     * @brief 开始渲染到near SM
+     */
     virtual void StartNear() = 0;
 
+    /**
+     * @brief 结束对near SM的渲染
+     */
     virtual void EndNear() = 0;
 
+    /**
+     * @brief 开始渲染到middle SM
+     */
     virtual void StartMiddle() = 0;
 
+    /**
+     *@brief 结束对middle SM的渲染
+     */
     virtual void EndMiddle() = 0;
 
+    /**
+     * @brief 开始渲染到far SM
+     */
     virtual void StartFar() = 0;
 
+    /**
+     * @brief 结束对far SM的渲染
+     */
     virtual void EndFar() = 0;
 
+    /**
+     * @brief 填充针对near SM的渲染参数
+     */
     virtual void FillNearShadowParams(ShadowRenderParams &params) const noexcept = 0;
 
+    /**
+     * @brief 填充针对middle SM的渲染参数
+     */
     virtual void FillMiddleShadowParams(ShadowRenderParams &params) const noexcept = 0;
 
+    /**
+     * @brief 填充针对far SM的渲染参数
+     */
     virtual void FillFarShadowParams(ShadowRenderParams &params) const noexcept = 0;
 
-    virtual void RenderNearChunkShadow(const ChunkRenderer &chunkRenderer) = 0;
-
-    virtual void RenderMiddleChunkShadow(const ChunkRenderer &chunkRenderer) = 0;
-
-    virtual void RenderFarChunkShadow(const ChunkRenderer &chunkRenderer) = 0;
-
+    /**
+     * @brief 填充用于前向渲染的参数
+     */
     virtual void FillForwardParams(ForwardRenderParams &params) = 0;
 };
 

@@ -4,7 +4,7 @@
 
 VRPG_GAME_BEGIN
 
-class DiffuseSolidMeshEffect : public AnimatedMeshEffect
+class DiffuseSolidMeshEffect : public MeshEffect
 {
 public:
 

@@ -133,10 +133,60 @@ namespace
     };
 }
 
+bool Player::PlayerParams::IsValid() const noexcept
+{
+#define NON_NEG(X) do { if(X < 0) return false; } while(false)
+
+    NON_NEG(runningAccel);
+    NON_NEG(walkingAccel);
+    NON_NEG(floatingAccel);
+
+    NON_NEG(runningMaxSpeed);
+    NON_NEG(walkingMaxSpeed);
+    NON_NEG(floatingMaxSpeed);
+
+    NON_NEG(standingFrictionAccel);
+    NON_NEG(runningFrictionAccel);
+    NON_NEG(walkingFrictionAccel);
+    NON_NEG(floatingFrictionAccel);
+
+    NON_NEG(jumpingInitVelocity);
+    NON_NEG(gravityAccel);
+    NON_NEG(gravityMaxSpeed);
+
+    NON_NEG(flyingAccel);
+    NON_NEG(flyingFricAccel);
+
+    NON_NEG(flyingMaxSpeed);
+    NON_NEG(fastFlyingMaxSpeed);
+
+    NON_NEG(flyingVertAccel);
+    NON_NEG(flyingVertFricAccel);
+    NON_NEG(flyingVertMaxSpeed);
+
+    NON_NEG(cameraMoveXSpeed);
+    NON_NEG(cameraMoveYSpeed);
+
+    NON_NEG(cameraDownReOffset);
+    NON_NEG(cameraUpReOffset);
+
+    NON_NEG(collisionRadius);
+    NON_NEG(collisionHeight);
+
+    return true;
+
+#undef NON_NEG
+}
+
 Player::Player(
     const PlayerParams &params, ChunkManager &chunkManager,
     const Vec3 &initPosition, const DefaultCamera &camera)
 {
+    if(!params.IsValid())
+    {
+        throw VRPGGameException("invalid player params");
+    }
+
     params_       = params;
     chunkManager_ = &chunkManager;
 

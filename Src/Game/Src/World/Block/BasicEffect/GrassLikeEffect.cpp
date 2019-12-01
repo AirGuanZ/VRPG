@@ -103,7 +103,7 @@ void GrassLikeEffectCommon::SetShadowRenderParams(const ShadowRenderParams &para
 
 void GrassLikeEffectCommon::StartForward(ID3D11ShaderResourceView *textureArray)
 {
-    forwardShadowMapping_->Bind();
+    forwardShadowMapping_->StartForward();
     forwardDiffuseTextureSlot_->SetShaderResourceView(textureArray);
     forwardShader_     .Bind();
     forwardUniforms_   .Bind();
@@ -115,7 +115,7 @@ void GrassLikeEffectCommon::EndForward()
     forwardShader_     .Unbind();
     forwardUniforms_   .Unbind();
     forwardInputLayout_.Unbind();
-    forwardShadowMapping_->Unbind();
+    forwardShadowMapping_->EndForward();
 }
 
 void GrassLikeEffectCommon::StartShadow(ID3D11ShaderResourceView *textureArray)

@@ -4,6 +4,9 @@
 
 VRPG_GAME_BEGIN
 
+/**
+ * @brief vertex buffer + index buffer
+ */
 template<typename Vertex, typename Index>
 class MeshComponent
 {

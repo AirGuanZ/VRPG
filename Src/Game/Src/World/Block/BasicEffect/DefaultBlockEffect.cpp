@@ -25,7 +25,7 @@ bool DefaultBlockEffect::IsTransparent() const noexcept
 
 void DefaultBlockEffect::StartForward() const
 {
-    forwardShadowMapping_->Bind();
+    forwardShadowMapping_->StartForward();
     forwardShader_        .Bind();
     forwardUniforms_      .Bind();
     forwardInputLayout_   .Bind();
@@ -36,7 +36,7 @@ void DefaultBlockEffect::EndForward() const
     forwardInputLayout_   .Unbind();
     forwardUniforms_      .Unbind();
     forwardShader_        .Unbind();
-    forwardShadowMapping_->Unbind();
+    forwardShadowMapping_->EndForward();
 }
 
 void DefaultBlockEffect::StartShadow() const

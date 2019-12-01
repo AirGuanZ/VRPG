@@ -129,7 +129,7 @@ bool TransparentBlockEffect::IsTransparent() const noexcept
 
 void TransparentBlockEffect::StartForward() const
 {
-    forwardShadowMapping_->Bind();
+    forwardShadowMapping_->StartForward();
     shader_     .Bind();
     uniforms_   .Bind();
     inputLayout_.Bind();
@@ -144,7 +144,7 @@ void TransparentBlockEffect::EndForward() const
     inputLayout_.Unbind();
     uniforms_   .Unbind();
     shader_     .Unbind();
-    forwardShadowMapping_->Unbind();
+    forwardShadowMapping_->EndForward();
 }
 
 std::unique_ptr<ModelBuilder> TransparentBlockEffect::CreateModelBuilder(const Vec3i &globalSectionPosition) const

@@ -14,7 +14,9 @@ public:
 
     void Done();
 
-    void RenderForward(const ForwardRenderParams &params) const;
+    void RenderForwardOpaque(const ForwardRenderParams &params) const;
+
+    void RenderForwardTransparent(const ForwardRenderParams &params) const;
 
     void RenderShadow(const ShadowRenderParams &params) const;
 

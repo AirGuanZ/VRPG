@@ -94,7 +94,7 @@ void DiffuseSolidBlockEffectCommon::SetShadowRenderParams(const ShadowRenderPara
 
 void DiffuseSolidBlockEffectCommon::StartForward(ID3D11ShaderResourceView *diffuseTextureArray) const
 {
-    forwardShadowMapping->Bind();
+    forwardShadowMapping->StartForward();
 
     forwardDiffuseTextureSlot->SetShaderResourceView(diffuseTextureArray);
     forwardShader     .Bind();
@@ -108,7 +108,7 @@ void DiffuseSolidBlockEffectCommon::EndForward() const
     forwardUniforms   .Unbind();
     forwardInputLayout.Unbind();
 
-    forwardShadowMapping->Unbind();
+    forwardShadowMapping->EndForward();
 }
 
 void DiffuseSolidBlockEffectCommon::StartShadow() const

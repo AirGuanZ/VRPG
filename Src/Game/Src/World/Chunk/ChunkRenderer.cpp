@@ -67,7 +67,7 @@ void ChunkRenderer::Done()
     modelSets_.swap(newSolidModelSets);
 }
 
-void ChunkRenderer::RenderForward(const ForwardRenderParams &params) const
+void ChunkRenderer::RenderForwardOpaque(const ForwardRenderParams &params) const
 {
     for(auto &chunkModelSet : modelSets_)
     {
@@ -88,7 +88,10 @@ void ChunkRenderer::RenderForward(const ForwardRenderParams &params) const
         }
         effect->EndForward();
     }
+}
 
+void ChunkRenderer::RenderForwardTransparent(const ForwardRenderParams &params) const
+{
     if(!transparentModelSet_.empty())
     {
         Vec3 cameraPosition = params.camera->GetPosition();
