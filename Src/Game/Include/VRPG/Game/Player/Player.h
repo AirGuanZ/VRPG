@@ -1,5 +1,6 @@
 #pragma once
 
+#include <VRPG/Game/Mesh/DiffuseSolidMesh.h>
 #include <VRPG/Game/Misc/ScalarHistory.h>
 #include <VRPG/Game/Physics/CollisionPrimitive.h>
 #include <VRPG/Game/Player/Camera/DefaultCamera.h>
@@ -78,6 +79,7 @@ public:
         bool downPressed = false;
 
         bool switchCollisionDown = false;
+        bool switchFirstPerson   = false;
 
         float relativeCursorX = 0;
         float relativeCursorY = 0;
@@ -91,7 +93,9 @@ public:
 
     Vec3 GetVelocity() const noexcept;
 
-    Vec3 GetDirection() const noexcept;
+    Vec3 GetCameraDirection() const noexcept;
+
+    Vec3 GetPlayerDirection() const noexcept;
 
     Collision::AACylinder GetCollision() const noexcept;
 
@@ -101,11 +105,15 @@ public:
 
     void SetCameraWOverH(float wOverH) noexcept;
 
-    void HandleMovement(const UserInput &userInput, float dt);
+    void Update(const UserInput &userInput, float dt);
+
+    void RenderShadow(const ShadowRenderParams &params) const;
+
+    void RenderForward(const ForwardRenderParams &params) const;
 
 private:
 
-    void UpdateDirection(const UserInput &userInput);
+    void UpdateDirection(const UserInput &userInput, float dt);
 
     void UpdateState(const UserInput &userInput, float dt);
 
@@ -155,15 +163,23 @@ private:
     Vec3 velocity_;
     Vec3 lastVelocity_;
 
-    float verticalRadian_;
-    float horizontalRadian_;
+    float cameraVerticalRadian_;
+    float cameraHorizontalRadian_;
+
+    float destPlayerHorizontalRadian_;
+    float playerHorizontalRadian_;
+
     ScalarHistory cursorXHistory_;
     ScalarHistory cursorYHistory_;
 
     bool enableRunning_;
     bool enableCollision_;
 
+    bool firstPerson_;
     PlayerCamera camera_;
+
+    std::shared_ptr<DiffuseSolidMeshEffect> playerEffect_;
+    std::unique_ptr<DiffuseSolidMesh>       playerMesh_;
 };
 
 VRPG_GAME_END

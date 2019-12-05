@@ -62,9 +62,6 @@ private:
 
     std::unique_ptr<ChosenWireframeRenderer> chosenBlockWireframeRenderer_;
     std::optional<Vec3i>                     chosenBlockPosition_;
-
-    std::shared_ptr<DiffuseSolidMeshEffect> meshEffect_;
-    std::unique_ptr<DiffuseSolidMesh> mesh_;
 };
 
 VRPG_GAME_END

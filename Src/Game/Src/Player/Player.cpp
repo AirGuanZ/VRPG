@@ -1,3 +1,4 @@
+#include <VRPG/Game/Config/GlobalConfig.h>
 #include <VRPG/Game/Player/Player.h>
 #include <VRPG/Game/World/Block/BlockCollision.h>
 #include <VRPG/Game/World/Chunk/ChunkManager.h>
@@ -34,7 +35,7 @@ namespace
         return (origin - oriDirLen * dir) + newDirLen * dir;
     }
 
-    Vec3 ComputeXZMoveDirection(const Player::UserInput &userInput, const Vec3 &cameraDirection) noexcept
+    Vec3 ComputeXZMoveDirection(const Player::UserInput &userInput, const Vec3 &playerDirection) noexcept
     {
         int front = static_cast<int>(userInput.frontPressed) - static_cast<int>(userInput.backPressed);
         int left  = static_cast<int>(userInput.leftPressed)  - static_cast<int>(userInput.rightPressed);
@@ -43,8 +44,8 @@ namespace
             return Vec3(0);
         }
 
-        Vec3 horMove = static_cast<float>(front) * Vec3(cameraDirection.x, 0, cameraDirection.z)
-                     - static_cast<float>(left)  * Vec3(cameraDirection.z, 0, -cameraDirection.x);
+        Vec3 horMove = static_cast<float>(front) * Vec3(playerDirection.x, 0, playerDirection.z)
+                     - static_cast<float>(left)  * Vec3(playerDirection.z, 0, -playerDirection.x);
         return horMove.normalize();
     }
     
@@ -190,19 +191,29 @@ Player::Player(
     params_       = params;
     chunkManager_ = &chunkManager;
 
-    camera_ = camera;
+    firstPerson_ = false;
+    camera_      = camera;
 
     state_            = State::Standing;
     onGround_         = true;
     position_         = initPosition;
-    verticalRadian_   = 0;
-    horizontalRadian_ = 0;
+
+    cameraVerticalRadian_   = 0;
+    cameraHorizontalRadian_ = 0;
+
+    destPlayerHorizontalRadian_ = cameraHorizontalRadian_;
+    playerHorizontalRadian_     = destPlayerHorizontalRadian_;
 
     enableRunning_   = false;
     enableCollision_ = true;
 
     cursorXHistory_ = ScalarHistory(4);
     cursorYHistory_ = ScalarHistory(4);
+
+    playerEffect_ = CreateDiffuseSolidMeshEffect();
+    playerMesh_ = DiffuseSolidMesh::LoadFromConfig(playerEffect_, GLOBAL_CONFIG.ASSET_PATH["Player"]["Mesh"]);
+    playerMesh_->SetCurrentAnimation("Walking");
+    playerMesh_->EnableAnimationLoop(true);
 }
 
 Vec3 Player::GetPosition() const noexcept
@@ -215,12 +226,20 @@ Vec3 Player::GetVelocity() const noexcept
     return velocity_;
 }
 
-Vec3 Player::GetDirection() const noexcept
+Vec3 Player::GetCameraDirection() const noexcept
 {
     return Vec3(
-        std::cos(horizontalRadian_),
+        std::cos(cameraHorizontalRadian_),
         0,
-        std::sin(horizontalRadian_));
+        std::sin(cameraHorizontalRadian_));
+}
+
+Vec3 Player::GetPlayerDirection() const noexcept
+{
+    return Vec3(
+        std::cos(playerHorizontalRadian_),
+        0,
+        std::sin(playerHorizontalRadian_));
 }
 
 Collision::AACylinder Player::GetCollision() const noexcept
@@ -243,15 +262,28 @@ void Player::SetCameraWOverH(float wOverH) noexcept
     camera_.SetWOverH(wOverH);
 }
 
-void Player::HandleMovement(const UserInput &userInput, float dt)
+void Player::Update(const UserInput &userInput, float dt)
 {
     if(userInput.switchCollisionDown)
     {
         enableCollision_ = !enableCollision_;
     }
 
-    UpdateDirection(userInput);
+    if(userInput.switchFirstPerson)
+    {
+        firstPerson_ = !firstPerson_;
+    }
+
+    // 更新摄像机方向和角色方向
+
+    UpdateDirection(userInput, dt);
+
+    // 执行状态转移
+
     UpdateState(userInput, dt);
+
+    // 根据速度计算新的位置，并进行碰撞检测与恢复
+    // 在速度过大时，将dt拆成一小段一小段的，防止单帧位移过大导致碰撞检测失效
 
     float moveDt = dt;
     bool onGround = false;
@@ -274,26 +306,128 @@ void Player::HandleMovement(const UserInput &userInput, float dt)
     }
     onGround_ = onGround;
 
-    camera_.SetPosition(position_ + Vec3(0, 1.6f, 0));
+    // 更新player mesh状态
+
+    playerMesh_->SetCurrentAnimationTime(playerMesh_->GetCurrentAnimationTime() + 0.7f);
+    playerMesh_->UpdateBoneTransform();
+    playerMesh_->SetWorldTransform(
+        Trans4::rotate_y(-playerHorizontalRadian_ - agz::math::PI_f / 2)
+      * Trans4::translate(position_));
+
+    // 更新摄像机位置
+
+    if(firstPerson_)
+    {
+        camera_.SetPosition(position_ + Vec3(0, 1.6f, 0));
+    }
+    else
+    {
+        camera_.SetPosition(position_ + Vec3(0, 1.8f, 0) - camera_.GetDirection() * 4.0f);
+    }
 }
 
-void Player::UpdateDirection(const UserInput &userInput)
+void Player::RenderShadow(const ShadowRenderParams &params) const
 {
+    playerEffect_->SetShadowRenderParams(params);
+    playerEffect_->StartShadow();
+    playerMesh_->RenderShadow(params);
+    playerEffect_->EndShadow();
+}
+
+void Player::RenderForward(const ForwardRenderParams &params) const
+{
+    if(!firstPerson_)
+    {
+        playerMesh_->SetBrightness(Vec4(0, 0, 0, 1));
+        playerEffect_->SetForwardRenderParams(params);
+        playerEffect_->StartForward();
+        playerMesh_->RenderForward(params);
+        playerEffect_->EndForward();
+    }
+}
+
+void Player::UpdateDirection(const UserInput &userInput, float dt)
+{
+    // 更新摄像机方向
+
     constexpr float PI = agz::math::PI_f;
     constexpr float PI_2 = 2 * PI;
 
     cursorXHistory_.Update(userInput.relativeCursorX);
     cursorYHistory_.Update(userInput.relativeCursorY);
 
-    verticalRadian_   -= params_.cameraMoveYSpeed * cursorYHistory_.MeanValue();
-    horizontalRadian_ -= params_.cameraMoveXSpeed * cursorXHistory_.MeanValue();
+    cameraVerticalRadian_   -= params_.cameraMoveYSpeed * cursorYHistory_.MeanValue();
+    cameraHorizontalRadian_ -= params_.cameraMoveXSpeed * cursorXHistory_.MeanValue();
 
-    verticalRadian_ = agz::math::clamp(
-        verticalRadian_, -PI / 2 + params_.cameraDownReOffset, PI / 2 - params_.cameraUpReOffset);
-    while(horizontalRadian_ > PI_2) horizontalRadian_ -= PI_2;
-    while(horizontalRadian_ < 0)    horizontalRadian_ += PI_2;
+    cameraVerticalRadian_ = agz::math::clamp(
+        cameraVerticalRadian_, -PI / 2 + params_.cameraDownReOffset, PI / 2 - params_.cameraUpReOffset);
 
-    camera_.SetDirection(verticalRadian_, horizontalRadian_);
+    cameraHorizontalRadian_ = std::fmod(cameraHorizontalRadian_, PI_2);
+
+    camera_.SetDirection(cameraVerticalRadian_, cameraHorizontalRadian_);
+
+    // 更新角色目标方向
+
+    if(HasMoving(userInput))
+    {
+        auto horMove = ComputeXZMoveDirection(userInput, camera_.GetDirection());
+        destPlayerHorizontalRadian_ = std::atan2(horMove.z, horMove.x);
+    }
+
+    // 让角色方向往目标方向靠拢
+
+    playerHorizontalRadian_     = std::fmod(playerHorizontalRadian_,     PI_2);
+    destPlayerHorizontalRadian_ = std::fmod(destPlayerHorizontalRadian_, PI_2);
+
+    if(firstPerson_)
+    {
+        playerHorizontalRadian_ = destPlayerHorizontalRadian_;
+    }
+    else
+    {
+        // 让player radian减小到dest radian所需要减小的弧度大小
+
+        float playerMinusDest = playerHorizontalRadian_ - destPlayerHorizontalRadian_;
+        if(playerMinusDest < 0)
+        {
+            playerMinusDest += PI_2;
+        }
+
+        // 让player radian增加到dest radian所需要增加的弧度大小
+
+        float destMinusPlayer = destPlayerHorizontalRadian_ - playerHorizontalRadian_;
+        if(destMinusPlayer < 0)
+        {
+            destMinusPlayer += PI_2;
+        }
+
+        // 哪个更小取哪个
+
+        if(playerMinusDest < destMinusPlayer)
+        {
+            if(playerMinusDest > 0.75f * PI)
+            {
+                playerHorizontalRadian_ = destPlayerHorizontalRadian_;
+            }
+            else
+            {
+                // 减小一点player radian
+                playerHorizontalRadian_ -= (std::min)(dt * 6, playerMinusDest);
+            }
+        }
+        else
+        {
+            if(destMinusPlayer > 0.75f * PI)
+            {
+                playerHorizontalRadian_ = destPlayerHorizontalRadian_;
+            }
+            else
+            {
+                // 增加一点player radian
+                playerHorizontalRadian_ += (std::min)(dt * 6, destMinusPlayer);
+            }
+        }
+    }
 }
 
 void Player::UpdateState(const UserInput &userInput, float dt)
@@ -441,7 +575,7 @@ void Player::UpdatePosition(float dt)
     float maxResolvedDeltaLen     = (std::max)(0.0f, dot(deltaPosition, resolvedDeltaDir));
     float clampedResolvedDeltaLen = (std::min)(resolvedDeltaPositionLen, maxResolvedDeltaLen);
 
-    position_ += clampedResolvedDeltaLen * resolvedDeltaDir;;
+    position_ += clampedResolvedDeltaLen * resolvedDeltaDir;
 }
 
 bool Player::HasMoving(const UserInput &userInput) noexcept
@@ -627,8 +761,11 @@ void Player::ApplyState_Walking(const UserInput &userInput, float dt)
         velocity_ = CombineFriction(velocity_, fricDir, dt * params_.walkingFrictionAccel, 0);
     }
 
-    Vec3 horMove = ComputeXZMoveDirection(userInput, camera_.GetDirection());
-    velocity_ = CombineAccel(velocity_, horMove, dt * params_.walkingAccel, params_.walkingMaxSpeed);
+    if(HasMoving(userInput))
+    {
+        Vec3 horMove = GetPlayerDirection();//ComputeXZMoveDirection(userInput, GetPlayerDirection());
+        velocity_ = CombineAccel(velocity_, horMove, dt * params_.walkingAccel, params_.walkingMaxSpeed);
+    }
 }
 
 void Player::ApplyState_Running(const UserInput &userInput, float dt)
@@ -642,8 +779,11 @@ void Player::ApplyState_Running(const UserInput &userInput, float dt)
         velocity_ = CombineFriction(velocity_, fricDir, dt * params_.runningFrictionAccel, 0);
     }
 
-    Vec3 horMove = ComputeXZMoveDirection(userInput, camera_.GetDirection());
-    velocity_ = CombineAccel(velocity_, horMove, dt * params_.runningAccel, params_.runningMaxSpeed);
+    if(HasMoving(userInput))
+    {
+        Vec3 horMove = GetPlayerDirection();//ComputeXZMoveDirection(userInput, GetPlayerDirection());
+        velocity_ = CombineAccel(velocity_, horMove, dt * params_.runningAccel, params_.runningMaxSpeed);
+    }
 }
 
 void Player::ApplyState_Floating(const UserInput &userInput, float dt)
@@ -663,8 +803,11 @@ void Player::ApplyState_Floating(const UserInput &userInput, float dt)
         floatingMaxSpeed *= params_.runningMaxSpeed / params_.walkingMaxSpeed;
     }
 
-    Vec3 horMove = ComputeXZMoveDirection(userInput, camera_.GetDirection());
-    velocity_ = CombineAccel(velocity_, horMove, dt * params_.floatingAccel, floatingMaxSpeed);
+    if(HasMoving(userInput))
+    {
+        Vec3 horMove = GetPlayerDirection();//ComputeXZMoveDirection(userInput, GetPlayerDirection());
+        velocity_ = CombineAccel(velocity_, horMove, dt * params_.floatingAccel, floatingMaxSpeed);
+    }
 }
 
 void Player::ApplyState_Flying(const UserInput &userInput, float dt)
@@ -682,8 +825,11 @@ void Player::ApplyState_Flying(const UserInput &userInput, float dt)
         velocity_ = CombineFriction(velocity_, vertFricDir, dt * params_.flyingVertFricAccel, 0);
     }
 
-    Vec3 horiMove = ComputeXZMoveDirection(userInput, camera_.GetDirection());
-    velocity_ = CombineAccel(velocity_, horiMove, dt * params_.flyingAccel, params_.flyingMaxSpeed);
+    if(HasMoving(userInput))
+    {
+        Vec3 horiMove = GetPlayerDirection();//ComputeXZMoveDirection(userInput, GetPlayerDirection());
+        velocity_ = CombineAccel(velocity_, horiMove, dt * params_.flyingAccel, params_.flyingMaxSpeed);
+    }
 
     if(userInput.upPressed ^ userInput.downPressed)
     {
@@ -709,8 +855,11 @@ void Player::ApplyState_FastFlying(const UserInput &userInput, float dt)
         velocity_ = CombineFriction(velocity_, vertFricDir, dt * params_.flyingVertFricAccel, 0);
     }
 
-    Vec3 horiMove = ComputeXZMoveDirection(userInput, camera_.GetDirection());
-    velocity_ = CombineAccel(velocity_, horiMove, dt * params_.flyingAccel, params_.fastFlyingMaxSpeed);
+    if(HasMoving(userInput))
+    {
+        Vec3 horiMove = GetPlayerDirection();//ComputeXZMoveDirection(userInput, GetPlayerDirection());
+        velocity_ = CombineAccel(velocity_, horiMove, dt * params_.flyingAccel, params_.fastFlyingMaxSpeed);
+    }
 
     if(userInput.upPressed ^ userInput.downPressed)
     {

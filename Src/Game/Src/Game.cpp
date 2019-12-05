@@ -146,15 +146,6 @@ void Game::Initialize()
 
     player_ = std::make_unique<Player>(playerParams, *chunkManager_, Vec3{ 0, 40, 0 }, camera);
 
-    spdlog::info("initialize mesh");
-
-    meshEffect_ = CreateDiffuseSolidMeshEffect();
-    mesh_ = DiffuseSolidMesh::LoadFromConfig(meshEffect_, GLOBAL_CONFIG.ASSET_PATH["Mesh"]["Mesh"]);
-    mesh_->SetCurrentAnimation("Walking");
-    mesh_->SetWorldTransform(Trans4::translate(0, 21, 0));
-    mesh_->SetCurrentAnimationTime(0);
-    mesh_->EnableAnimationLoop(true);
-
     spdlog::info("hide cursor");
 
     HideCursor();
@@ -294,10 +285,6 @@ void Game::Render(int fps)
     }
     ImGui::End();
 
-    mesh_->SetCurrentAnimationTime(mesh_->GetCurrentAnimationTime() + 0.5f);
-    mesh_->SetBrightness(Vec4(0, 0, 0, 1));
-    mesh_->UpdateBoneTransform();
-
     CSM_->UpdateCSMParams(camera);
 
     ShadowRenderParams shadowParams;
@@ -306,28 +293,19 @@ void Game::Render(int fps)
     chunkRenderer_->RenderShadow(shadowParams);
     CSM_->FillNearShadowParams(shadowParams);
     chunkRenderer_->RenderShadow(shadowParams);
-    meshEffect_->SetShadowRenderParams(shadowParams);
-    meshEffect_->StartShadow();
-    mesh_->RenderShadow(shadowParams);
-    meshEffect_->EndShadow();
+    player_->RenderShadow(shadowParams);
     CSM_->EndNear();
 
     CSM_->StartMiddle();
     CSM_->FillMiddleShadowParams(shadowParams);
     chunkRenderer_->RenderShadow(shadowParams);
-    meshEffect_->SetShadowRenderParams(shadowParams);
-    meshEffect_->StartShadow();
-    mesh_->RenderShadow(shadowParams);
-    meshEffect_->EndShadow();
+    player_->RenderShadow(shadowParams);
     CSM_->EndMiddle();
 
     CSM_->StartFar();
     CSM_->FillFarShadowParams(shadowParams);
     chunkRenderer_->RenderShadow(shadowParams);
-    meshEffect_->SetShadowRenderParams(shadowParams);
-    meshEffect_->StartShadow();
-    mesh_->RenderShadow(shadowParams);
-    meshEffect_->EndShadow();
+    player_->RenderShadow(shadowParams);
     CSM_->EndFar();
 
     static const Vec4 backgroundColor = Vec4(0.7f, 1, 1, 0).map(
@@ -343,10 +321,7 @@ void Game::Render(int fps)
 
         chunkRenderer_->RenderForwardOpaque(params);
 
-        meshEffect_->SetForwardRenderParams(params);
-        meshEffect_->StartForward();
-        mesh_->RenderForward(params);
-        meshEffect_->EndForward();
+        player_->RenderForward(params);
 
         chunkRenderer_->RenderForwardTransparent(params);
     }
@@ -383,6 +358,7 @@ void Game::UpdatePlayer(float deltaT)
 
     input.runDown             = keyboard_->IsKeyDown(Base::KEY_LCTRL);
     input.switchCollisionDown = keyboard_->IsKeyDown(Base::KEY_F1);
+    input.switchFirstPerson   = keyboard_->IsKeyDown(Base::KEY_F3);
 
     input.flyDown     = keyboard_->IsKeyDown(Base::KEY_F2);
     input.downPressed = keyboard_->IsKeyPressed(Base::KEY_LSHIFT);
@@ -392,7 +368,7 @@ void Game::UpdatePlayer(float deltaT)
     input.relativeCursorY = float(mouse_->GetRelativeCursorPositionY());
 
     player_->SetCameraWOverH(window_->GetClientAspectRatio());
-    player_->HandleMovement(input, deltaT);
+    player_->Update(input, deltaT);
 }
 
 void Game::UpdateCentreChunk()

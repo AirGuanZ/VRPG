@@ -22,10 +22,10 @@ void GrassLikeEffectCommon::InitializeForward()
 
     forwardInputLayout_ = InputLayoutBuilder
         ("POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT,    offsetof(GrassLikeEffect::Vertex, position))
-        ("TEXCOORD",   0, DXGI_FORMAT_R32G32_FLOAT,       offsetof(GrassLikeEffect::Vertex, texCoord))
         ("NORMAL",     0, DXGI_FORMAT_R32G32B32_FLOAT,    offsetof(GrassLikeEffect::Vertex, normal))
-        ("TEXINDEX",   0, DXGI_FORMAT_R32_UINT,           offsetof(GrassLikeEffect::Vertex, texIndex))
+        ("TEXCOORD",   0, DXGI_FORMAT_R32G32_FLOAT,       offsetof(GrassLikeEffect::Vertex, texCoord))
         ("BRIGHTNESS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, offsetof(GrassLikeEffect::Vertex, brightness))
+        ("TEXINDEX",   0, DXGI_FORMAT_R32_UINT,           offsetof(GrassLikeEffect::Vertex, texIndex))
         .Build(forwardShader_.GetVertexShaderByteCode());
 
     forwardVSTransform_.Initialize(true, nullptr);
