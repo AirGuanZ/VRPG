@@ -1,4 +1,4 @@
-#include <type_traits>
+﻿#include <type_traits>
 
 #include <VRPG/Game/Mesh/BasicEffect/DiffuseSolidMeshEffect.h>
 #include <VRPG/Game/Config/GlobalConfig.h>

@@ -1,4 +1,4 @@
-#include <VRPG/Mesh/MeshComponent.h>
+﻿#include <VRPG/Mesh/MeshComponent.h>
 #include <VRPG/Mesh/Utility.h>
 
 VRPG_MESH_BEGIN

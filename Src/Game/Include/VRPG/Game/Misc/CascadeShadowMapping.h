@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <VRPG/Game/Player/Camera/Camera.h>
 #include <VRPG/Game/World/Block/BlockEffect.h>

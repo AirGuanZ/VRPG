@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <agz/utility/image.h>
 #include <agz/utility/texture.h>

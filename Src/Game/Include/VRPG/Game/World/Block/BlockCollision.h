@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <VRPG/Game/Physics/CollisionPrimitive.h>
 #include <VRPG/Game/World/Block/BlockOrientation.h>

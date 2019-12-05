@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <VRPG/Game/World/Block/BasicEffect/GrassLikeEffect.h>
 #include <VRPG/Game/World/Block/BlockDescription.h>

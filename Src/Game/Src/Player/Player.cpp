@@ -1,4 +1,4 @@
-#include <VRPG/Game/Config/GlobalConfig.h>
+﻿#include <VRPG/Game/Config/GlobalConfig.h>
 #include <VRPG/Game/Player/Player.h>
 #include <VRPG/Game/World/Block/BlockCollision.h>
 #include <VRPG/Game/World/Chunk/ChunkManager.h>

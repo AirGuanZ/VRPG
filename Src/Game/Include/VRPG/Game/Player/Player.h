@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <VRPG/Game/Mesh/DiffuseSolidMesh.h>
 #include <VRPG/Game/Misc/ScalarHistory.h>

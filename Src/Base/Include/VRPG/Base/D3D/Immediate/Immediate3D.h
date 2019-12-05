@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <VRPG/Base/D3D/Buffer/ConstantBuffer.h>
 #include <VRPG/Base/D3D/Buffer/VertexBuffer.h>

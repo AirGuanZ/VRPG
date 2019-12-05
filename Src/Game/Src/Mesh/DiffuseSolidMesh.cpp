@@ -1,4 +1,4 @@
-#include <fstream>
+﻿#include <fstream>
 
 #include <VRPG/Game/Mesh/DiffuseSolidMesh.h>
 

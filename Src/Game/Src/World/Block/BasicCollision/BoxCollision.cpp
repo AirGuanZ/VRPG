@@ -1,4 +1,4 @@
-#include <VRPG/Game/Misc/RayBoxIntersect.h>
+﻿#include <VRPG/Game/Misc/RayBoxIntersect.h>
 #include <VRPG/Game/World/Block/BasicCollision/BoxCollision.h>
 
 VRPG_GAME_BEGIN

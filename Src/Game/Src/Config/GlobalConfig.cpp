@@ -1,4 +1,4 @@
-#include <agz/utility/string.h>
+﻿#include <agz/utility/string.h>
 
 #include <VRPG/Game/Config/GlobalConfig.h>
 

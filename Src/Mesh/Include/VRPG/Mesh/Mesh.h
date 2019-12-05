@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <VRPG/Mesh/MeshComponent.h>
 #include <VRPG/Mesh/SkeletonAnimation.h>

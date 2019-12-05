@@ -1,4 +1,4 @@
-#include <limits>
+﻿#include <limits>
 
 #include <VRPG/Mesh/SkeletonAnimation.h>
 #include <VRPG/Mesh/Utility.h>

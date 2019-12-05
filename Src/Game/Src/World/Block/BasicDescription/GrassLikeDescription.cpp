@@ -1,4 +1,4 @@
-#include <VRPG/Game/World/Block/BasicCollision/BoxCollision.h>
+﻿#include <VRPG/Game/World/Block/BasicCollision/BoxCollision.h>
 #include <VRPG/Game/World/Block/BasicDescription/GrassLikeDescription.h>
 
 VRPG_GAME_BEGIN
