@@ -100,6 +100,11 @@ void DiffuseSolidMesh::SetCurrentAnimationTime(float timePoint)
     animationState_.SetCurrentAnimationTime(timePoint);
 }
 
+void DiffuseSolidMesh::AddAnimationTime(float deltaTime)
+{
+    animationState_.AddAnimationTime(deltaTime);
+}
+
 void DiffuseSolidMesh::RenderForward(const ForwardRenderParams &params) const
 {
     const Mat4 &viewProj = params.camera->GetViewProjectionMatrix();

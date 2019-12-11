@@ -156,7 +156,7 @@ public:
         Record &operator=(Record &&) noexcept = default;
     };
 
-    using RecordTable = std::map<std::string, Record>;
+    using RecordTable = std::map<std::string, Record, std::less<>>;
 
     ShaderResourceSlotManager() = default;
     ~ShaderResourceSlotManager() = default;
@@ -210,6 +210,24 @@ public:
         {
             it.second.shaderResourceViewSlot.Unbind();
         }
+    }
+
+    template<typename NameIt>
+    ShaderResourceSlotManager<STAGE> ExtractPartialManager(NameIt begin, NameIt end)
+    {
+        RecordTable partialTable;
+        for(auto it = begin; it != end; ++it)
+        {
+            auto key = std::string_view(*it);
+            auto itInTable = table_.find(key);
+            if(itInTable == table_.end())
+            {
+                continue;
+            }
+            partialTable.insert(std::make_pair(std::string(key), std::move(itInTable->second)));
+            table_.erase(itInTable);
+        }
+        return ShaderResourceSlotManager<STAGE>(std::move(partialTable));
     }
 
 private:

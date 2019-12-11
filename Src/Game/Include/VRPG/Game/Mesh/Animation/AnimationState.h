@@ -46,6 +46,13 @@ public:
     void SetCurrentAnimationTime(float timePoint) noexcept;
 
     /**
+     * @brief 时间流逝
+     *
+     * 若开启了循环播放，超出当前动画结束时间的时刻值会对结束时间取余
+     */
+    void AddAnimationTime(float deltaTime) noexcept;
+
+    /**
      * @brief 是否开启了循环播放
      */
     bool IsAnimationLoopEnabled() const noexcept;
@@ -131,6 +138,11 @@ inline void AnimationState::SetCurrentAnimationTime(float timePoint) noexcept
             animationTime_ = endTime;
         }
     }
+}
+
+inline void AnimationState::AddAnimationTime(float deltaTime) noexcept
+{
+    SetCurrentAnimationTime(GetCurrentAnimationTime() + deltaTime);
 }
 
 inline float AnimationState::GetCurrentAnimationTime() const noexcept

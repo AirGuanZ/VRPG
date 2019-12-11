@@ -3,8 +3,6 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 
-#include <agz/utility/system.h>
-
 #include <VRPG/Base/D3D/Shader/ConstantBufferSlot.h>
 #include <VRPG/Base/D3D/Shader/Reflection.h>
 #include <VRPG/Base/D3D/Shader/SamplerSlot.h>
@@ -30,7 +28,7 @@ namespace Impl
             return "vs_5_0";
         }
 
-#ifdef AGZ_DEBUG
+#ifdef _DEBUG
         static constexpr UINT COMPILER_FLAGS = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #else
         static constexpr UINT COMPILER_FLAGS = 0;

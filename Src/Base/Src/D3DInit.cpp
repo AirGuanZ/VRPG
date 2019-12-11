@@ -1,5 +1,4 @@
 ﻿#include <agz/utility/misc.h>
-#include <agz/utility/system.h>
 
 #include "D3DInit.h"
 
@@ -10,7 +9,7 @@ std::pair<ID3D11Device*, ID3D11DeviceContext*> CreateD3D11Device()
     D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
 
     UINT createDeviceFlag = 0;
-#ifdef AGZ_DEBUG
+#ifdef _DEBUG
     createDeviceFlag |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
@@ -44,6 +43,11 @@ IDXGISwapChain *CreateD3D11SwapChain(
     bufDesc.Format                  = swapChainBufferFormat;
     bufDesc.ScanlineOrdering        = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
     bufDesc.Scaling                 = DXGI_MODE_SCALING_UNSPECIFIED;
+
+    if(sampleCount > D3D11_MAX_MULTISAMPLE_SAMPLE_COUNT)
+    {
+        throw VRPGBaseException("invalid multisample count value: " + std::to_string(sampleCount));
+    }
 
     UINT sampleQualityEnd;
     HRESULT hr = device->CheckMultisampleQualityLevels(swapChainBufferFormat, UINT(sampleCount), &sampleQualityEnd);

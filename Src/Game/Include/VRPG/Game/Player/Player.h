@@ -166,8 +166,8 @@ private:
     float cameraVerticalRadian_;
     float cameraHorizontalRadian_;
 
-    float destPlayerHorizontalRadian_;
     float playerHorizontalRadian_;
+    float playerModelHorizontalRadian_;
 
     ScalarHistory cursorXHistory_;
     ScalarHistory cursorYHistory_;

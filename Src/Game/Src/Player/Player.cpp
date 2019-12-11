@@ -201,8 +201,8 @@ Player::Player(
     cameraVerticalRadian_   = 0;
     cameraHorizontalRadian_ = 0;
 
-    destPlayerHorizontalRadian_ = cameraHorizontalRadian_;
-    playerHorizontalRadian_     = destPlayerHorizontalRadian_;
+    playerHorizontalRadian_ = cameraHorizontalRadian_;
+    playerModelHorizontalRadian_     = playerHorizontalRadian_;
 
     enableRunning_   = false;
     enableCollision_ = true;
@@ -311,7 +311,7 @@ void Player::Update(const UserInput &userInput, float dt)
     playerMesh_->SetCurrentAnimationTime(playerMesh_->GetCurrentAnimationTime() + 0.7f);
     playerMesh_->UpdateBoneTransform();
     playerMesh_->SetWorldTransform(
-        Trans4::rotate_y(-playerHorizontalRadian_ - agz::math::PI_f / 2)
+        Trans4::rotate_y(-playerModelHorizontalRadian_ - agz::math::PI_f / 2)
       * Trans4::translate(position_));
 
     // 更新摄像机位置
@@ -362,7 +362,8 @@ void Player::UpdateDirection(const UserInput &userInput, float dt)
     cameraVerticalRadian_ = agz::math::clamp(
         cameraVerticalRadian_, -PI / 2 + params_.cameraDownReOffset, PI / 2 - params_.cameraUpReOffset);
 
-    cameraHorizontalRadian_ = std::fmod(cameraHorizontalRadian_, PI_2);
+    while(cameraHorizontalRadian_ < 0)    cameraHorizontalRadian_ += PI_2;
+    while(cameraHorizontalRadian_ > PI_2) cameraHorizontalRadian_ -= PI_2;
 
     camera_.SetDirection(cameraVerticalRadian_, cameraHorizontalRadian_);
 
@@ -371,23 +372,26 @@ void Player::UpdateDirection(const UserInput &userInput, float dt)
     if(HasMoving(userInput))
     {
         auto horMove = ComputeXZMoveDirection(userInput, camera_.GetDirection());
-        destPlayerHorizontalRadian_ = std::atan2(horMove.z, horMove.x);
+        playerHorizontalRadian_ = std::atan2(horMove.z, horMove.x);
     }
 
     // 让角色方向往目标方向靠拢
 
-    playerHorizontalRadian_     = std::fmod(playerHorizontalRadian_,     PI_2);
-    destPlayerHorizontalRadian_ = std::fmod(destPlayerHorizontalRadian_, PI_2);
+    while(playerModelHorizontalRadian_ < 0)    playerModelHorizontalRadian_ += PI_2;
+    while(playerModelHorizontalRadian_ > PI_2) playerModelHorizontalRadian_ -= PI_2;
+    
+    while(playerHorizontalRadian_ < 0)    playerHorizontalRadian_ += PI_2;
+    while(playerHorizontalRadian_ > PI_2) playerHorizontalRadian_ -= PI_2;
 
     if(firstPerson_)
     {
-        playerHorizontalRadian_ = destPlayerHorizontalRadian_;
+        playerModelHorizontalRadian_ = playerHorizontalRadian_;
     }
     else
     {
         // 让player radian减小到dest radian所需要减小的弧度大小
 
-        float playerMinusDest = playerHorizontalRadian_ - destPlayerHorizontalRadian_;
+        float playerMinusDest = playerModelHorizontalRadian_ - playerHorizontalRadian_;
         if(playerMinusDest < 0)
         {
             playerMinusDest += PI_2;
@@ -395,7 +399,7 @@ void Player::UpdateDirection(const UserInput &userInput, float dt)
 
         // 让player radian增加到dest radian所需要增加的弧度大小
 
-        float destMinusPlayer = destPlayerHorizontalRadian_ - playerHorizontalRadian_;
+        float destMinusPlayer = playerHorizontalRadian_ - playerModelHorizontalRadian_;
         if(destMinusPlayer < 0)
         {
             destMinusPlayer += PI_2;
@@ -407,24 +411,24 @@ void Player::UpdateDirection(const UserInput &userInput, float dt)
         {
             if(playerMinusDest > 0.75f * PI)
             {
-                playerHorizontalRadian_ = destPlayerHorizontalRadian_;
+                playerModelHorizontalRadian_ = playerHorizontalRadian_;
             }
             else
             {
                 // 减小一点player radian
-                playerHorizontalRadian_ -= (std::min)(dt * 6, playerMinusDest);
+                playerModelHorizontalRadian_ -= (std::min)(dt * 6, playerMinusDest);
             }
         }
         else
         {
             if(destMinusPlayer > 0.75f * PI)
             {
-                playerHorizontalRadian_ = destPlayerHorizontalRadian_;
+                playerModelHorizontalRadian_ = playerHorizontalRadian_;
             }
             else
             {
                 // 增加一点player radian
-                playerHorizontalRadian_ += (std::min)(dt * 6, destMinusPlayer);
+                playerModelHorizontalRadian_ += (std::min)(dt * 6, destMinusPlayer);
             }
         }
     }
@@ -440,18 +444,18 @@ void Player::UpdateState(const UserInput &userInput, float dt)
     case State::Running:    newState = TransState_Running     (userInput); break;
     case State::Floating:   newState = TransState_Floating    (userInput); break;
     case State::Flying:     newState = TransState_Flying      (userInput); break;
-    case State::FastFlying: newState = TransState_FastFlying(userInput); break;
+    case State::FastFlying: newState = TransState_FastFlying  (userInput); break;
     }
 
     if(newState != state_)
     {
         switch(newState)
         {
-        case State::Standing:   InitState_Standing(userInput); break;
-        case State::Walking:    InitState_Walking (userInput); break;
-        case State::Running:    InitState_Running (userInput); break;
-        case State::Floating:   InitState_Floating(userInput); break;
-        case State::Flying:     InitState_Flying  (userInput); break;
+        case State::Standing:   InitState_Standing  (userInput); break;
+        case State::Walking:    InitState_Walking   (userInput); break;
+        case State::Running:    InitState_Running   (userInput); break;
+        case State::Floating:   InitState_Floating  (userInput); break;
+        case State::Flying:     InitState_Flying    (userInput); break;
         case State::FastFlying: InitState_FastFlying(userInput); break;
         }
         state_ = newState;
@@ -459,11 +463,11 @@ void Player::UpdateState(const UserInput &userInput, float dt)
 
     switch(state_)
     {
-    case State::Standing:   ApplyState_Standing(userInput, dt); break;
-    case State::Walking:    ApplyState_Walking (userInput, dt); break;
-    case State::Running:    ApplyState_Running (userInput, dt); break;
-    case State::Floating:   ApplyState_Floating(userInput, dt); break;
-    case State::Flying:     ApplyState_Flying(userInput, dt);   break;
+    case State::Standing:   ApplyState_Standing  (userInput, dt); break;
+    case State::Walking:    ApplyState_Walking   (userInput, dt); break;
+    case State::Running:    ApplyState_Running   (userInput, dt); break;
+    case State::Floating:   ApplyState_Floating  (userInput, dt); break;
+    case State::Flying:     ApplyState_Flying    (userInput, dt); break;
     case State::FastFlying: ApplyState_FastFlying(userInput, dt); break;
     }
 }
@@ -763,7 +767,7 @@ void Player::ApplyState_Walking(const UserInput &userInput, float dt)
 
     if(HasMoving(userInput))
     {
-        Vec3 horMove = GetPlayerDirection();//ComputeXZMoveDirection(userInput, GetPlayerDirection());
+        Vec3 horMove = GetPlayerDirection();
         velocity_ = CombineAccel(velocity_, horMove, dt * params_.walkingAccel, params_.walkingMaxSpeed);
     }
 }
@@ -781,7 +785,7 @@ void Player::ApplyState_Running(const UserInput &userInput, float dt)
 
     if(HasMoving(userInput))
     {
-        Vec3 horMove = GetPlayerDirection();//ComputeXZMoveDirection(userInput, GetPlayerDirection());
+        Vec3 horMove = GetPlayerDirection();
         velocity_ = CombineAccel(velocity_, horMove, dt * params_.runningAccel, params_.runningMaxSpeed);
     }
 }
@@ -805,7 +809,7 @@ void Player::ApplyState_Floating(const UserInput &userInput, float dt)
 
     if(HasMoving(userInput))
     {
-        Vec3 horMove = GetPlayerDirection();//ComputeXZMoveDirection(userInput, GetPlayerDirection());
+        Vec3 horMove = GetPlayerDirection();
         velocity_ = CombineAccel(velocity_, horMove, dt * params_.floatingAccel, floatingMaxSpeed);
     }
 }
@@ -827,7 +831,7 @@ void Player::ApplyState_Flying(const UserInput &userInput, float dt)
 
     if(HasMoving(userInput))
     {
-        Vec3 horiMove = GetPlayerDirection();//ComputeXZMoveDirection(userInput, GetPlayerDirection());
+        Vec3 horiMove = GetPlayerDirection();
         velocity_ = CombineAccel(velocity_, horiMove, dt * params_.flyingAccel, params_.flyingMaxSpeed);
     }
 
@@ -857,7 +861,7 @@ void Player::ApplyState_FastFlying(const UserInput &userInput, float dt)
 
     if(HasMoving(userInput))
     {
-        Vec3 horiMove = GetPlayerDirection();//ComputeXZMoveDirection(userInput, GetPlayerDirection());
+        Vec3 horiMove = GetPlayerDirection();
         velocity_ = CombineAccel(velocity_, horiMove, dt * params_.flyingAccel, params_.fastFlyingMaxSpeed);
     }
 

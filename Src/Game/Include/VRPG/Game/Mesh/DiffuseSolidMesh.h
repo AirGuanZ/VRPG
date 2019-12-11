@@ -97,6 +97,13 @@ public:
     void SetCurrentAnimationTime(float timePoint);
 
     /**
+     * @brief 动画时间流逝
+     *
+     * 若开启了循环播放，超出当前动画结束时间的值会对结束时间取余
+     */
+    void AddAnimationTime(float deltaTime);
+
+    /**
      * @brief 执行前向渲染
      *
      * 要求对应effect的StartForward已被调用

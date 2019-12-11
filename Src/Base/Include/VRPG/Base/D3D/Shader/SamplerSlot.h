@@ -63,14 +63,14 @@ public:
         Record() = default;
         ~Record() = default;
 
-        Record(const Record &) = default;
+        Record(const Record &)            = default;
         Record &operator=(const Record &) = default;
 
         Record(Record &&)            noexcept = default;
         Record &operator=(Record &&) noexcept = default;
     };
 
-    using RecordTable = std::map<std::string, Record>;
+    using RecordTable = std::map<std::string, Record, std::less<>>;
 
     SamplerSlotManager() = default;
     ~SamplerSlotManager() = default;
@@ -124,6 +124,24 @@ public:
         {
             it.second.samplerSlot.Unbind();
         }
+    }
+
+    template<typename NameIt>
+    SamplerSlotManager<STAGE> ExtractPartialManager(NameIt begin, NameIt end)
+    {
+        RecordTable partialTable;
+        for(auto it = begin; it != end; ++it)
+        {
+            auto key = std::string_view(*it);
+            auto itInTable = table_.find(key);
+            if(itInTable == table_.end())
+            {
+                continue;
+            }
+            partialTable.insert(std::make_pair(std::string(key), std::move(itInTable->second)));
+            table_.erase(itInTable);
+        }
+        return SamplerSlotManager<STAGE>(std::move(partialTable));
     }
 
 private:

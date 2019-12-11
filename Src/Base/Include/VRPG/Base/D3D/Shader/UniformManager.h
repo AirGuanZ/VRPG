@@ -112,6 +112,20 @@ namespace Impl
             shaderResourceSlotMgr_.Unbind();
             samplerSlotMgr_.Unbind();
         }
+
+        template<typename NameIt>
+        StageUniformManager<STAGE> ExtractPartialManager(
+            NameIt nameBegin, NameIt nameEnd)
+        {
+            StageUniformManager<STAGE> partialManager;
+            partialManager.constantBufferSlotMgr_ = constantBufferSlotMgr_
+                .template ExtractPartialManager<NameIt>(nameBegin, nameEnd);
+            partialManager.samplerSlotMgr_ = samplerSlotMgr_
+                .template ExtractPartialManager<NameIt>(nameBegin, nameEnd);
+            partialManager.shaderResourceSlotMgr_ = shaderResourceSlotMgr_
+                .template ExtractPartialManager<NameIt>(nameBegin, nameEnd);
+            return partialManager;
+        }
     };
 
 } // namespace Impl
@@ -119,20 +133,6 @@ namespace Impl
 template<ShaderStage...STAGES>
 class UniformManager
 {
-    std::tuple<Impl::StageUniformManager<STAGES>...> stageUniformMgrs_;
-
-    template<ShaderStage STAGE>
-    Impl::StageUniformManager<STAGE> *GetStageUniforms()
-    {
-        return &std::get<Impl::StageUniformManager<STAGE>>(stageUniformMgrs_);
-    }
-
-    template<ShaderStage STAGE>
-    const Impl::StageUniformManager<STAGE> *GetStageUniforms() const
-    {
-        return &std::get<Impl::StageUniformManager<STAGE>>(stageUniformMgrs_);
-    }
-
 public:
 
     UniformManager() = default;
@@ -235,6 +235,47 @@ public:
         std::apply(
             [](const auto &...mgr) { ((mgr.Unbind()), ...); },
             stageUniformMgrs_);
+    }
+
+    template<typename T, int STAGE>
+    using StageToType = T;
+
+    template<int...PARTIAL_STAGES>
+    UniformManager<PARTIAL_STAGES...> ExtractPartialManager(const StageToType<std::vector<std::string>, PARTIAL_STAGES>&...names)
+    {
+        UniformManager<PARTIAL_STAGES...> partialManager;
+        ExtractPartialManagerAux(partialManager, names...);
+        return partialManager;
+    }
+
+private:
+
+    std::tuple<Impl::StageUniformManager<STAGES>...> stageUniformMgrs_;
+
+    template<ShaderStage STAGE>
+    Impl::StageUniformManager<STAGE> *GetStageUniforms()
+    {
+        return &std::get<Impl::StageUniformManager<STAGE>>(stageUniformMgrs_);
+    }
+
+    template<ShaderStage STAGE>
+    const Impl::StageUniformManager<STAGE> *GetStageUniforms() const
+    {
+        return &std::get<Impl::StageUniformManager<STAGE>>(stageUniformMgrs_);
+    }
+
+    template<typename PartialManager, int FIRST_STAGE, int SECOND_STAGE, int...OTHER_STAGES>
+    void ExtractPartialManagerAux(
+        PartialManager &partialManager,
+        const StageToType<std::vector<std::string>, FIRST_STAGE> &firstStageNames,
+        const StageToType<std::vector<std::string>, SECOND_STAGE> &secondStageNames,
+        const StageToType<std::vector<std::string>, OTHER_STAGES>&...otherStageNames)
+    {
+        *partialManager.template GetStageUniforms<FIRST_STAGE>() =
+            this->GetStageUniforms<FIRST_STAGE>()->ExtractPartialManager(
+                firstStageNames.begin(), firstStageNames.end());
+        ExtractPartialManagerAux<PartialManager, SECOND_STAGE, OTHER_STAGES...>(
+            partialManager, secondStageNames, otherStageNames...);
     }
 };
 
